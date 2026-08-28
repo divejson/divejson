@@ -38,6 +38,7 @@
         "longitude": 170.669841
       },
       "trip_uuid": "0198a6f0-1111-7030-8000-000000000030",
+      "course_uuid": "0198a6f0-1111-7090-8000-000000000090",
       "dive_site_uuids": [
         "0198a6f0-1111-7040-8000-000000000040",
         "0198a6f0-1111-7041-8000-000000000041"
@@ -302,6 +303,29 @@
       "created_at": "2026-06-01T08:00:00+12:00"
     }
   ],
+  "courses": [
+    {
+      "uuid": "0198a6f0-1111-7090-8000-000000000090",
+      "name": "Normoxic Trimix",
+      "agency": "other",
+      "agency_other": "NZ Tech Diving Society",
+      "status": "completed",
+      "starts_on": "2026-06-30",
+      "ends_on": "2026-07-05",
+      "instructor_name": "J. Harbord",
+      "training_center": "Deep South Divers",
+      "cost": "NZD 1,850",
+      "notes": "Four training dives; the wall dive was the final assessment.",
+      "created_at": "2026-06-01T09:00:00+12:00"
+    },
+    {
+      "uuid": "0198a6f0-1111-7091-8000-000000000091",
+      "name": "Cave 1",
+      "agency": "gue",
+      "status": "planned",
+      "notes": "Booked for the southern winter; no dates confirmed yet."
+    }
+  ],
   "dive_sites": [
     {
       "uuid": "0198a6f0-1111-7040-8000-000000000040",
@@ -402,6 +426,7 @@
       "certified_on": "2025-03-14",
       "instructor_name": "J. Harbord",
       "training_center": "Deep South Divers",
+      "course_uuid": "0198a6f0-1111-7090-8000-000000000090",
       "notes": "",
       "front_file": {
         "uuid": "0198a6f0-1111-7081-8000-000000000081",

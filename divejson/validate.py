@@ -147,6 +147,7 @@ def _semantic_issues(doc: dict[str, Any]) -> list[Issue]:
         for name in (
             "dives",
             "trips",
+            "courses",
             "dive_sites",
             "species",
             "gear_items",
@@ -172,6 +173,7 @@ def _semantic_issues(doc: dict[str, Any]) -> list[Issue]:
         here = f"dives/{index}"
         _check_datetime(dive, "start_time", here, issues)
         _check_reference(dive, "trip_uuid", known["trips"], "trips", here, issues)
+        _check_reference(dive, "course_uuid", known["courses"], "courses", here, issues)
         _check_reference_list(dive, "dive_site_uuids", known["dive_sites"], "dive_sites", here, issues)
         _check_reference_list(dive, "gear_item_uuids", known["gear_items"], "gear_items", here, issues)
         _check_reference_list(dive, "species_uuids", known["species"], "species", here, issues)
@@ -261,8 +263,17 @@ def _semantic_issues(doc: dict[str, Any]) -> list[Issue]:
             "gear_service_schedules", here, issues,
         )
 
+    for index, course in enumerate(collections["courses"]):
+        if _present(course, "starts_on") and _present(course, "ends_on"):
+            try:
+                if course["ends_on"] < course["starts_on"]:
+                    issues.append(Issue(f"courses/{index}", "ends_on precedes starts_on"))
+            except TypeError:
+                pass
+
     for index, certification in enumerate(collections["certifications"]):
         here = f"certifications/{index}"
+        _check_reference(certification, "course_uuid", known["courses"], "courses", here, issues)
         for member in ("front_file", "back_file"):
             stored = certification.get(member)
             if isinstance(stored, dict):

@@ -12,6 +12,7 @@
     "diver": { "$ref": "#/$defs/diver" },
     "dives": { "type": "array", "items": { "$ref": "#/$defs/dive" } },
     "trips": { "type": "array", "items": { "$ref": "#/$defs/trip" } },
+    "courses": { "type": "array", "items": { "$ref": "#/$defs/course" } },
     "dive_sites": { "type": "array", "items": { "$ref": "#/$defs/dive_site" } },
     "species": { "type": "array", "items": { "$ref": "#/$defs/species" } },
     "gear_items": { "type": "array", "items": { "$ref": "#/$defs/gear_item" } },
@@ -123,6 +124,7 @@
         "entry_position": { "$ref": "#/$defs/position" },
         "exit_position": { "$ref": "#/$defs/position" },
         "trip_uuid": { "$ref": "#/$defs/uuid" },
+        "course_uuid": { "$ref": "#/$defs/uuid" },
         "dive_site_uuids": { "$ref": "#/$defs/uuid_list" },
         "gear_item_uuids": { "$ref": "#/$defs/uuid_list" },
         "species_uuids": { "$ref": "#/$defs/uuid_list" },
@@ -247,6 +249,45 @@
       "required": ["name"],
       "additionalProperties": false,
       "dependentRequired": { "bbox": ["position"] }
+    },
+    "course": {
+      "type": "object",
+      "properties": {
+        "uuid": { "$ref": "#/$defs/uuid" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "agency": {
+          "enum": [
+            "padi", "ssi", "naui", "sdi", "tdi", "cmas", "raid", "bsac",
+            "gue", "iantd", "psai", "dan", "efr", "andi", "snsi", "acuc",
+            "pss", "ida", "other"
+          ]
+        },
+        "agency_other": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "status": {
+          "enum": ["planned", "in_progress", "completed", "incomplete", "provisional", "not_passed"]
+        },
+        "starts_on": { "$ref": "#/$defs/date" },
+        "ends_on": { "$ref": "#/$defs/date" },
+        "instructor_name": { "type": "string", "maxLength": 255 },
+        "instructor_number": { "type": "string", "maxLength": 64 },
+        "training_center": { "type": "string", "maxLength": 255 },
+        "cost": { "type": "string", "maxLength": 64 },
+        "notes": { "$ref": "#/$defs/notes" },
+        "created_at": { "$ref": "#/$defs/date_time" },
+        "extensions": { "$ref": "#/$defs/extensions" }
+      },
+      "required": ["uuid", "name", "agency"],
+      "additionalProperties": false,
+      "if": {
+        "properties": { "agency": { "const": "other" } },
+        "required": ["agency"]
+      },
+      "then": {
+        "required": ["agency_other"]
+      },
+      "else": {
+        "not": { "required": ["agency_other"] }
+      }
     },
     "dive_site": {
       "type": "object",
@@ -384,6 +425,7 @@
         "instructor_name": { "type": "string", "maxLength": 255 },
         "instructor_number": { "type": "string", "maxLength": 64 },
         "training_center": { "type": "string", "maxLength": 255 },
+        "course_uuid": { "$ref": "#/$defs/uuid" },
         "notes": { "$ref": "#/$defs/notes" },
         "front_file": { "$ref": "#/$defs/stored_file" },
         "back_file": { "$ref": "#/$defs/stored_file" },

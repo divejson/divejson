@@ -1,7 +1,7 @@
 {
   "format": "divejson",
   "version": "1.0",
-  "exported_at": "2026-08-28T09:48:08.195140+00:00",
+  "exported_at": "2026-09-02T18:27:26.302137+00:00",
   "generator": {
     "name": "Open Diving",
     "version": "0.1.0"
@@ -4003,6 +4003,7 @@
       "ends_on": "2026-07-12"
     }
   ],
+  "courses": [],
   "dive_sites": [
     {
       "uuid": "019fec36-b8bf-7289-9959-05cd3316f256",

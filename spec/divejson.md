@@ -13,8 +13,8 @@ of record is <https://github.com/divejson/divejson>. This document is licensed
 
 A dive log is a diver's property, and it outlives any single application. DiveJSON is a
 JSON document format for moving a complete logbook between applications without loss:
-dives with full sampled profiles, gas mixtures, trips, dive sites, marine-life sightings,
-gear and its service history, and certifications.
+dives with full sampled profiles, gas mixtures, trips, training courses, dive sites,
+marine-life sightings, gear and its service history, and certifications.
 
 The format exists because the field lacks a working interchange format. UDDF, the nominal
 incumbent, is XML, frozen since 2018, and — measurably, in round-trip testing between
@@ -73,8 +73,8 @@ the schema and this list:
 
 1. Identifier uniqueness and referential closure (§5.3).
 2. Cross-member arithmetic: `oxygen + helium ≤ 100` and `end_pressure ≤ start_pressure`
-   on a cylinder (§6.3); `ends_on ≥ starts_on` on a trip (§6.8); `south ≤ north` on a
-   bounding box (§6.9).
+   on a cylinder (§6.3); `ends_on ≥ starts_on` on a trip (§6.8) and on a course
+   (§6.17); `south ≤ north` on a bounding box (§6.9).
 3. Profile series integrity: equal `times`/`values` lengths and strictly increasing
    `times` (§6.5), and `profile.duration` covering the latest sample and event (§6.4).
 4. The offset requirement on `exported_at` (§5.2) — every other date-time may be a
@@ -105,6 +105,7 @@ A DiveJSON document is a single JSON object:
 | `diver` | Diver object (§6.1) | RECOMMENDED | Whose logbook this is. Omitted only when the source records nothing about its owner (§6.1). |
 | `dives` | array of Dive (§6.2) | OPTIONAL | |
 | `trips` | array of Trip (§6.8) | OPTIONAL | |
+| `courses` | array of Course (§6.17) | OPTIONAL | |
 | `dive_sites` | array of Dive Site (§6.10) | OPTIONAL | |
 | `species` | array of Species (§6.11) | OPTIONAL | |
 | `gear_items` | array of Gear Item (§6.12) | OPTIONAL | |
@@ -360,6 +361,7 @@ member overwrite the destination account's own identity or settings.
 | `entry_position` | Position | O | Where the diver entered the water. |
 | `exit_position` | Position | O | Where the diver surfaced. |
 | `trip_uuid` | uuid | O | → `trips`. |
+| `course_uuid` | uuid | O | → `courses` (§6.17). The training course this dive was logged on. |
 | `dive_site_uuids` | array of uuid | O | → `dive_sites`; the first element is the primary site, the remaining order is the diver's own (§5.3). |
 | `gear_item_uuids` | array of uuid | O | → `gear_items`; the diver's own order. |
 | `species_uuids` | array of uuid | O | → `species`; spotting order. |
@@ -596,9 +598,35 @@ One performed maintenance event.
 | `instructor_name` | string | O | ≤ 255. |
 | `instructor_number` | string | O | ≤ 64. |
 | `training_center` | string | O | ≤ 255. |
+| `course_uuid` | uuid | O | → `courses` (§6.17). The course this card came out of. One course can issue several certifications; a certification names at most one course. |
 | `notes` | string | O | ≤ 10000. |
 | `front_file` | Stored File | O | §6.7 — the scan of the card's front. A card has one front and one back, so the members say so; an array with a side discriminator would let a document claim two fronts. |
 | `back_file` | Stored File | O | §6.7. |
+| `created_at` | date-time | O | §5.7. |
+
+### 6.17 Course
+
+A training course. The course carries no list of its dives or certifications — the
+links live on the children (`dives[].course_uuid`, `certifications[].course_uuid`), and
+a reader rebuilds the grouping by walking them, the same direction as trips: the course
+is the thing that keeps existing when a dive is deleted. One course can issue several
+certifications (combined-card programs exist); a dive or certification names at most
+one course.
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `uuid` | uuid | R | |
+| `name` | string | R | 1–255. |
+| `agency` | string | R | The same vocabulary as §6.16's `agency`, shared deliberately — a course and the cards it issued can never name the same agency two ways. The same freeze rule applies (§7). |
+| `agency_other` | string | O | ≤ 64. REQUIRED when `agency` is `"other"`; MUST be absent otherwise — §6.16's pairing rule. |
+| `status` | string | O | One of `"planned"`, `"in_progress"`, `"completed"`, `"incomplete"`, `"provisional"`, `"not_passed"` — a booked course exists before its first dive, a referral leaves one open for months, and some agencies issue provisional passes. Absent means not recorded; readers MUST NOT assume `"completed"` (§5.4). |
+| `starts_on` | date | O | |
+| `ends_on` | date | O | MUST be ≥ `starts_on` when both are present. Each date is independently optional — a planned course has no dates yet, a referral course spans months with fuzzy edges, and a course with only one known date is a real state. |
+| `instructor_name` | string | O | ≤ 255. |
+| `instructor_number` | string | O | ≤ 64. |
+| `training_center` | string | O | ≤ 255. The same trio as §6.16's, duplicated deliberately rather than normalized away: imported history arrives certification-first, with no course to hang the fields on, so a certification stands alone. |
+| `cost` | string | O | ≤ 64. Free text with the currency in it (`"EUR 650"`) — course cost appears in no agency record and nothing in a logbook aggregates money, so the format does not pretend to model it. |
+| `notes` | string | O | ≤ 10000. |
 | `created_at` | date-time | O | §5.7. |
 
 ## 7. Versioning

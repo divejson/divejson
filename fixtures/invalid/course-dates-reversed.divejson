@@ -232,7 +232,8 @@
           },
           {
             "time": 5200,
-            "type": "other"
+            "type": "other",
+            "label": "Tissue ceiling cleared"
           }
         ],
         "extensions": {
@@ -311,7 +312,7 @@
       "agency_other": "NZ Tech Diving Society",
       "status": "completed",
       "starts_on": "2026-06-30",
-      "ends_on": "2026-07-05",
+      "ends_on": "2026-06-01",
       "instructor_name": "J. Harbord",
       "training_center": "Deep South Divers",
       "cost": "NZD 1,850",
