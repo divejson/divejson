@@ -23,7 +23,6 @@
     {
       "uuid": "019fec36-b9ec-71c6-a03e-64f59b8b92b1",
       "dive_number": 45,
-      "start_time": "2026-04-17T11:49:23.510000+02:00",
       "duration": 4001,
       "notes": "Imported from the Suunto Ocean. House-reef checkout dive - profile, temperature and tank pressure pulled straight from the export.",
       "max_depth": 45.91,
@@ -31,14 +30,6 @@
       "bottom_temperature": 22.35,
       "visibility": 20,
       "weight": 6.0,
-      "dive_site_uuids": [
-        "019fec36-b8b8-7cc9-a4b9-ede85f907c94"
-      ],
-      "gear_item_uuids": [
-        "019fec36-b8c7-7265-b1d1-902b7f738bb8",
-        "019fec36-b8d0-7e95-9fa5-a4903b04b6ec",
-        "019fec36-b8d8-724f-a078-779d6be3aad3"
-      ],
       "species_uuids": [],
       "source_file": {
         "uuid": "019fec3c-643c-7771-8f29-8f5530107dc3",
@@ -3732,6 +3723,15 @@
         ]
       },
       "created_at": "2026-08-10T15:07:17.356623Z",
+      "started_at": "2026-04-17T11:49:23.510000+02:00",
+      "site_uuids": [
+        "019fec36-b8b8-7cc9-a4b9-ede85f907c94"
+      ],
+      "gear_uuids": [
+        "019fec36-b8c7-7265-b1d1-902b7f738bb8",
+        "019fec36-b8d0-7e95-9fa5-a4903b04b6ec",
+        "019fec36-b8d8-724f-a078-779d6be3aad3"
+      ],
       "entry_position": {
         "latitude": 28.567251,
         "longitude": 34.533257
@@ -3753,7 +3753,6 @@
     {
       "uuid": "019fec36-b930-7040-9441-cc30beb094e5",
       "dive_number": 38,
-      "start_time": "2026-04-19T08:12:00+02:00",
       "duration": 2880,
       "notes": "First dive on the Thistlegorm. Huge schools of batfish over the deck; swam through hold no. 2 past the Norton motorbikes.",
       "max_depth": 29.6,
@@ -3762,16 +3761,17 @@
       "visibility": 25,
       "weight": 6.0,
       "trip_uuid": "019fec36-b882-7e23-97fa-9e297e8c9701",
-      "dive_site_uuids": [
+      "species_uuids": [],
+      "created_at": "2026-08-10T15:07:17.168304Z",
+      "started_at": "2026-04-19T08:12:00+02:00",
+      "site_uuids": [
         "019fec36-b89a-773e-b886-44717fc4d19f"
       ],
-      "gear_item_uuids": [
+      "gear_uuids": [
         "019fec36-b8c7-7265-b1d1-902b7f738bb8",
         "019fec36-b8d0-7e95-9fa5-a4903b04b6ec",
         "019fec36-b8d8-724f-a078-779d6be3aad3"
       ],
-      "species_uuids": [],
-      "created_at": "2026-08-10T15:07:17.168304Z",
       "cylinders": [
         {
           "volume": 12.0,
@@ -3785,7 +3785,6 @@
     {
       "uuid": "019fec36-b956-794d-aa9d-12b5e8df4cf3",
       "dive_number": 39,
-      "start_time": "2026-04-19T13:40:00+02:00",
       "duration": 3120,
       "notes": "Second run over the stern gun and the locomotives on the seabed. Mild current.",
       "max_depth": 24.8,
@@ -3794,16 +3793,17 @@
       "visibility": 20,
       "weight": 6.0,
       "trip_uuid": "019fec36-b882-7e23-97fa-9e297e8c9701",
-      "dive_site_uuids": [
+      "species_uuids": [],
+      "created_at": "2026-08-10T15:07:17.206204Z",
+      "started_at": "2026-04-19T13:40:00+02:00",
+      "site_uuids": [
         "019fec36-b89a-773e-b886-44717fc4d19f"
       ],
-      "gear_item_uuids": [
+      "gear_uuids": [
         "019fec36-b8c7-7265-b1d1-902b7f738bb8",
         "019fec36-b8d0-7e95-9fa5-a4903b04b6ec",
         "019fec36-b8d8-724f-a078-779d6be3aad3"
       ],
-      "species_uuids": [],
-      "created_at": "2026-08-10T15:07:17.206204Z",
       "cylinders": [
         {
           "volume": 12.0,
@@ -3817,7 +3817,6 @@
     {
       "uuid": "019fec36-b96f-7248-9ef9-9ad4ac4a77df",
       "dive_number": 40,
-      "start_time": "2026-04-21T07:55:00+02:00",
       "duration": 3300,
       "notes": "Classic Shark & Yolanda drift. Napoleon wrasse followed us half the dive.",
       "max_depth": 26.3,
@@ -3826,16 +3825,17 @@
       "visibility": 30,
       "weight": 6.0,
       "trip_uuid": "019fec36-b882-7e23-97fa-9e297e8c9701",
-      "dive_site_uuids": [
+      "species_uuids": [],
+      "created_at": "2026-08-10T15:07:17.231446Z",
+      "started_at": "2026-04-21T07:55:00+02:00",
+      "site_uuids": [
         "019fec36-b8a8-734b-84c1-66963865e729"
       ],
-      "gear_item_uuids": [
+      "gear_uuids": [
         "019fec36-b8c7-7265-b1d1-902b7f738bb8",
         "019fec36-b8d0-7e95-9fa5-a4903b04b6ec",
         "019fec36-b8d8-724f-a078-779d6be3aad3"
       ],
-      "species_uuids": [],
-      "created_at": "2026-08-10T15:07:17.231446Z",
       "cylinders": [
         {
           "volume": 12.0,
@@ -3849,7 +3849,6 @@
     {
       "uuid": "019fec36-b986-7201-82ed-334a6909fc06",
       "dive_number": 41,
-      "start_time": "2026-04-23T09:30:00+02:00",
       "duration": 2820,
       "notes": "Wall dive at Small Brother. Grey reef sharks patrolling at depth; gorgonian fans everywhere.",
       "max_depth": 31.4,
@@ -3858,16 +3857,17 @@
       "visibility": 35,
       "weight": 6.0,
       "trip_uuid": "019fec36-b882-7e23-97fa-9e297e8c9701",
-      "dive_site_uuids": [
+      "species_uuids": [],
+      "created_at": "2026-08-10T15:07:17.254602Z",
+      "started_at": "2026-04-23T09:30:00+02:00",
+      "site_uuids": [
         "019fec36-b8b1-7af6-936f-d40e7cc3cf36"
       ],
-      "gear_item_uuids": [
+      "gear_uuids": [
         "019fec36-b8c7-7265-b1d1-902b7f738bb8",
         "019fec36-b8d0-7e95-9fa5-a4903b04b6ec",
         "019fec36-b8d8-724f-a078-779d6be3aad3"
       ],
-      "species_uuids": [],
-      "created_at": "2026-08-10T15:07:17.254602Z",
       "cylinders": [
         {
           "volume": 12.0,
@@ -3881,7 +3881,6 @@
     {
       "uuid": "019fec36-b99e-7336-bc70-62b71cb857cf",
       "dive_number": 42,
-      "start_time": "2026-07-07T10:05:00+01:00",
       "duration": 3660,
       "notes": "Relaxed bay dive at El Puertito. Three green turtles, one very curious.",
       "max_depth": 12.4,
@@ -3890,16 +3889,17 @@
       "visibility": 15,
       "weight": 8.0,
       "trip_uuid": "019fec36-b88f-714d-a52f-2360218753b8",
-      "dive_site_uuids": [
+      "species_uuids": [],
+      "created_at": "2026-08-10T15:07:17.278050Z",
+      "started_at": "2026-07-07T10:05:00+01:00",
+      "site_uuids": [
         "019fec36-b8b8-7cc9-a4b9-ede85f907c94"
       ],
-      "gear_item_uuids": [
+      "gear_uuids": [
         "019fec36-b8c7-7265-b1d1-902b7f738bb8",
         "019fec36-b8d0-7e95-9fa5-a4903b04b6ec",
         "019fec36-b8d8-724f-a078-779d6be3aad3"
       ],
-      "species_uuids": [],
-      "created_at": "2026-08-10T15:07:17.278050Z",
       "cylinders": [
         {
           "volume": 12.0,
@@ -3913,7 +3913,6 @@
     {
       "uuid": "019fec36-b9b8-7e1d-b28c-901d314c6140",
       "dive_number": 43,
-      "start_time": "2026-07-09T11:20:00+01:00",
       "duration": 2640,
       "notes": "Condesito cargo wreck, plenty of trumpetfish and a ray under the plates.",
       "max_depth": 21.2,
@@ -3922,16 +3921,17 @@
       "visibility": 12,
       "weight": 8.0,
       "trip_uuid": "019fec36-b88f-714d-a52f-2360218753b8",
-      "dive_site_uuids": [
+      "species_uuids": [],
+      "created_at": "2026-08-10T15:07:17.304509Z",
+      "started_at": "2026-07-09T11:20:00+01:00",
+      "site_uuids": [
         "019fec36-b8bf-7289-9959-05cd3316f256"
       ],
-      "gear_item_uuids": [
+      "gear_uuids": [
         "019fec36-b8c7-7265-b1d1-902b7f738bb8",
         "019fec36-b8d0-7e95-9fa5-a4903b04b6ec",
         "019fec36-b8d8-724f-a078-779d6be3aad3"
       ],
-      "species_uuids": [],
-      "created_at": "2026-08-10T15:07:17.304509Z",
       "cylinders": [
         {
           "volume": 12.0,
@@ -3945,7 +3945,6 @@
     {
       "uuid": "019fec36-b9ce-7324-a6a6-59a478a3aa11",
       "dive_number": 44,
-      "start_time": "2026-07-11T09:45:00+01:00",
       "duration": 3480,
       "notes": "Turtle bay again for the last day. Practiced buoyancy runs along the sand.",
       "max_depth": 14.9,
@@ -3954,16 +3953,17 @@
       "visibility": 18,
       "weight": 8.0,
       "trip_uuid": "019fec36-b88f-714d-a52f-2360218753b8",
-      "dive_site_uuids": [
+      "species_uuids": [],
+      "created_at": "2026-08-10T15:07:17.326317Z",
+      "started_at": "2026-07-11T09:45:00+01:00",
+      "site_uuids": [
         "019fec36-b8b8-7cc9-a4b9-ede85f907c94"
       ],
-      "gear_item_uuids": [
+      "gear_uuids": [
         "019fec36-b8c7-7265-b1d1-902b7f738bb8",
         "019fec36-b8d0-7e95-9fa5-a4903b04b6ec",
         "019fec36-b8d8-724f-a078-779d6be3aad3"
       ],
-      "species_uuids": [],
-      "created_at": "2026-08-10T15:07:17.326317Z",
       "cylinders": [
         {
           "volume": 12.0,
@@ -4004,7 +4004,7 @@
     }
   ],
   "courses": [],
-  "dive_sites": [
+  "sites": [
     {
       "uuid": "019fec36-b8bf-7289-9959-05cd3316f256",
       "name": "Condesito Wreck",
@@ -4042,7 +4042,7 @@
     }
   ],
   "species": [],
-  "gear_items": [
+  "gear": [
     {
       "uuid": "019fec36-b8df-725c-9bbc-2d6557f99ed4",
       "name": "5mm Proteus II",
@@ -4093,19 +4093,18 @@
       "uuid": "019fec36-b8e9-73d9-bddd-e1a70aa6a1df",
       "name": "Warm water set",
       "weight": 6.0,
-      "gear_item_uuids": [
+      "created_at": "2026-08-10T15:07:17.097317Z",
+      "gear_uuids": [
         "019fec36-b8c7-7265-b1d1-902b7f738bb8",
         "019fec36-b8d0-7e95-9fa5-a4903b04b6ec",
         "019fec36-b8d8-724f-a078-779d6be3aad3",
         "019fec36-b8df-725c-9bbc-2d6557f99ed4"
-      ],
-      "created_at": "2026-08-10T15:07:17.097317Z"
+      ]
     }
   ],
   "gear_service_schedules": [
     {
       "uuid": "019fec36-b8fb-78aa-b026-b0c377f608d1",
-      "gear_item_uuid": "019fec36-b8c7-7265-b1d1-902b7f738bb8",
       "label": "Annual service",
       "starts_on": "2025-09-01",
       "interval_months": 12,
@@ -4114,13 +4113,13 @@
       "next_due_on": "2026-09-01",
       "created_at": "2026-08-10T15:07:17.115152Z",
       "type": "service",
-      "active": true
+      "active": true,
+      "gear_uuid": "019fec36-b8c7-7265-b1d1-902b7f738bb8"
     }
   ],
   "gear_service_records": [
     {
       "uuid": "019fec36-b90b-7ebe-b49d-247977bc323e",
-      "gear_item_uuid": "019fec36-b8c7-7265-b1d1-902b7f738bb8",
       "gear_service_schedule_uuid": "019fec36-b8fb-78aa-b026-b0c377f608d1",
       "serviced_on": "2025-09-01",
       "dive_count_at_service": 0,
@@ -4128,7 +4127,8 @@
       "performed_by": "DiveTech Service Center",
       "notes": "",
       "created_at": "2026-08-10T15:07:17.131702Z",
-      "type": "service"
+      "type": "service",
+      "gear_uuid": "019fec36-b8c7-7265-b1d1-902b7f738bb8"
     }
   ],
   "certifications": [

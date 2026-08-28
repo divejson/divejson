@@ -13,9 +13,9 @@
     "dives": { "type": "array", "items": { "$ref": "#/$defs/dive" } },
     "trips": { "type": "array", "items": { "$ref": "#/$defs/trip" } },
     "courses": { "type": "array", "items": { "$ref": "#/$defs/course" } },
-    "dive_sites": { "type": "array", "items": { "$ref": "#/$defs/dive_site" } },
+    "sites": { "type": "array", "items": { "$ref": "#/$defs/dive_site" } },
     "species": { "type": "array", "items": { "$ref": "#/$defs/species" } },
-    "gear_items": { "type": "array", "items": { "$ref": "#/$defs/gear_item" } },
+    "gear": { "type": "array", "items": { "$ref": "#/$defs/gear_item" } },
     "gear_sets": { "type": "array", "items": { "$ref": "#/$defs/gear_set" } },
     "gear_service_schedules": { "type": "array", "items": { "$ref": "#/$defs/gear_service_schedule" } },
     "gear_service_records": { "type": "array", "items": { "$ref": "#/$defs/gear_service_record" } },
@@ -106,7 +106,7 @@
       "properties": {
         "uuid": { "$ref": "#/$defs/uuid" },
         "dive_number": { "type": "integer" },
-        "start_time": { "$ref": "#/$defs/date_time" },
+        "started_at": { "$ref": "#/$defs/date_time" },
         "duration": { "type": "integer", "exclusiveMinimum": 0 },
         "notes": { "$ref": "#/$defs/notes" },
         "max_depth": { "type": "number", "exclusiveMinimum": 0 },
@@ -125,8 +125,8 @@
         "exit_position": { "$ref": "#/$defs/position" },
         "trip_uuid": { "$ref": "#/$defs/uuid" },
         "course_uuid": { "$ref": "#/$defs/uuid" },
-        "dive_site_uuids": { "$ref": "#/$defs/uuid_list" },
-        "gear_item_uuids": { "$ref": "#/$defs/uuid_list" },
+        "site_uuids": { "$ref": "#/$defs/uuid_list" },
+        "gear_uuids": { "$ref": "#/$defs/uuid_list" },
         "species_uuids": { "$ref": "#/$defs/uuid_list" },
         "cylinders": { "type": "array", "items": { "$ref": "#/$defs/cylinder" } },
         "source_file": { "$ref": "#/$defs/stored_file" },
@@ -134,7 +134,7 @@
         "created_at": { "$ref": "#/$defs/date_time" },
         "extensions": { "$ref": "#/$defs/extensions" }
       },
-      "required": ["uuid", "start_time"],
+      "required": ["uuid", "started_at"],
       "additionalProperties": false
     },
     "cylinder": {
@@ -271,7 +271,6 @@
         "instructor_name": { "type": "string", "maxLength": 255 },
         "instructor_number": { "type": "string", "maxLength": 64 },
         "training_center": { "type": "string", "maxLength": 255 },
-        "cost": { "type": "string", "maxLength": 64 },
         "notes": { "$ref": "#/$defs/notes" },
         "created_at": { "$ref": "#/$defs/date_time" },
         "extensions": { "$ref": "#/$defs/extensions" }
@@ -311,7 +310,7 @@
         "scientific_name": { "type": "string", "minLength": 1, "maxLength": 255 },
         "common_name": { "type": "string", "minLength": 1, "maxLength": 255 },
         "rank": { "type": "string", "maxLength": 64 },
-        "wikidata_qid": { "type": "string", "maxLength": 32 },
+        "wikidata_qid": { "type": "string", "minLength": 1, "maxLength": 32 },
         "created_at": { "$ref": "#/$defs/date_time" },
         "extensions": { "$ref": "#/$defs/extensions" }
       },
@@ -320,7 +319,8 @@
       "anyOf": [
         { "required": ["aphia_id"] },
         { "required": ["scientific_name"] },
-        { "required": ["common_name"] }
+        { "required": ["common_name"] },
+        { "required": ["wikidata_qid"] }
       ]
     },
     "gear_item": {
@@ -333,7 +333,8 @@
           "enum": [
             "mask", "snorkel", "fins", "wetsuit", "drysuit", "vest", "hood",
             "gloves", "boots", "bcd", "regulator", "computer", "cylinder",
-            "light", "smb", "reel", "knife", "compass", "camera", "other"
+            "light", "smb", "mirror", "whistle", "reel", "knife", "line_cutter",
+            "shears", "compass", "camera", "other"
           ]
         },
         "notes": { "$ref": "#/$defs/notes" },
@@ -353,7 +354,7 @@
         "uuid": { "$ref": "#/$defs/uuid" },
         "name": { "type": "string", "minLength": 1, "maxLength": 255 },
         "weight": { "type": "number", "minimum": 0 },
-        "gear_item_uuids": { "$ref": "#/$defs/uuid_list" },
+        "gear_uuids": { "$ref": "#/$defs/uuid_list" },
         "created_at": { "$ref": "#/$defs/date_time" },
         "extensions": { "$ref": "#/$defs/extensions" }
       },
@@ -367,7 +368,7 @@
       "type": "object",
       "properties": {
         "uuid": { "$ref": "#/$defs/uuid" },
-        "gear_item_uuid": { "$ref": "#/$defs/uuid" },
+        "gear_uuid": { "$ref": "#/$defs/uuid" },
         "type": { "$ref": "#/$defs/service_type" },
         "label": { "type": "string", "maxLength": 120 },
         "starts_on": { "$ref": "#/$defs/date" },
@@ -381,7 +382,7 @@
         "created_at": { "$ref": "#/$defs/date_time" },
         "extensions": { "$ref": "#/$defs/extensions" }
       },
-      "required": ["uuid", "gear_item_uuid", "type", "starts_on"],
+      "required": ["uuid", "gear_uuid", "type", "starts_on"],
       "additionalProperties": false,
       "anyOf": [
         { "required": ["interval_months"] },
@@ -392,7 +393,7 @@
       "type": "object",
       "properties": {
         "uuid": { "$ref": "#/$defs/uuid" },
-        "gear_item_uuid": { "$ref": "#/$defs/uuid" },
+        "gear_uuid": { "$ref": "#/$defs/uuid" },
         "gear_service_schedule_uuid": { "$ref": "#/$defs/uuid" },
         "type": { "$ref": "#/$defs/service_type" },
         "serviced_on": { "$ref": "#/$defs/date" },
@@ -403,7 +404,7 @@
         "created_at": { "$ref": "#/$defs/date_time" },
         "extensions": { "$ref": "#/$defs/extensions" }
       },
-      "required": ["uuid", "gear_item_uuid", "type", "serviced_on"],
+      "required": ["uuid", "gear_uuid", "type", "serviced_on"],
       "additionalProperties": false
     },
     "certification": {

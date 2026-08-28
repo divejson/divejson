@@ -18,7 +18,7 @@
       "duration": 5520,
       "notes": "Trimix wall dive; two deco gases staged on the line.",
       "max_depth": 62.3,
-      "avg_depth": 31.8,
+      "avg_depth": 70.0,
       "bottom_temperature": 7.4,
       "visibility": 25,
       "weight": 0,
@@ -286,6 +286,10 @@
         },
         {
           "name": "Chatham Rise crossing",
+          "position": {
+            "latitude": -43.9,
+            "longitude": 179.9
+          },
           "bbox": {
             "south": -44.2,
             "north": -43.6,

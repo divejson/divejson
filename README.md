@@ -39,7 +39,7 @@ DiveJSON's answers, as normative rules rather than aspirations:
   "dives": [
     {
       "uuid": "019fec36-b9ec-71c6-a03e-64f59b8b92b1",
-      "start_time": "2026-04-17T11:49:23+02:00",
+      "started_at": "2026-04-17T11:49:23+02:00",
       "duration": 2460,
       "max_depth": 18.4,
       "cylinders": [{ "volume": 12.0, "oxygen": 32.0, "start_pressure": 200.0 }],

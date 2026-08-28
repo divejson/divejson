@@ -148,9 +148,9 @@ def _semantic_issues(doc: dict[str, Any]) -> list[Issue]:
             "dives",
             "trips",
             "courses",
-            "dive_sites",
+            "sites",
             "species",
-            "gear_items",
+            "gear",
             "gear_sets",
             "gear_service_schedules",
             "gear_service_records",
@@ -171,11 +171,17 @@ def _semantic_issues(doc: dict[str, Any]) -> list[Issue]:
 
     for index, dive in enumerate(collections["dives"]):
         here = f"dives/{index}"
-        _check_datetime(dive, "start_time", here, issues)
+        _check_datetime(dive, "started_at", here, issues)
+        if _present(dive, "avg_depth") and _present(dive, "max_depth"):
+            try:
+                if dive["avg_depth"] > dive["max_depth"]:
+                    issues.append(Issue(here, "avg_depth exceeds max_depth"))
+            except TypeError:
+                pass
         _check_reference(dive, "trip_uuid", known["trips"], "trips", here, issues)
         _check_reference(dive, "course_uuid", known["courses"], "courses", here, issues)
-        _check_reference_list(dive, "dive_site_uuids", known["dive_sites"], "dive_sites", here, issues)
-        _check_reference_list(dive, "gear_item_uuids", known["gear_items"], "gear_items", here, issues)
+        _check_reference_list(dive, "site_uuids", known["sites"], "sites", here, issues)
+        _check_reference_list(dive, "gear_uuids", known["gear"], "gear", here, issues)
         _check_reference_list(dive, "species_uuids", known["species"], "species", here, issues)
 
         for cyl_index, cylinder in enumerate(dive.get("cylinders") or []):
@@ -246,18 +252,18 @@ def _semantic_issues(doc: dict[str, Any]) -> list[Issue]:
 
     for index, gear_set in enumerate(collections["gear_sets"]):
         _check_reference_list(
-            gear_set, "gear_item_uuids", known["gear_items"], "gear_items", f"gear_sets/{index}", issues
+            gear_set, "gear_uuids", known["gear"], "gear", f"gear_sets/{index}", issues
         )
 
     for index, schedule in enumerate(collections["gear_service_schedules"]):
         _check_reference(
-            schedule, "gear_item_uuid", known["gear_items"], "gear_items",
+            schedule, "gear_uuid", known["gear"], "gear",
             f"gear_service_schedules/{index}", issues,
         )
 
     for index, record in enumerate(collections["gear_service_records"]):
         here = f"gear_service_records/{index}"
-        _check_reference(record, "gear_item_uuid", known["gear_items"], "gear_items", here, issues)
+        _check_reference(record, "gear_uuid", known["gear"], "gear", here, issues)
         _check_reference(
             record, "gear_service_schedule_uuid", known["gear_service_schedules"],
             "gear_service_schedules", here, issues,
@@ -279,7 +285,7 @@ def _semantic_issues(doc: dict[str, Any]) -> list[Issue]:
             if isinstance(stored, dict):
                 _claim_uuid(stored, f"{here}/{member}", seen_uuids, issues)
 
-    for index, item in enumerate(collections["gear_items"]):
+    for index, item in enumerate(collections["gear"]):
         _check_datetime(item, "archived_at", f"gear_items/{index}", issues)
 
     return issues

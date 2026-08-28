@@ -73,8 +73,8 @@ the schema and this list:
 
 1. Identifier uniqueness and referential closure (§5.3).
 2. Cross-member arithmetic: `oxygen + helium ≤ 100` and `end_pressure ≤ start_pressure`
-   on a cylinder (§6.3); `ends_on ≥ starts_on` on a trip (§6.8) and on a course
-   (§6.17); `south ≤ north` on a bounding box (§6.9).
+   on a cylinder (§6.3); `avg_depth ≤ max_depth` on a dive (§6.2); `ends_on ≥ starts_on`
+   on a trip (§6.8) and on a course (§6.17); `south ≤ north` on a bounding box (§6.9).
 3. Profile series integrity: equal `times`/`values` lengths and strictly increasing
    `times` (§6.5), and `profile.duration` covering the latest sample and event (§6.4).
 4. The offset requirement on `exported_at` (§5.2) — every other date-time may be a
@@ -106,9 +106,9 @@ A DiveJSON document is a single JSON object:
 | `dives` | array of Dive (§6.2) | OPTIONAL | |
 | `trips` | array of Trip (§6.8) | OPTIONAL | |
 | `courses` | array of Course (§6.17) | OPTIONAL | |
-| `dive_sites` | array of Dive Site (§6.10) | OPTIONAL | |
+| `sites` | array of Dive Site (§6.10) | OPTIONAL | |
 | `species` | array of Species (§6.11) | OPTIONAL | |
-| `gear_items` | array of Gear Item (§6.12) | OPTIONAL | |
+| `gear` | array of Gear Item (§6.12) | OPTIONAL | |
 | `gear_sets` | array of Gear Set (§6.13) | OPTIONAL | |
 | `gear_service_schedules` | array of Service Schedule (§6.14) | OPTIONAL | |
 | `gear_service_records` | array of Service Record (§6.15) | OPTIONAL | |
@@ -119,7 +119,8 @@ An absent collection is equivalent to an empty one. Writers SHOULD order `dives`
 chronologically; readers MUST NOT depend on collection ordering.
 
 The **Generator** object has two members: `name` (string, REQUIRED) and `version`
-(string or null, OPTIONAL) — the producing software and its release, free-form.
+(string, OPTIONAL — omitted when unknown) — the producing software and its release,
+free-form.
 
 ## 5. Common rules
 
@@ -180,10 +181,8 @@ offset. Dates in a logbook (trip dates, service dates, certification dates) are 
 facts, not instants.
 
 **Member naming follows the value kind**: members holding date-times end `_at`
-(`created_at`, `archived_at`, `exported_at`); members holding dates end `_on`
-(`starts_on`, `serviced_on`, `certified_on`). `start_time` is the one deliberate
-exception — it is the format's flagship member and "start time" is the universal
-dive-log term.
+(`created_at`, `archived_at`, `exported_at`, a dive's `started_at`); members holding
+dates end `_on` (`starts_on`, `serviced_on`, `certified_on`). There are no exceptions.
 
 ### 5.3 Identity and cross-references
 
@@ -198,12 +197,12 @@ Stored-file records (§6.7) and the diver (§6.1) carry uuids too.
   collection of the **same document** — a DiveJSON document is self-contained. A writer
   that cannot include a referenced record MUST omit the reference, never emit a dangling
   one.
-- A reference-list member (`dive_site_uuids`, `gear_item_uuids`, `species_uuids`,
-  `gear_item_uuids` on a gear set) MUST NOT contain the same uuid twice.
+- A reference-list member (`site_uuids`, `gear_uuids`, `species_uuids`,
+  `gear_uuids` on a gear set) MUST NOT contain the same uuid twice.
 - Reference-list order is meaningful and writers MUST preserve the source order: a dive's
-  `dive_site_uuids` leads with the primary site and the rest follow in the diver's own
-  order; `species_uuids` is in spotting order; `gear_item_uuids` on a dive and on a gear
-  set is the diver's own arrangement.
+  `site_uuids` leads with the primary site, and the rest of that list — like
+  `species_uuids` and `gear_uuids` on a dive and on a gear set — is the diver's own
+  order, whatever it means to them.
 
 uuids identify records *within* a logbook and, for the same diver's data, across
 exports. They are not portable identities for shared realities: the same physical dive
@@ -343,28 +342,28 @@ member overwrite the destination account's own identity or settings.
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | |
 | `dive_number` | integer | O | The diver's own numbering. Unbounded; duplicates are legal (renumbering histories are messy and this format records, not adjudicates). |
-| `start_time` | date-time | R | Local wall clock, with its UTC offset when the source recorded one (§5.2). |
+| `started_at` | date-time | R | Local wall clock, with its UTC offset when the source recorded one (§5.2). |
 | `duration` | integer | O | Seconds; > 0. The dive's own duration as logged, which MAY differ from the profile's span. |
 | `notes` | string | O | ≤ 10000. |
 | `max_depth` | number | O | Meters; > 0. |
-| `avg_depth` | number | O | Meters; > 0. |
+| `avg_depth` | number | O | Meters; > 0, and MUST be ≤ `max_depth` when both are present. |
 | `bottom_temperature` | number | O | °C; unbounded (ice divers and volcanic vents exist). |
-| `visibility` | number | O | Meters; ≥ 0 (half-meter visibility is a real low-vis fact). |
+| `visibility` | number | O | Meters; ≥ 0. A number, not an integer — half-meter visibility is a real low-vis fact. |
 | `weight` | number | O | Kilograms of ballast; ≥ 0. `0` is a recorded "no lead", distinct from absent. |
 | `water_type` | string | O | One of `"salt"`, `"fresh"`, `"brackish"`, `"en13319"` (the EN 13319 calibration convention dive computers use). No "other": an unlistable water type is simply not recorded. |
 | `altitude` | integer | O | Meters above sea level of the site at dive time; −450 to 6500 (Dead Sea to the highest reported altitude dives). |
 | `cns_start` | number | O | CNS %, ≥ 0, at dive start. No upper bound — real computers report over 100. |
 | `cns_end` | number | O | CNS %, ≥ 0, at dive end. |
-| `otu_start` | number | O | OTU, ≥ 0. |
-| `otu_end` | number | O | OTU, ≥ 0. |
+| `otu_start` | number | O | OTU accumulated at dive start; ≥ 0. |
+| `otu_end` | number | O | OTU accumulated at dive end; ≥ 0. |
 | `surface_pressure` | number | O | Bar; 0.4–1.2 (ambient pressure at the 6500 m altitude ceiling is ≈ 0.44 bar). Ambient surface pressure the computer used. |
 | `entry_position` | Position | O | Where the diver entered the water. |
 | `exit_position` | Position | O | Where the diver surfaced. |
 | `trip_uuid` | uuid | O | → `trips`. |
 | `course_uuid` | uuid | O | → `courses` (§6.17). The training course this dive was logged on. |
-| `dive_site_uuids` | array of uuid | O | → `dive_sites`; the first element is the primary site, the remaining order is the diver's own (§5.3). |
-| `gear_item_uuids` | array of uuid | O | → `gear_items`; the diver's own order. |
-| `species_uuids` | array of uuid | O | → `species`; spotting order. |
+| `site_uuids` | array of uuid | O | → `sites`; the first element is the primary site, the remaining order is the diver's own (§5.3). |
+| `gear_uuids` | array of uuid | O | → `gear`; the diver's own order. |
+| `species_uuids` | array of uuid | O | → `species`; the diver's own order. |
 | `cylinders` | array of Cylinder | O | §6.3, in the diver's own cylinder order. |
 | `source_file` | Stored File | O | §6.7 — the original dive-computer file this dive was imported from. |
 | `profile` | Profile | O | §6.4. |
@@ -373,9 +372,11 @@ member overwrite the destination account's own identity or settings.
 
 ### 6.3 Cylinder
 
-One cylinder (or other gas source) on one dive. Embedded in the dive; no uuid. Two
-sidemount bottles carrying the same trimix are two cylinders — the array's entries are
-the vessels carried, not the distinct blends. An entry converted from a mix-only source
+One cylinder (or other gas source) on one dive. Embedded in the dive; no uuid. **An
+entry is one gas supply as the diver manages it**: a manifolded twinset is one entry
+with the combined water capacity (a D12 is `volume: 24.0`), while two sidemount bottles
+carrying the same trimix are two entries, each with its own pressures — entries are gas
+supplies, not distinct blends. An entry converted from a mix-only source
 (a UDDF `mix`, a configured gas-list slot) is a cylinder with its vessel members absent,
 per §5.4 — nothing invented, nothing required.
 
@@ -392,7 +393,9 @@ per §5.4 — nothing invented, nothing required.
 | `usage` | string | O | One of `"parallel"` (breathed alongside others, e.g. sidemount pairs), `"staged"` (carried for a later phase). |
 
 When both pressures are present, `end_pressure` MUST be ≤ `start_pressure`. When both
-fractions are present, `oxygen + helium` MUST be ≤ 100 (the remainder is nitrogen).
+fractions are present, `oxygen + helium` MUST be ≤ 100 — the remainder is treated as
+nitrogen; the ~1 % of argon and trace gases in air is not modeled, matching
+dive-planning convention.
 
 ### 6.4 Profile
 
@@ -400,7 +403,7 @@ The sampled record of a dive, embedded in the dive.
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `duration` | integer | R | Seconds spanned by the profile; ≥ 0, and MUST be ≥ the largest `times` entry in any channel and the largest event `time`. MAY differ from the dive's logged `duration` (a gap after the last sample is real). |
+| `duration` | integer | R | Seconds spanned by the profile; ≥ 0, and MUST be ≥ the largest `times` entry in any channel and the largest event `time`. MAY differ from the dive's logged `duration` — a gap after the last sample is real: a computer that stops *sampling* at the surface can keep *timing* the dive. |
 | `depth` | Series | O | Samples in **centimeters** (§5.1). |
 | `ceiling` | Series | O | Decompression ceiling, in **centimeters**. Present only while a ceiling existed: a gap in `times` means "no deco obligation", not a sensor dropout — and readers MUST NOT interpolate across a ceiling gap, which would fabricate an obligation that was not there. |
 | `temperature` | Series | O | Samples in **tenths of a degree Celsius**. |
@@ -463,7 +466,7 @@ parser registries are application-specific and have no core member.
 | `name` | string | R | 1–255. |
 | `locations` | array of Trip Location | O | In the diver's own order. |
 | `starts_on` | date | R | |
-| `ends_on` | date | O | MUST be ≥ `starts_on`. Absent for open-ended or single-day-so-far trips. |
+| `ends_on` | date | O | MUST be ≥ `starts_on`. Absent when no end is recorded — an ongoing trip, or one logged with only its start. |
 | `notes` | string | O | ≤ 10000. |
 | `created_at` | date-time | O | §5.7. |
 
@@ -476,7 +479,7 @@ A named place a trip went. Embedded value object; no uuid.
 | `name` | string | R | 1–255. |
 | `display_name` | string | O | ≤ 512. A fuller geocoded form of the name. |
 | `position` | Position | O | §6's Position object. |
-| `bbox` | Bounding Box | O | Requires `position`. |
+| `bbox` | Bounding Box | O | The geocoded extent of the named place — the rectangle a geocoder returned for it, so a reader can frame a map around the whole area without re-geocoding. Requires `position`. |
 
 A **Bounding Box** is an object with four REQUIRED number members — `south` and `north`
 (−90 to 90), `west` and `east` (−180 to 180). `south` MUST be ≤ `north`; `west` MAY
@@ -505,14 +508,16 @@ application's catalog, limited to what the document's dives reference.
 | `uuid` | uuid | R | The document-internal identity dives reference. |
 | `aphia_id` | integer | O | > 0. The WoRMS AphiaID — **the interchange identity**. A uuid means nothing outside its logbook; an AphiaID names the same taxon everywhere. |
 | `scientific_name` | string | O | 1–255. |
-| `common_name` | string | O | ≤ 255. |
+| `common_name` | string | O | 1–255. |
 | `rank` | string | O | ≤ 64. WoRMS's open vocabulary (`"Species"`, `"Genus"`, `"Family"`, …) — not an enum. |
-| `wikidata_qid` | string | O | ≤ 32, e.g. `"Q1126155"`. |
+| `wikidata_qid` | string | O | ≤ 32, e.g. `"Q1126155"`. The Wikidata item for the taxon — a secondary interchange identity linking onward to Commons imagery and cross-references; AphiaID remains the matching key. |
 | `created_at` | date-time | O | §5.7. |
 
-A species record MUST carry at least one of `aphia_id`, `scientific_name`, or
-`common_name` — an identity-less sighting is uninterpretable, but a sighting logged by
-common name alone is real logbook data a converter must be able to carry.
+A species record MUST carry at least one of `aphia_id`, `scientific_name`,
+`common_name`, or `wikidata_qid` — an identity-less sighting is uninterpretable, but a
+sighting logged by common name alone is real logbook data a converter must be able to
+carry, and each identity member that can satisfy this rule requires at least one
+character, so an empty string can never stand in for an identity.
 
 A reader with its own species catalog matches on `aphia_id`, not on names and never on
 `uuid`; a record without one simply doesn't match. The embedded record exists so the
@@ -527,7 +532,7 @@ create catalog entries from the snapshot.
 | `uuid` | uuid | R | |
 | `name` | string | R | 1–255. |
 | `brand` | string | O | ≤ 255. |
-| `type` | string | O | One of `"mask"`, `"snorkel"`, `"fins"`, `"wetsuit"`, `"drysuit"`, `"vest"`, `"hood"`, `"gloves"`, `"boots"`, `"bcd"`, `"regulator"`, `"computer"`, `"cylinder"`, `"light"`, `"smb"`, `"reel"`, `"knife"`, `"compass"`, `"camera"`, `"other"`. |
+| `type` | string | O | One of `"mask"`, `"snorkel"`, `"fins"`, `"wetsuit"`, `"drysuit"`, `"vest"`, `"hood"`, `"gloves"`, `"boots"`, `"bcd"`, `"regulator"`, `"computer"`, `"cylinder"`, `"light"`, `"smb"`, `"mirror"`, `"whistle"`, `"reel"`, `"knife"`, `"line_cutter"`, `"shears"`, `"compass"`, `"camera"`, `"other"`. An OPTIONAL member, so this vocabulary can grow in minor versions (§7) — an air horn rides `"other"` until it earns a value. |
 | `notes` | string | O | ≤ 10000. |
 | `rented` | boolean | O | |
 | `archived` | boolean | O | Retired from active use. |
@@ -544,7 +549,7 @@ A named bundle of gear items the diver equips together.
 | `uuid` | uuid | R | |
 | `name` | string | R | 1–255. |
 | `weight` | number | O | Kilograms of ballast the set implies; ≥ 0. |
-| `gear_item_uuids` | array of uuid | O | → `gear_items`, in the set's own order. |
+| `gear_uuids` | array of uuid | O | → `gear`, in the set's own order. |
 | `created_at` | date-time | O | §5.7. |
 
 ### 6.14 Service Schedule
@@ -554,7 +559,7 @@ A recurring maintenance rule for a gear item.
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | |
-| `gear_item_uuid` | uuid | R | → `gear_items`. |
+| `gear_uuid` | uuid | R | → `gear`. |
 | `type` | string | R | One of `"service"`, `"visual_inspection"`, `"hydrostatic_test"`, `"battery"`, `"oxygen_clean"`, `"other"`. |
 | `label` | string | O | ≤ 120. Distinguishes multiple rules of one type. |
 | `starts_on` | date | R | When the rule's clock starts. |
@@ -574,7 +579,7 @@ One performed maintenance event.
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | |
-| `gear_item_uuid` | uuid | R | → `gear_items`. |
+| `gear_uuid` | uuid | R | → `gear`. |
 | `gear_service_schedule_uuid` | uuid | O | → `gear_service_schedules`. Absent when the record predates its rule or the rule was deleted — history outlives the rule. |
 | `type` | string | R | Same vocabulary as §6.14; copied at write time so it survives the schedule's deletion. |
 | `serviced_on` | date | R | |
@@ -625,7 +630,6 @@ one course.
 | `instructor_name` | string | O | ≤ 255. |
 | `instructor_number` | string | O | ≤ 64. |
 | `training_center` | string | O | ≤ 255. The same trio as §6.16's, duplicated deliberately rather than normalized away: imported history arrives certification-first, with no course to hang the fields on, so a certification stands alone. |
-| `cost` | string | O | ≤ 64. Free text with the currency in it (`"EUR 650"`) — course cost appears in no agency record and nothing in a logbook aggregates money, so the format does not pretend to model it. |
 | `notes` | string | O | ≤ 10000. |
 | `created_at` | date-time | O | §5.7. |
 
@@ -646,7 +650,10 @@ A document declares the specification version it conforms to in its `version` me
   minor. A reader MUST reject, or clearly flag as unsupported, a document whose major
   version it does not implement.
 - **A writer declares exactly the lowest version that defines everything it emitted.**
-- A major version may break anything, and is expected never to be needed.
+- A major version may break anything, and is expected never to be needed: the additive
+  rules above, the growable OPTIONAL vocabularies, and the `extensions` mechanism exist
+  precisely so the format can grow without one. Implementers can treat 1.x as stable
+  forever; a major would mean this design failed.
 
 Each minor version publishes its own JSON Schema; §3 defines the schema's per-version
 scope.
@@ -682,12 +689,13 @@ one. Beyond generic JSON concerns:
   care of a personal data export: serve them only to their owner, over authenticated
   channels, without shared caching.
 - **Archives raise the stakes** (Appendix A): they add the referenced binaries, which can
-  include scans of certification cards — ID-like personal documents — and a profile
-  photo. Extraction of third-party archives MUST treat member paths as untrusted (reject
+  include scans of certification cards — ID-like personal documents — and, among
+  producer-added members, even a profile photo (the reference implementation ships the
+  diver's avatar in its archives). Extraction of third-party archives MUST treat member paths as untrusted (reject
   absolute paths and `..` traversal), and SHOULD verify each extracted file against its
   `sha256` before use.
-- **Numeric and size limits.** Documents can be large (a sampled profile per dive,
-  hundreds of dives). Readers SHOULD bound memory (streaming or spooled parsing, input
+- **Numeric and size limits.** Documents can be large — a sampled profile per dive,
+  thousands of dives; instructors' and divemasters' logbooks run five figures. Readers SHOULD bound memory (streaming or spooled parsing, input
   size caps) and MUST NOT let unexpected magnitudes in numeric members index or allocate
   unchecked.
 - **Re-rendering text.** Free-text members are arbitrary user content. Software
@@ -739,11 +747,11 @@ site, and the diver:
     {
       "uuid": "019fec36-b9ec-71c6-a03e-64f59b8b92b1",
       "dive_number": 42,
-      "start_time": "2026-04-17T11:49:23+02:00",
+      "started_at": "2026-04-17T11:49:23+02:00",
       "duration": 2460,
       "max_depth": 18.4,
       "water_type": "salt",
-      "dive_site_uuids": ["019fec36-b8b8-7cc9-a4b9-ede85f907c94"],
+      "site_uuids": ["019fec36-b8b8-7cc9-a4b9-ede85f907c94"],
       "cylinders": [
         { "volume": 12.0, "start_pressure": 200.0, "end_pressure": 70.0, "oxygen": 32.0 }
       ],
@@ -755,7 +763,7 @@ site, and the diver:
       }
     }
   ],
-  "dive_sites": [
+  "sites": [
     {
       "uuid": "019fec36-b8b8-7cc9-a4b9-ede85f907c94",
       "name": "House Reef",
