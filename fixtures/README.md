@@ -11,7 +11,7 @@ conforms shows up here as a failing fixture — update the three together
 | --- | --- |
 | `minimal.divejson` | The smallest conforming document: `format`, `version`, `exported_at` — no diver (a source that records nothing about its owner omits the member), no collections (absent ≡ empty). |
 | `demo-logbook.divejson` | A real export of the reference implementation's demo account (all names are seeded demo data; pulled 2026-09-02, courses-era writer): 8 dives, one with a full sampled profile from a dive computer, sites, trips, an empty `courses` collection, gear with a service history, certifications, and producer extensions carrying application-specific values. Regenerate from a fresh export when the writer changes. |
-| `technical-dive.divejson` | Hand-built coverage of what the demo corpus lacks: trimix, a sidemount pair (two cylinders, one blend, `usage: "parallel"`), staged deco cylinders, gas-switch events, a ceiling channel with a gap, per-cylinder pressure channels, a `+12:45` UTC offset **and** an offset-less local `started_at` (§5.2's third state), a dive with no recorded duration, a common-name-only species, an antimeridian-crossing bounding box, an `agency: "other"` certification with `front_file`/`back_file`, a dive-count service interval, and two courses — a completed `"other"`-agency course linked from a dive and its certification, and an unreferenced `"planned"` one with no dates. |
+| `technical-dive.divejson` | Hand-built coverage of what the demo corpus lacks: trimix, a sidemount pair (two cylinders, one blend, `usage: "parallel"`), staged deco cylinders, gas-switch events, a ceiling channel with a gap, per-cylinder pressure channels, a `+12:45` UTC offset **and** an offset-less local `started_at` (§5.2's third state), a dive with no recorded duration, a common-name-only species, an antimeridian-crossing bounding box, an `agency: "other"` certification with `front_file`/`back_file`, a dive-count service interval, two courses — a completed `"other"`-agency course linked from a dive and its certification, and an unreferenced `"planned"` one with no dates — and a lowercase-`z`, one-digit-fraction `created_at` (both spellings the grammar allows and naive parsers reject). |
 
 ## invalid/
 
@@ -24,6 +24,7 @@ format's structural guarantees (Position objects, the null ban) are exercised to
 | `bad-version.divejson` | `version` is `"0.9"` | §4, §7 |
 | `missing-format.divejson` | no `format` member | §4 |
 | `version-before-format.divejson` | `version` serialized before `format` | §4 |
+| `version-not-second.divejson` | `format` first but another member before `version` | §4 |
 | `null-member.divejson` | a member carried as `null` | §5.4 |
 | `undefined-member.divejson` | an undefined member outside `extensions` | §5.5 |
 | `duplicate-json-member.divejson` | the same JSON member name twice in one object | §9 |

@@ -73,8 +73,10 @@ def load_schema() -> dict[str, Any]:
 def validate_document(doc: Any, raw: str | None = None) -> list[Issue]:
     """Validate one parsed document; an empty result means conforming.
 
-    ``raw`` is the document's original text, used for the one rule that is about the
-    bytes rather than the data: `format` first, `version` second (spec §4).
+    ``raw`` is accepted for compatibility and unused: ``json.loads`` preserves the
+    text's member order in the parsed dict, so the member-order rule (spec §4) is
+    checked against ``doc`` itself — which also cannot be fooled by the words
+    "format" or "version" appearing inside some string value.
     """
     if not isinstance(doc, dict):
         return [Issue("$", "a DiveJSON document is a JSON object")]
@@ -94,24 +96,20 @@ def validate_document(doc: Any, raw: str | None = None) -> list[Issue]:
         if major != SPEC_VERSION.split(".", 1)[0]:
             return issues
 
-    if raw is not None:
-        issues.extend(_member_order_issues(raw))
+    issues.extend(_member_order_issues(doc))
     issues.extend(_schema_issues(doc))
     issues.extend(_semantic_issues(doc))
     return issues
 
 
-_FIRST_MEMBER = re.compile(r'^\s*\{\s*"([^"\\]+)"')
-
-
-def _member_order_issues(raw: str) -> list[Issue]:
-    match = _FIRST_MEMBER.match(raw)
-    if match and match.group(1) != "format":
-        return [Issue("$", f'the first member is "{match.group(1)}"; "format" MUST come first (spec §4)')]
-    format_index = raw.find('"format"')
-    version_index = raw.find('"version"')
-    if format_index != -1 and version_index != -1 and version_index < format_index:
-        return [Issue("$", '"version" precedes "format"; writers MUST emit format first, version second (spec §4)')]
+def _member_order_issues(doc: dict[str, Any]) -> list[Issue]:
+    keys = list(doc)
+    if not keys:
+        return []
+    if keys[0] != "format":
+        return [Issue("$", f'the first member is "{keys[0]}"; "format" MUST come first (spec §4)')]
+    if len(keys) > 1 and keys[1] != "version":
+        return [Issue("$", f'the second member is "{keys[1]}"; "version" MUST come second (spec §4)')]
     return []
 
 
@@ -286,7 +284,7 @@ def _semantic_issues(doc: dict[str, Any]) -> list[Issue]:
                 _claim_uuid(stored, f"{here}/{member}", seen_uuids, issues)
 
     for index, item in enumerate(collections["gear"]):
-        _check_datetime(item, "archived_at", f"gear_items/{index}", issues)
+        _check_datetime(item, "archived_at", f"gear/{index}", issues)
 
     return issues
 
@@ -347,6 +345,11 @@ def _check_series(series: dict[str, Any], path: str, issues: list[Issue]) -> int
     return max(numbers, default=0)
 
 
+_DATE_TIME = re.compile(
+    r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d+)?([Zz]|[+-]\d{2}:\d{2})?$"
+)
+
+
 def _check_datetime(
     obj: dict[str, Any],
     member: str,
@@ -358,10 +361,23 @@ def _check_datetime(
     if not isinstance(value, str):
         return
     where = f"{path}/{member}" if path else member
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
+    match = _DATE_TIME.match(value)
+    if not match:
         issues.append(Issue(where, f"{value!r} is not a DiveJSON date-time"))
         return
-    if require_offset and parsed.tzinfo is None:
+    base, fraction, offset = match.groups()
+    # Normalize before the calendar check: fromisoformat is case-sensitive about Z
+    # and, on Python 3.10, insists on exactly 3 or 6 fractional digits — both stricter
+    # than the format's grammar.
+    normalized = base
+    if fraction:
+        normalized += "." + (fraction[1:] + "000000")[:6]
+    if offset:
+        normalized += "+00:00" if offset in ("Z", "z") else offset
+    try:
+        datetime.fromisoformat(normalized)
+    except ValueError:
+        issues.append(Issue(where, f"{value!r} is not a real calendar date-time"))
+        return
+    if require_offset and offset is None:
         issues.append(Issue(where, "must carry a UTC offset — it is generated, not recorded history (spec §5.2)"))

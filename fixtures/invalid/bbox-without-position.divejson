@@ -376,7 +376,8 @@
       "uuid": "0198a6f0-1111-7052-8000-000000000052",
       "name": "EMT shears",
       "type": "shears",
-      "rented": false
+      "rented": false,
+      "created_at": "2024-03-01T08:00:00.5z"
     }
   ],
   "gear_sets": [

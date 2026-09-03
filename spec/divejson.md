@@ -388,7 +388,7 @@ per §5.4 — nothing invented, nothing required.
 | `oxygen` | number | O | Percent; 0–100. **Absent means not recorded, not 21** — readers MUST NOT assume air (§5.4). |
 | `helium` | number | O | Percent; 0–100. |
 | `po2_limit` | number | O | Bar; 0.4–2.0. The planned pO₂ ceiling for this gas. |
-| `gas_number` | integer | O | ≥ 0. The dive computer's own label for this gas, scoped to this dive — **a label, not an array index**; some devices number from 0, some from 1. It is the join key to `profile.pressure[].gas_number` and to `gas_switch` events. |
+| `gas_number` | integer | O | ≥ 0. The dive computer's own label for this gas, scoped to this dive — **a label, not an array index**; some devices number from 0, some from 1. It is the join key to `profile.pressures[].gas_number` and to `gas_switch` events. |
 | `role` | string | O | One of `"bottom"`, `"deco"`, `"diluent"`, `"oxygen"`. |
 | `usage` | string | O | One of `"parallel"` (breathed alongside others, e.g. sidemount pairs), `"staged"` (carried for a later phase). |
 
