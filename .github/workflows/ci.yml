@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # The floor and a current version: pyproject declares >=3.10, and 3.10's
+        # stricter datetime.fromisoformat is exactly the kind of thing only running
+        # the floor catches.
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install the validator
+        run: pip install -e .
+      - name: The schema is itself valid 2020-12
+        run: |
+          python - <<'EOF'
+          import json
+          from jsonschema import Draft202012Validator
+          with open("schema/1.0/divejson.schema.json") as f:
+              Draft202012Validator.check_schema(json.load(f))
+          print("schema OK")
+          EOF
+      - name: Valid fixtures pass
+        run: divejson validate fixtures/valid/*.divejson
+      - name: Invalid fixtures fail
+        run: |
+          status=0
+          for fixture in fixtures/invalid/*.divejson; do
+            if divejson validate "$fixture" > /dev/null 2>&1; then
+              echo "UNEXPECTED PASS: $fixture"
+              status=1
+            fi
+          done
+          exit $status

@@ -1,0 +1,26 @@
+[project]
+name = "divejson"
+version = "0.1.0"
+description = "Validator and tools for DiveJSON, an open dive-log interchange format"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = ["jsonschema>=4.18"]
+keywords = ["scuba", "diving", "dive-log", "interchange", "json"]
+
+[project.scripts]
+divejson = "divejson.cli:main"
+
+[project.urls]
+Homepage = "https://divejson.org"
+Repository = "https://github.com/divejson/divejson"
+Specification = "https://github.com/divejson/divejson/blob/main/spec/divejson.md"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# The normative schema lives at schema/1.0/divejson.schema.json; built wheels carry a
+# copy so an installed `divejson` works outside the repository checkout.
+[tool.hatch.build.targets.wheel.force-include]
+"schema/1.0/divejson.schema.json" = "divejson/_schema/divejson.schema.json"
