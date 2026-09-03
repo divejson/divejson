@@ -80,8 +80,9 @@ the schema and this list:
 4. The offset requirement on `exported_at` (§5.2) — every other date-time may be a
    local time, and the schema's `format` annotations are not required to be enforced by
    validators.
-5. The member-order rule for `format` and `version` (§4), which is about the document's
-   text rather than its data and is checked against the raw bytes.
+5. The member-order rule for `format` and `version` (§4) — a property of the document's
+   text, which the reference validator checks on the parsed member order (JSON parsing
+   preserves it).
 
 Requirements addressed to writer and reader *behaviour* — nothing invented (§5.4),
 unknown-member and unknown-value tolerance (§5.6), offset preservation (§5.2) — are not

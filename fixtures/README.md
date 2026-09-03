@@ -31,6 +31,7 @@ format's structural guarantees (Position objects, the null ban) are exercised to
 | `duplicate-uuid.divejson` | two records share a uuid | §5.3 |
 | `dangling-reference.divejson` | a `site_uuids` entry resolves to nothing | §5.3 |
 | `naive-exported-at.divejson` | `exported_at` without a UTC offset | §5.2 |
+| `trailing-newline-datetime.divejson` | a date-time with a trailing newline inside the string | §5.2 |
 | `position-incomplete.divejson` | a Position missing `longitude` | §6 |
 | `oxygen-helium-sum.divejson` | `oxygen + helium > 100` on a cylinder | §6.3 |
 | `pressure-order.divejson` | `end_pressure > start_pressure` on a cylinder | §6.3 |

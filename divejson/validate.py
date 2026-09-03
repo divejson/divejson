@@ -4,7 +4,8 @@ Two passes, mirroring §3 of the specification: the JSON Schema (types, required
 enums, ranges, lengths, and the structural rules like Position objects), then the
 semantic requirements the schema cannot express — identifier uniqueness, referential
 closure, cross-member arithmetic, profile-series integrity and span, the offset
-requirement on ``exported_at``, and the member-order rule checked against the raw text.
+requirement on ``exported_at``, and the member-order rule, checked on the parsed
+document's key order (which JSON parsing preserves).
 
 Null is not a spelling of absence in this format (spec §5.4): the schema rejects it, so
 the semantic checks below simply treat a missing member as missing.
@@ -345,8 +346,10 @@ def _check_series(series: dict[str, Any], path: str, issues: list[Issue]) -> int
     return max(numbers, default=0)
 
 
+# \Z, not $: Python's $ also matches just before a trailing newline, which would let
+# "…T08:00:00Z\n" through the grammar check with the newline silently dropped.
 _DATE_TIME = re.compile(
-    r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d+)?([Zz]|[+-]\d{2}:\d{2})?$"
+    r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d+)?([Zz]|[+-]\d{2}:\d{2})?\Z"
 )
 
 
