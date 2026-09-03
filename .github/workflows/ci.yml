@@ -42,3 +42,40 @@ jobs:
             fi
           done
           exit $status
+
+  # A schema change only reaches its consumers once divejson.org serves it: every
+  # schema's $id resolves there, so the site is the distribution channel rather
+  # than a copy of one. This asks the site to rebuild as soon as the schema is
+  # known good.
+  #
+  # `needs: conformance` is the whole point of triggering from here rather than
+  # on push. The URL this publishes to is the one validators fetch, so a schema
+  # that has not passed its own fixtures must never reach it.
+  #
+  # The site's weekly cron stays as the fallback for when this does not fire -
+  # a revoked or uninstalled App fails silently, and without the cron the site
+  # would simply stop tracking the spec with nothing to say so.
+  trigger-site-deploy:
+    needs: conformance
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      # A job-level `if` cannot read the secrets context, so the guard lives on
+      # the steps instead: this job is inert until the App credentials exist,
+      # which keeps it safe to merge before the App is created.
+      APP_ID: ${{ secrets.SITE_DEPLOY_APP_ID }}
+    steps:
+      - if: env.APP_ID == ''
+        run: echo "::notice::SITE_DEPLOY_APP_ID unset; skipping the divejson.org rebuild"
+      - if: env.APP_ID != ''
+        id: token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.SITE_DEPLOY_APP_ID }}
+          private-key: ${{ secrets.SITE_DEPLOY_PRIVATE_KEY }}
+          owner: divejson
+          repositories: divejson.org
+      - if: env.APP_ID != ''
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: gh workflow run deploy.yml --repo divejson/divejson.org --ref main
