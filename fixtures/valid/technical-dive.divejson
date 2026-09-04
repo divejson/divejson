@@ -237,8 +237,8 @@
           },
           {
             "time": 5605,
-            "type": "other",
-            "label": "Surface marker pressed"
+            "type": "bookmark",
+            "label": "Surface marker"
           }
         ],
         "extensions": {
