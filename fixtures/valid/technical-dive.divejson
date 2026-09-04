@@ -234,6 +234,11 @@
             "time": 5200,
             "type": "other",
             "label": "Tissue ceiling cleared"
+          },
+          {
+            "time": 5605,
+            "type": "bookmark",
+            "label": "Surface marker"
           }
         ],
         "extensions": {

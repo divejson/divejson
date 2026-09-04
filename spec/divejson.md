@@ -76,7 +76,7 @@ the schema and this list:
    on a cylinder (§6.3); `avg_depth ≤ max_depth` on a dive (§6.2); `ends_on ≥ starts_on`
    on a trip (§6.8) and on a course (§6.17); `south ≤ north` on a bounding box (§6.9).
 3. Profile series integrity: equal `times`/`values` lengths and strictly increasing
-   `times` (§6.5), and `profile.duration` covering the latest sample and event (§6.4).
+   `times` (§6.5), and `profile.duration` covering the latest sample (§6.4).
 4. The offset requirement on `exported_at` (§5.2) — every other date-time may be a
    local time, and the schema's `format` annotations are not required to be enforced by
    validators.
@@ -404,12 +404,21 @@ The sampled record of a dive, embedded in the dive.
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `duration` | integer | R | Seconds spanned by the profile; ≥ 0, and MUST be ≥ the largest `times` entry in any channel and the largest event `time`. MAY differ from the dive's logged `duration` — a gap after the last sample is real: a computer that stops *sampling* at the surface can keep *timing* the dive. |
+| `duration` | integer | R | Seconds spanned by the profile's **samples**; ≥ 0, and MUST be ≥ the largest `times` entry in any channel. An event `time` MAY fall outside it — see below. MAY differ from the dive's logged `duration` — a gap after the last sample is real: a computer that stops *sampling* at the surface can keep *timing* the dive. |
 | `depth` | Series | O | Samples in **centimeters** (§5.1). |
 | `ceiling` | Series | O | Decompression ceiling, in **centimeters**. Present only while a ceiling existed: a gap in `times` means "no deco obligation", not a sensor dropout — and readers MUST NOT interpolate across a ceiling gap, which would fabricate an obligation that was not there. |
 | `temperature` | Series | O | Samples in **tenths of a degree Celsius**. |
 | `pressures` | array of Pressure Series | O | One entry per monitored cylinder; samples in **tenths of a bar**. |
 | `events` | array of Event | O | In time order. |
+
+**An event may fall after the last sample, and readers MUST preserve it where it is.**
+`duration` spans the samples, so an event `time` greater than `duration` is conforming and
+means exactly what it says: the event happened then. Dive computers produce this routinely
+— a diver presses a marker button at the surface after the recorder has written its final
+sample, and the marker is real logbook data. A reader MUST NOT clamp such an event to
+`duration`, drop it, or extend `duration` to swallow it: the first two destroy a recorded
+fact and the third invents a sample span the file never had, which §5.4 forbids. A reader
+that plots a profile clips to its own axis rather than rescaling the data.
 
 The integer scales are load-bearing, not stylistic: integers make round-trip
 bit-fidelity unconditional — no dependence on any writer's float formatting — which is

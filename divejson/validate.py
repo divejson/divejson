@@ -216,15 +216,17 @@ def _semantic_issues(doc: dict[str, Any]) -> list[Issue]:
                     latest = max(
                         latest, _check_series(series, f"{here}/profile/pressures/{series_index}", issues)
                     )
-            for event in profile.get("events") or []:
-                if isinstance(event, dict) and isinstance(event.get("time"), (int, float)):
-                    latest = max(latest, event["time"])
+            # Events are deliberately not folded into `latest`: `duration` spans the
+            # samples, and an event after the last one is conforming (spec §6.4). A
+            # marker pressed at the surface after the recorder's final sample is real
+            # logbook data, and requiring `duration` to swallow it would make a writer
+            # invent a sample span the file never had.
             duration = profile.get("duration")
             if isinstance(duration, (int, float)) and duration < latest:
                 issues.append(
                     Issue(
                         f"{here}/profile/duration",
-                        f"duration {duration} does not cover the latest sample or event at {latest} (spec §6.4)",
+                        f"duration {duration} does not cover the latest sample at {latest} (spec §6.4)",
                     )
                 )
 
