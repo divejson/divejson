@@ -179,6 +179,16 @@ literal string `owner`. An owner with nothing else recorded produces no `diver` 
 all: §6.1 says a converter whose source records nothing about an owner omits it entirely,
 because minting identity for one would be §5.4's fabrication applied to people.
 
+**`email` is the one member whose type constrains the text a source may put in it**, and
+the only source string that is checked rather than merely capped. Every other one reaches a
+free-text member where the only limit is a length. So a `<contact><email>` holding `n/a`, a
+dash or a person's name is read as no email recorded and reported — a member the format
+cannot hold is a member the source did not fill in. A converter that passed it through
+would emit a document that fails its own validation, and since that is treated as the
+converter's bug rather than the file's, one unusable header field would discard an entire
+logbook. Any mapping added later that lands a source string on a constrained member owes
+the same guard.
+
 ### Dive sites — `/uddf/divesite/site`
 
 | UDDF | DiveJSON |

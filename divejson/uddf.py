@@ -103,6 +103,13 @@ MAX_ALTITUDE = 6500
 
 _UUID_TEXT = re.compile(r"\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\Z")
 
+# Deliberately looser than any address grammar, and it is not trying to be one. `email` is
+# the only member in this format whose *type* constrains the text a source can put in it,
+# so a value here has to clear that bar or be omitted like anything else the source did not
+# record. This admits every real address and rejects what writers actually leave in the
+# field — `n/a`, `-`, a person's name, a sentence.
+_EMAIL = re.compile(r"\A[^@\s]+@[^@\s]+\Z")
+
 # `xs:dateTime`, leniently. The `T`, the seconds and the offset are each optional because
 # real writers omit each of them, and the offset is accepted with or without its colon.
 _DATE_TIME = re.compile(
@@ -111,10 +118,11 @@ _DATE_TIME = re.compile(
     r"(?P<offset>[Zz]|[+-]\d{2}:\d{2}|[+-]\d{4}|[+-]\d{2})?\Z"
 )
 
-# Where each of UDDF's typed equipment elements lands in §6.12's vocabulary. The five that
-# map to `other` do so because the vocabulary has no value for them, not because the
+# Where each of UDDF's typed equipment elements lands in §6.12's vocabulary. Everything
+# landing on `other` does so because the vocabulary has no value for it, not because the
 # source was silent: `<variouspieces>` is UDDF's own catch-all, and a scooter, a
-# rebreather, a weight belt and a compressor are equipment this format does not yet name.
+# rebreather, a weight belt, a compressor and a watch are equipment this format does not
+# yet name. Read the mapping off the rows rather than off any count of them.
 _GEAR_TYPE: dict[str, str] = {
     "boots": "boots",
     "buoyancycontroldevice": "bcd",
@@ -509,6 +517,21 @@ class _Converter:
         self.note(where, f"{member} is {len(value)} characters; the format caps it at {limit} and the rest is dropped")
         return value[:limit]
 
+    def email(self, value: str | None, where: str) -> str | None:
+        """`<contact><email>` when it is an address, and nothing when it is not.
+
+        Every other source string reaches a member the format types as free text, where the
+        only limit is a length this converter caps. `email` is the exception — the schema
+        types it as an email address, so a `-` or an `n/a` is a value the member cannot
+        hold. Without this the whole conversion fails on it: the output would not validate,
+        which this module treats as its own bug, so one unusable header field would discard
+        an entire logbook instead of costing it one member and a line in the report.
+        """
+        if value is None or _EMAIL.match(value):
+            return value
+        self.note(where, f"the recorded email {value!r} is not an address; read as no email recorded")
+        return None
+
     def notes_text(self, parent: ET.Element | None, where: str) -> str | None:
         """A `<notes>` block as one string. Its `<link>` children carry no note text."""
         notes = _kid(parent, "notes")
@@ -624,7 +647,7 @@ class _Converter:
             for text in (_text_of(owner, "personal", part) for part in ("firstname", "middlename", "lastname"))
             if text
         ]
-        email = _text_of(owner, "contact", "email")
+        email = self.email(_text_of(owner, "contact", "email"), where)
         if not names and not email:
             self.note(where, "the source records nothing about the logbook's owner; no diver is written (spec §6.1)")
             return None

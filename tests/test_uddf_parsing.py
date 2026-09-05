@@ -16,6 +16,7 @@ from divejson.uddf import (
     MalformedUddfError,
     convert_uddf,
 )
+from divejson.validate import validate_document
 
 
 def dive(body: str, **kwargs) -> dict:
@@ -245,6 +246,62 @@ def test_an_owner_with_a_name_becomes_a_diver() -> None:
     assert diver["email"] == "sam@example.org"
 
 
+@pytest.mark.parametrize("written", ["n/a", "-", "Sam Reef", "not recorded", "sam at example org"])
+def test_an_email_that_is_not_an_address_costs_one_member_and_not_the_logbook(written: str) -> None:
+    """`email` is the one member whose *type* constrains the text a source can put in it.
+
+    Everything else a source writes reaches a free-text member. So an unusable value here
+    is the one that could make the converter's own output fail validation — which it
+    treats as its own bug and refuses to write — and a single junk header field would
+    discard an entire logbook rather than costing it one member and a line in the report.
+    """
+    header = (
+        "<diver><owner id='owner'><personal><firstname>Sam</firstname><lastname>Reef</lastname></personal>"
+        f"<contact><email>{written}</email></contact></owner></diver>"
+    )
+    conversion = convert_uddf(one_dive(STARTED_AT, header=header))
+    assert conversion.document["diver"] == {"uuid": conversion.document["diver"]["uuid"], "name": "Sam Reef"}
+    assert len(conversion.document["dives"]) == 1
+    assert any("is not an address" in note.message for note in conversion.notes)
+
+
+def test_hostile_source_strings_still_produce_a_conforming_document() -> None:
+    """Every string a source can put anywhere, at once, over every length the format caps.
+
+    The guard for the *class* rather than for one member: the converter validates its own
+    output and treats a failure as its own bug, so any source-supplied string reaching a
+    member with a constraint it does not clear takes the whole file down with it. That is
+    a mistake available to every mapping added after this one, and this is the test that
+    fails when someone makes it.
+    """
+    long_name = "N" * 400
+    long_note = "note. " * 3000
+    header = (
+        f"<diver><owner id='owner'><personal><firstname>{long_name}</firstname></personal>"
+        "<contact><email>whatever they typed</email></contact>"
+        f"<equipment><mask id='g'><name>{long_name}</name>"
+        f"<manufacturer id='m'><name>{long_name}</name></manufacturer>"
+        f"<notes><para>{long_note}</para></notes></mask></equipment></owner></diver>"
+        f"<divesite><site id='s'><name>{long_name}</name>"
+        f"<geography><location>{long_name}</location></geography>"
+        f"<notes><para>{long_note}</para></notes></site></divesite>"
+        f"<divetrip><trip id='t'><name>{long_name}</name><trippart><name>{long_name}</name>"
+        "<dateoftrip startdate='2026-04-18T00:00:00' enddate='2026-04-25T00:00:00'/>"
+        f"<geography><location>{long_name * 2}</location></geography>"
+        f"<notes><para>{long_note}</para></notes></trippart></trip></divetrip>"
+    )
+    body = (
+        before("<link ref='s'/><tripmembership ref='t'/><equipmentused><link ref='g'/></equipmentused>")
+        + f"<samples><waypoint><depth>1.0</depth><divetime>0</divetime><setmarker>{long_name}</setmarker></waypoint></samples>"
+        + f"<informationafterdive><notes><para>{long_note}</para></notes></informationafterdive>"
+    )
+    conversion = convert_uddf(one_dive(body, header=header))
+    assert validate_document(conversion.document) == []
+    assert "email" not in conversion.document["diver"]
+    assert len(conversion.document["dives"][0]["notes"]) == 10_000
+    assert len(conversion.document["sites"][0]["name"]) == 255
+
+
 # -- identity ------------------------------------------------------------------------
 
 
@@ -258,7 +315,8 @@ def test_a_dive_and_its_repetition_group_do_not_share_an_identity() -> None:
     """Every `<dive>` in a Subsurface export reuses its group's id.
 
     Hashing the bare id would give the dive and the group one uuid; hashing the record kind
-    with it is what keeps them apart, and is why decision 5 says to.
+    with it is what keeps them apart — the "Identity is derived, never invented fresh" rule
+    in `divejson/uddf.py`'s module docstring, and `docs/uddf-mapping.md`'s *Identity*.
     """
     shared = "idp5747615184931662520"
     data = uddf(
