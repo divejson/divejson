@@ -453,7 +453,13 @@ def test_waypoints_with_no_usable_reading_produce_no_profile_and_say_so() -> Non
     )
     data = one_dive(f"{STARTED_AT}<samples>{samples}</samples>")
     assert "profile" not in convert_uddf(data).document["dives"][0]
-    assert any("no reading this format can hold" in message for message in messages(data))
+    assert "the dive's 2 waypoints carry a time but no reading this format can hold" in " ".join(messages(data))
+
+
+def test_the_report_counts_one_waypoint_in_the_singular() -> None:
+    """A diver reads these lines. `1 waypoints` is the tell that nobody did."""
+    data = one_dive(f"{STARTED_AT}<samples><waypoint><depth/><divetime>0</divetime></waypoint></samples>")
+    assert "the dive's 1 waypoint carries a time but no reading this format can hold" in " ".join(messages(data))
 
 
 def test_a_dive_with_no_samples_at_all_is_not_reported() -> None:

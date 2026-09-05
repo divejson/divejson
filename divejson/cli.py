@@ -73,11 +73,11 @@ def main(argv: list[str] | None = None) -> int:
 def _offset_aware(text: str) -> datetime:
     """Parse `--exported-at`, which the format requires to carry a UTC offset (spec §5.2).
 
-    It is the one member a converted document asserts about itself rather than about the
-    source, so it is also the one thing that moves when the same file is converted twice.
-    Being able to pin it is what makes two conversions of one input diffable — and what
-    lets this repository's own fixture expectations be regenerated without every one of
-    them churning a line that carries no information about the change.
+    It is one of the two members a converted document asserts about its own run rather than
+    about the source — `generator` is the other — and the one of those that moves every
+    time. Being able to pin it is what makes two conversions of one input diffable, and
+    what lets this repository's own fixture expectations be regenerated without every one
+    of them churning a line that carries no information about the change.
     """
     normalized = text[:-1] + "+00:00" if text.endswith(("Z", "z")) else text
     try:

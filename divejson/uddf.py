@@ -241,9 +241,10 @@ def convert_uddf(data: bytes, *, exported_at: datetime | None = None) -> Convers
     file that says `encoding="ISO-8859-1"` has to be decoded by the parser that read that
     declaration. Handing `ElementTree` a `str` carrying one is a `ValueError` anyway.
 
-    `exported_at` defaults to now in the local zone. It is the one member the document
-    asserts about itself rather than about the source (spec §4), so a caller producing
-    documents in a fixed context — a test, a batch import — should pass its own.
+    `exported_at` defaults to now in the local zone. It is one of the two members the
+    document asserts about its own run rather than about the source (spec §4) — `generator`
+    is the other — so a caller producing documents in a fixed context, a test or a batch
+    import, should pass its own.
 
     Raises `DoctypeRefusedError`, `MalformedUddfError` or `NonConformingOutputError`.
     """
@@ -1284,9 +1285,10 @@ class _Converter:
             # record a profile here, and this is the converter unable to carry it. That is
             # the same class as a dropped waypoint or a dropped coordinate pair, and every
             # one of those says so.
+            subject = "waypoint carries" if len(ordered) == 1 else "waypoints carry"
             self.note(
                 where,
-                f"the dive's {len(ordered)} waypoints carry times but no reading this format can hold, so it "
+                f"the dive's {len(ordered)} {subject} a time but no reading this format can hold, so it "
                 "arrives with no profile at all rather than one of zero length",
             )
             return None, False
