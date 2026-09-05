@@ -2,10 +2,9 @@
 
 An open interchange format for scuba dive logs.
 
-**Status of this document:** working draft. The specification freezes as version 1.0 when
-the reference implementation's export/import round-trip passes against it; until then,
-normative text, the JSON Schema, and the fixtures may change together without a version
-bump. The canonical home of this specification is <https://divejson.org>; the repository
+**Status of this document:** working draft. It freezes as version 1.0 when its maintainers
+tag it; until then, normative text, the JSON Schema, and the fixtures may change together
+without a version bump. The canonical home of this specification is <https://divejson.org>; the repository
 of record is <https://github.com/divejson/divejson>. This document is licensed
 [CC BY 4.0](LICENSE).
 
