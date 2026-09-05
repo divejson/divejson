@@ -50,6 +50,49 @@ jobs:
               print(f"{path} OK")
           EOF
 
+      # Without this step the one below proves nothing about the schema in this
+      # tree. A released implementation carries its own copy and resolves that
+      # one; it never reads the corpus directory it is pointed at. So a schema
+      # edited here would be checked against no fixture at all, merge green, and
+      # be published by `trigger-site-deploy` to the $id URL validators fetch -
+      # while that job's comment claimed the fixtures had passed against it.
+      #
+      # Byte equality is what closes that: if the two copies are the same bytes,
+      # the run below is a run against this tree's schema. And when they are not,
+      # the red is the one CONTRIBUTING.md's first order describes - a change to
+      # what validates is not finished here until an implementation has released
+      # it and DIVEJSON_VERSION names that release.
+      - name: The pinned release carries exactly these schemas
+        run: |
+          python - <<'EOF'
+          import os, pathlib
+          import divejson
+
+          version = os.environ["DIVEJSON_VERSION"]
+          packaged = pathlib.Path(divejson.__file__).resolve().parent / "_schema"
+          here = pathlib.Path("schema").resolve()
+
+          def files(root):
+              return {p.relative_to(root) for p in root.rglob("*") if p.is_file()}
+
+          ours, theirs = files(here), files(packaged)
+          problems = [f"{p}: here, not in divejson {version}" for p in sorted(ours - theirs)]
+          problems += [f"{p}: in divejson {version}, not here" for p in sorted(theirs - ours)]
+          problems += [
+              f"{p}: differs between this tree and divejson {version}"
+              for p in sorted(ours & theirs)
+              if (here / p).read_bytes() != (packaged / p).read_bytes()
+          ]
+          if problems:
+              print("\n".join(problems))
+              raise SystemExit(
+                  f"schema/ and divejson {version}'s copy of it disagree. Either this "
+                  "change needs a release that carries it and a DIVEJSON_VERSION bump, "
+                  "or the pin is wrong. CONTRIBUTING.md, 'How a change lands'."
+              )
+          print(f"{len(ours)} schema file(s) byte-equal to divejson {version}'s")
+          EOF
+
       # The whole suite in one command, which is the point of the split: `conform`
       # is the contract every implementation provides, so this line is what a port
       # in another language runs too. `--strict` turns a format the implementation

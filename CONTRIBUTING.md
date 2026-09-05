@@ -46,6 +46,12 @@ CI pins the release it installs, in `DIVEJSON_VERSION` at the top of
 own, and it is meant to be a deliberate act: an unpinned install would let a release
 nobody here has looked at decide whether the corpus passes.
 
+A released implementation carries its own copy of `schema/` and resolves that one; it
+never reads the corpus directory it is pointed at. So CI asserts that the two are byte-equal
+before it runs the corpus, and that assertion is what makes the run a run against the schema
+in this tree. It is also what makes a schema change here **red on the pinned release**
+rather than quietly unchecked, which is the first of the two orders below.
+
 Changes to normative text, the JSON Schema, and the fixtures travel together: a pull
 request that changes what a conforming document looks like must update all three, and
 `fixtures/invalid/` must keep one file per rule the schema alone cannot express.
