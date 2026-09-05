@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 
 import pytest
-from helpers import FIXTURES
+from helpers import FIXTURES, compared
 
 from divejson.cli import main
 
@@ -85,19 +85,25 @@ def test_exported_at_refuses_what_the_member_cannot_hold(source, written: str) -
         main(["convert", str(source), "--exported-at", written])
 
 
-def test_the_fixture_corpus_regenerates_to_the_committed_bytes(tmp_path) -> None:
+def test_the_fixture_corpus_regenerates_through_the_documented_recipe(tmp_path) -> None:
     """`CONTRIBUTING.md`'s regeneration recipe, run as written, over the whole corpus.
 
     A documented command nobody runs is a command that stops working. This is the one
     instruction in the repository whose output is checked in, so it is the one worth
     executing rather than trusting.
+
+    Compared through `compared`, not byte for byte: `generator.version` is this package's
+    own version, so a byte comparison would fail on every fixture the first time the
+    package is released with no converter change at all — asserting something about the
+    release process rather than about the recipe.
     """
     for uddf in sorted((FIXTURES / "uddf").glob("*.uddf")):
-        expected_path = uddf.with_suffix(".divejson")
-        expected = expected_path.read_text(encoding="utf-8")
-        destination = tmp_path / expected_path.name
-        assert main(["convert", str(uddf), "--output", str(destination), "--exported-at", json.loads(expected)["exported_at"]]) == 0
-        assert destination.read_text(encoding="utf-8") == expected
+        expected = json.loads(uddf.with_suffix(".divejson").read_text(encoding="utf-8"))
+        destination = tmp_path / uddf.with_suffix(".divejson").name
+        assert main(["convert", str(uddf), "--output", str(destination), "--exported-at", expected["exported_at"]]) == 0
+        produced = json.loads(destination.read_text(encoding="utf-8"))
+        assert compared(produced) == compared(expected)
+        assert produced["exported_at"] == expected["exported_at"]
 
 
 def test_an_input_named_divejson_would_overwrite_itself(tmp_path, capsys) -> None:

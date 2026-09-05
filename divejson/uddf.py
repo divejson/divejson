@@ -1279,6 +1279,16 @@ class _Converter:
             # Waypoints whose every reading was unusable are not a profile. Emitting the
             # bare `duration: 0` the members below would leave behind asserts a sampled
             # record of zero length, which is a thing the source did not say.
+            #
+            # Reported, unlike a dive that simply has no `<samples>`: the source *did*
+            # record a profile here, and this is the converter unable to carry it. That is
+            # the same class as a dropped waypoint or a dropped coordinate pair, and every
+            # one of those says so.
+            self.note(
+                where,
+                f"the dive's {len(ordered)} waypoints carry times but no reading this format can hold, so it "
+                "arrives with no profile at all rather than one of zero length",
+            )
             return None, False
 
         latest = max(

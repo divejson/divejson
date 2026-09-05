@@ -438,6 +438,33 @@ def test_waypoints_landing_on_one_second_keep_the_first() -> None:
     assert any("strictly increasing" in message for message in messages(data))
 
 
+def test_waypoints_with_no_usable_reading_produce_no_profile_and_say_so() -> None:
+    """Not the same silence as a dive with no `<samples>` at all.
+
+    The source recorded a profile here; the converter could not carry it. That is the class
+    a dropped waypoint and a dropped coordinate pair are in, and both of those report — so
+    dropping a whole sampled record without a word would be the one place this converter
+    loses recorded structure quietly. A bare `duration: 0` is not the alternative: it
+    asserts a zero-length sampled record the source never claimed.
+    """
+    samples = (
+        "<waypoint><depth/><divetime>0</divetime><temperature/></waypoint>"
+        "<waypoint><depth/><divetime>10</divetime></waypoint>"
+    )
+    data = one_dive(f"{STARTED_AT}<samples>{samples}</samples>")
+    assert "profile" not in convert_uddf(data).document["dives"][0]
+    assert any("no reading this format can hold" in message for message in messages(data))
+
+
+def test_a_dive_with_no_samples_at_all_is_not_reported() -> None:
+    """The mirror, and why the note above is not noise: nothing was recorded to lose.
+
+    A dive that never had a profile is not a dive that lost one, so the report stays empty
+    — which is what keeps the note above meaning something when it does appear.
+    """
+    assert messages(one_dive(STARTED_AT)) == []
+
+
 def test_a_waypoint_with_no_time_has_no_place_on_the_axis() -> None:
     samples = "<waypoint><depth>1.0</depth></waypoint><waypoint><depth>2.0</depth><divetime>10</divetime></waypoint>"
     data = one_dive(f"{STARTED_AT}<samples>{samples}</samples>")

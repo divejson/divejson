@@ -60,12 +60,15 @@ uv run divejson convert fixtures/uddf/<name>.uddf --force \
 ```
 
 Both flags matter. Without `--force` the command refuses to replace a file that exists,
-which is the right default everywhere except here. And `exported_at` is the one member a
-converted document asserts about itself rather than about the source, so left to default it
-moves on every run — reusing the value already in the file you are replacing keeps the only
-lines that move the ones your change actually moved. That is also why the pair comparison
-ignores it, along with `generator`; [`fixtures/README.md`](fixtures/README.md) says what
-else is compared.
+which is the right default everywhere except here. And `exported_at` is one of the two
+members a converted document asserts about its own run rather than about the source, so
+left to default it moves every time — reusing the value already in the file you are
+replacing keeps the moving lines to the ones your change actually moved.
+
+The other such member is `generator`, which carries this package's version and so moves
+when that does. Both are excluded from the pair comparison for the same reason, so a
+release needs no regeneration; regenerate the corpus when the *mapping* changes.
+[`fixtures/README.md`](fixtures/README.md) says what is compared.
 
 The rules those expectations follow are written down in
 [`docs/uddf-mapping.md`](docs/uddf-mapping.md) — that document is the portable part of the

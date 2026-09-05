@@ -349,7 +349,9 @@ temperatures rather than inventing 402 readings.
   `<divetime>` is optional in the schema and is the only thing that can place a reading.
 - Waypoints whose readings are all unusable produce **no profile at all**, rather than one
   carrying a bare `duration: 0`. A zero-length sampled record is a claim the source did not
-  make.
+  make. This is reported, unlike a dive that simply has no `<samples>`: the source did
+  record a profile, and this is the converter unable to carry it — the same class as a
+  dropped waypoint rather than an absence.
 - `<divetime>` is `xs:float` while §6.5's `times` are strictly increasing integers, so two
   waypoints that round to the same second keep the first and report the second.
 - A `<setmarker>` whose text is exactly `deep_stop`, `safety_stop` or `bookmark` becomes

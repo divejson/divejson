@@ -10,11 +10,31 @@ directory on `sys.path` for the test modules either way.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 
 UDDF_NAMESPACE = "http://www.streit.cc/uddf/3.2/"
+
+# The instant `fixtures/uddf/*.divejson` were generated with. Any would do — it lands in a
+# member the comparison ignores — and pinning one only keeps the files from churning every
+# time they are regenerated.
+EXPORTED_AT = datetime(2026, 9, 5, tzinfo=timezone.utc)
+
+# The two members a converted document asserts about its own *run* rather than about the
+# input: when it was converted, and what converted it. A port of this converter would write
+# a different `generator` and still be right, and a version bump here moves
+# `generator.version` without moving anything the mapping decided — so neither belongs in a
+# comparison of what the mapping produced. Defined once, because two test modules compare
+# against these fixtures and a second copy is a second thing to get out of step.
+IGNORED = ("exported_at", "generator")
+
+
+def compared(document: dict[str, Any]) -> dict[str, Any]:
+    """A converted document reduced to what the fixture comparison is about."""
+    return {member: value for member, value in document.items() if member not in IGNORED}
 
 
 def before(extra: str = "", *, datetime_text: str = "2026-04-17T11:49:23+02:00") -> str:

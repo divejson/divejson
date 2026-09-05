@@ -17,26 +17,14 @@ properties of the input like any other.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
 
 import pytest
-from helpers import FIXTURES
+from helpers import EXPORTED_AT, FIXTURES, compared
 
 from divejson.uddf import convert_uddf_file
 from divejson.validate import validate_document
 
-# What the expected documents were generated with. Any instant does: the member it lands
-# in is one of the two the comparison ignores, and pinning it only keeps the files from
-# churning every time they are regenerated.
-EXPORTED_AT = datetime(2026, 9, 5, tzinfo=timezone.utc)
-
-IGNORED = ("exported_at", "generator")
-
 UDDF_FIXTURES = sorted((FIXTURES / "uddf").glob("*.uddf"))
-
-
-def compared(document: dict) -> dict:
-    return {member: value for member, value in document.items() if member not in IGNORED}
 
 
 def test_there_are_fixtures_to_compare() -> None:
