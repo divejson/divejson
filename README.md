@@ -5,9 +5,8 @@ document carries a complete logbook — dives with full sampled profiles, gas mi
 trips, training courses, dive sites, marine-life sightings, gear and its service
 history, certifications — so a diver's data can move between applications without loss.
 
-**Status: draft.** The 1.0 specification is feature-complete and in round-trip testing
-against its reference implementation; it freezes as v1.0 when that passes. Until the tag,
-normative text, schema, and fixtures may change together.
+**Status: draft.** The 1.0 specification is feature-complete. It freezes as v1.0 when its
+maintainers tag it; until then, normative text, schema, and fixtures may change together.
 
 ## Why another format
 
@@ -55,8 +54,9 @@ DiveJSON's answers, as normative rules rather than aspirations:
 | --- | --- |
 | [`spec/divejson.md`](spec/divejson.md) | The specification — the normative document. |
 | [`schema/1.0/divejson.schema.json`](schema/1.0/divejson.schema.json) | The normative JSON Schema (draft 2020-12), one directory per minor version. |
-| [`fixtures/`](fixtures/) | Conformance fixtures: valid documents, and invalid ones covering each rule the schema alone cannot express. |
-| [`divejson/`](divejson/) | The reference validator — schema pass plus the beyond-schema checks. |
+| [`fixtures/`](fixtures/) | Conformance fixtures: valid documents, invalid ones covering each rule the schema alone cannot express, and UDDF inputs paired with the documents a converter must produce from them. |
+| [`divejson/`](divejson/) | The reference tools — the validator, and the UDDF converter. |
+| [`docs/`](docs/) | Non-normative notes. [`uddf-mapping.md`](docs/uddf-mapping.md) is what a port of the converter starts from. |
 
 ## Validating a document
 
@@ -69,6 +69,20 @@ uv run divejson validate my-logbook.divejson
 or install it: `pip install git+https://github.com/divejson/divejson` and run
 `divejson validate <file>`. Exit status is non-zero if any file fails, with one line per
 violation.
+
+## Converting a UDDF logbook
+
+```bash
+divejson convert my-logbook.uddf
+```
+
+writes `my-logbook.divejson` beside the input and reports, line by line, what the source
+did not carry — no UTC offsets, a cylinder whose size nobody recorded, coordinates that
+were `0.000000`. **Nothing absent is filled in**: that report is the other half of the
+output, not a diagnostic, and it is what tells a diver which parts of their history their
+old application never kept. The mapping rules, the three places UDDF is genuinely
+ambiguous, and what is deliberately left unmapped are in
+[`docs/uddf-mapping.md`](docs/uddf-mapping.md).
 
 ## Media type and extension
 

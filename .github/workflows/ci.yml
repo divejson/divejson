@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install the validator
-        run: pip install -e .
+        run: pip install -e ".[dev]"
       - name: The schema is itself valid 2020-12
         run: |
           python - <<'EOF'
@@ -42,6 +42,15 @@ jobs:
             fi
           done
           exit $status
+
+      # The two legs above glob `*.divejson` and so cannot see a `.uddf` file at all: a
+      # converter fixture dropped into the tree would be silently ignored rather than
+      # checked. These two are what make `fixtures/uddf/` part of the suite.
+      - name: The converter's tests pass
+        run: pytest
+
+      - name: The converter's expected outputs are themselves valid DiveJSON
+        run: divejson validate fixtures/uddf/*.divejson
 
   # A schema change only reaches its consumers once divejson.org serves it: every
   # schema's $id resolves there, so the site is the distribution channel rather

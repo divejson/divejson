@@ -24,17 +24,55 @@ it arrives with evidence instead of speculation.
 
 ## Working on the tools
 
-The validator lives in `divejson/` and is plain Python:
+The tools live in `divejson/` and are plain Python — the validator, and `convert`, which
+reads UDDF:
 
 ```bash
 uv run divejson validate fixtures/valid/demo-logbook.divejson
+uv run divejson convert fixtures/uddf/subsurface.uddf --output /tmp/out.divejson
 ```
 
 or, without [uv](https://docs.astral.sh/uv/): `pip install -e .` and run `divejson`.
 
+**There are tests, and they are run with pytest:**
+
+```bash
+uv run --extra dev pytest
+```
+
+or `pip install -e ".[dev]"` and then `pytest`. They cover the converter — the unit
+conversions above all, where a wrong factor produces a document that validates perfectly
+and is nonsense. CI runs them on the Python floor and on a current version, alongside the
+fixture legs.
+
 Changes to normative text, the JSON Schema, and the fixtures travel together: a pull
 request that changes what a conforming document looks like must update all three, and
 `fixtures/invalid/` must keep one file per rule the schema alone cannot express.
+
+A change to the converter travels with `fixtures/uddf/` the same way. Each input there is
+paired with the document it must produce, so a mapping change shows up as a failing pair.
+Regenerate the expected side, and read the diff before committing it — the point of the
+pair is that a human agreed with the new answer:
+
+```bash
+uv run divejson convert fixtures/uddf/<name>.uddf --force \
+  --exported-at "$(grep -m1 exported_at fixtures/uddf/<name>.divejson | cut -d'"' -f4)"
+```
+
+Both flags matter. Without `--force` the command refuses to replace a file that exists,
+which is the right default everywhere except here. And `exported_at` is one of the two
+members a converted document asserts about its own run rather than about the source, so
+left to default it moves every time — reusing the value already in the file you are
+replacing keeps the moving lines to the ones your change actually moved.
+
+The other such member is `generator`, which carries this package's version and so moves
+when that does. Both are excluded from the pair comparison for the same reason, so a
+release needs no regeneration; regenerate the corpus when the *mapping* changes.
+[`fixtures/README.md`](fixtures/README.md) says what is compared.
+
+The rules those expectations follow are written down in
+[`docs/uddf-mapping.md`](docs/uddf-mapping.md) — that document is the portable part of the
+converter, and it is not optional to update.
 
 ## Pull request titles
 
