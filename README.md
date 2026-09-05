@@ -54,23 +54,22 @@ DiveJSON's answers, as normative rules rather than aspirations:
 | --- | --- |
 | [`spec/divejson.md`](spec/divejson.md) | The specification — the normative document. |
 | [`schema/1.0/divejson.schema.json`](schema/1.0/divejson.schema.json) | The normative JSON Schema (draft 2020-12), one directory per minor version. |
-| [`fixtures/`](fixtures/) | Conformance fixtures: valid documents, invalid ones covering each rule the schema alone cannot express, and UDDF inputs paired with the documents a converter must produce from them. |
-| [`divejson/`](divejson/) | The reference tools — the validator, and the UDDF converter. |
-| [`docs/`](docs/) | Non-normative notes. [`uddf-mapping.md`](docs/uddf-mapping.md) is what a port of the converter starts from. |
+| [`fixtures/`](fixtures/) | Conformance fixtures: valid documents, invalid ones covering each rule the schema alone cannot express, and source-format inputs paired with the documents a converter must produce from them. |
+| [`docs/`](docs/) | Non-normative notes. [`converting.md`](docs/converting.md) is the converter policy every implementation follows; a mapping document beside it per source format ([`uddf-mapping.md`](docs/uddf-mapping.md) is the first). |
 
 ## Validating a document
 
-With [uv](https://docs.astral.sh/uv/), from a checkout:
+The tooling is a separate package, [`divejson`](https://pypi.org/project/divejson/), built
+from [divejson/divejson-py](https://github.com/divejson/divejson-py):
 
 ```bash
-uv run divejson validate my-logbook.divejson
+pip install divejson
+divejson validate my-logbook.divejson
 ```
 
-or install it: `pip install git+https://github.com/divejson/divejson` and run
-`divejson validate <file>`. Exit status is non-zero if any file fails, with one line per
-violation.
+Exit status is non-zero if any file fails, with one line per violation.
 
-## Converting a UDDF logbook
+## Converting a logbook
 
 ```bash
 divejson convert my-logbook.uddf
@@ -80,9 +79,25 @@ writes `my-logbook.divejson` beside the input and reports, line by line, what th
 did not carry — no UTC offsets, a cylinder whose size nobody recorded, coordinates that
 were `0.000000`. **Nothing absent is filled in**: that report is the other half of the
 output, not a diagnostic, and it is what tells a diver which parts of their history their
-old application never kept. The mapping rules, the three places UDDF is genuinely
-ambiguous, and what is deliberately left unmapped are in
+old application never kept. The rules a converter follows whatever it is reading are in
+[`docs/converting.md`](docs/converting.md); each source format's own map, its ambiguities
+and what it leaves unmapped are in that format's document beside it, starting with
 [`docs/uddf-mapping.md`](docs/uddf-mapping.md).
+
+## Running the conformance suite
+
+The fixtures are a suite any implementation can be run against, and the command every
+implementation provides is `conform`:
+
+```bash
+pip install divejson
+divejson conform fixtures/ --strict
+```
+
+Exit status is 0 if every case passed, 1 if a case failed, and 2 if the corpus's shape is
+wrong — a pair for a format the implementation does not read, say, which means cases that
+never ran rather than cases that failed. CI runs exactly this against a pinned release;
+[CONTRIBUTING.md](CONTRIBUTING.md) says how the pin moves.
 
 ## Media type and extension
 
@@ -96,12 +111,20 @@ Documents declare `"version": "major.minor"`. Minor versions are strictly additi
 readers accept any document of a major version they implement and ignore members they do
 not recognize. The full policy is §7 of the spec.
 
-## Reference implementation
+## Implementations
 
 DiveJSON is the native export and import format of **OpenDiving**, a self-hostable dive
-log; it ships with OpenDiving, and the application repositories open at the project's
-public launch. The format is deliberately not tied to it: the spec, schema, fixtures, and
-validator in this repository are the complete definition.
+log and the format's reference writer; it ships with OpenDiving, and the application
+repositories open at the project's public launch. The format is deliberately not tied to
+it, and this repository is where that independence is kept: the spec, the schema and the
+fixtures here are the complete definition, and an implementation is something that passes
+them.
+
+[divejson/divejson-py](https://github.com/divejson/divejson-py) is the first — a validator,
+converters and the `conform` runner, on PyPI as
+[`divejson`](https://pypi.org/project/divejson/). It has no privileged standing: it lives
+in its own repository, vendors a pinned copy of this one, and is run against these fixtures
+like any other. A port in another language is welcome to the same arrangement.
 
 ## Contributing
 
@@ -111,5 +134,5 @@ and [GOVERNANCE.md](GOVERNANCE.md) for how changes land and who decides.
 
 ## License
 
-Specification prose (`spec/`): [CC BY 4.0](spec/LICENSE). Schema, fixtures, and tools
-(everything else): [MIT](LICENSE).
+Specification prose (`spec/`): [CC BY 4.0](spec/LICENSE). Schema and fixtures (everything
+else): [MIT](LICENSE).

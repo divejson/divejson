@@ -5,52 +5,58 @@ on:
     branches: [main]
   pull_request:
 
+# The one place the implementation is pinned. This repository is the conformance
+# suite and carries no implementation of its own: CI installs a released one from
+# PyPI and asks it to run the corpus. Moving to a newer release is a one-line chore
+# here, and it is a deliberate act - an unpinned install would let a release the
+# maintainer has not looked at decide whether the corpus passes.
+env:
+  DIVEJSON_VERSION: "0.2.0"
+
 jobs:
+  # Named `conformance` since the repository's first workflow, and `trigger-site-deploy`
+  # below depends on it by that name.
   conformance:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # The floor and a current version: pyproject declares >=3.10, and 3.10's
-        # stricter datetime.fromisoformat is exactly the kind of thing only running
-        # the floor catches.
-        python-version: ["3.10", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install the validator
-        run: pip install -e ".[dev]"
-      - name: The schema is itself valid 2020-12
+          python-version: "3.12"
+
+      # No matrix. What ran on two interpreters here was the implementation's own
+      # test suite, which has moved to divejson/divejson-py along with the matrix
+      # that covers it. What is left is a corpus, and a corpus does not vary by
+      # interpreter.
+      - name: Install the pinned implementation
+        run: pip install "divejson==$DIVEJSON_VERSION"
+
+      # `jsonschema` arrives as a dependency of the implementation. This is the one
+      # check that is about the schema as a document rather than about what it
+      # accepts: a schema with a typo in a keyword name validates everything and
+      # would pass every fixture below.
+      - name: Each schema is itself valid 2020-12
         run: |
           python - <<'EOF'
-          import json
+          import json, pathlib
           from jsonschema import Draft202012Validator
-          with open("schema/1.0/divejson.schema.json") as f:
-              Draft202012Validator.check_schema(json.load(f))
-          print("schema OK")
+
+          schemas = sorted(pathlib.Path("schema").glob("*/divejson.schema.json"))
+          if not schemas:
+              raise SystemExit("no schema found under schema/*/divejson.schema.json")
+          for path in schemas:
+              with path.open() as handle:
+                  Draft202012Validator.check_schema(json.load(handle))
+              print(f"{path} OK")
           EOF
-      - name: Valid fixtures pass
-        run: divejson validate fixtures/valid/*.divejson
-      - name: Invalid fixtures fail
-        run: |
-          status=0
-          for fixture in fixtures/invalid/*.divejson; do
-            if divejson validate "$fixture" > /dev/null 2>&1; then
-              echo "UNEXPECTED PASS: $fixture"
-              status=1
-            fi
-          done
-          exit $status
 
-      # The two legs above glob `*.divejson` and so cannot see a `.uddf` file at all: a
-      # converter fixture dropped into the tree would be silently ignored rather than
-      # checked. These two are what make `fixtures/uddf/` part of the suite.
-      - name: The converter's tests pass
-        run: pytest
-
-      - name: The converter's expected outputs are themselves valid DiveJSON
-        run: divejson validate fixtures/uddf/*.divejson
+      # The whole suite in one command, which is the point of the split: `conform`
+      # is the contract every implementation provides, so this line is what a port
+      # in another language runs too. `--strict` turns a format the implementation
+      # registers and the corpus has no pairs for into an error - without it the
+      # suite could silently stop covering a reader.
+      - name: The corpus passes against that implementation
+        run: divejson conform fixtures/ --strict
 
   # A schema change only reaches its consumers once divejson.org serves it: every
   # schema's $id resolves there, so the site is the distribution channel rather
