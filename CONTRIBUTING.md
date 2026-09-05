@@ -36,6 +36,16 @@ Changes to normative text, the JSON Schema, and the fixtures travel together: a 
 request that changes what a conforming document looks like must update all three, and
 `fixtures/invalid/` must keep one file per rule the schema alone cannot express.
 
+## Pull request titles
+
+Use a semantic **PR title** — `<type>[(scope)][!]: <description>`, where type is one of
+`feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`, `build`, `revert`.
+Pull requests are squash-merged with the title as the commit subject, so it is the only
+part of a branch that outlives the branch.
+
+`.github/workflows/pr-title.yml` checks the format and re-runs when a title is edited —
+a failing check is fixed by correcting the title, with nothing to push.
+
 ## Licensing of contributions
 
 Specification prose is CC BY 4.0; schema, fixtures, and tools are MIT (see
