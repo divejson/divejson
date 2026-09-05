@@ -1,10 +1,11 @@
-# DiveJSON 1.0 — draft
+# DiveJSON 1.0
 
 An open interchange format for scuba dive logs.
 
-**Status of this document:** working draft. It freezes as version 1.0 when its maintainers
-tag it; until then, normative text, the JSON Schema, and the fixtures may change together
-without a version bump. The canonical home of this specification is <https://divejson.org>; the repository
+**Status of this document:** version 1.0. This is the text its maintainers tag as 1.0;
+normative text, the JSON Schema, and the fixtures no longer change together without a
+version bump, and §7 governs what a later version may change. The canonical home of this
+specification is <https://divejson.org>; the repository
 of record is <https://github.com/divejson/divejson>. This document is licensed
 [CC BY 4.0](LICENSE).
 
@@ -677,10 +678,9 @@ UTF-8.
 The RECOMMENDED file extension is **`.divejson`**. On platforms that require one, the
 Macintosh file type code is `TEXT`.
 
-Registration of the media type in the IANA vendor tree (per [RFC 6838] §3.2) is planned
-for when this specification freezes at 1.0, naming <https://divejson.org> as the
-published specification; until the registration completes, the type is used as declared
-here. The registration template's required security section is §9 of this document.
+Registration of the media type in the IANA vendor tree (per [RFC 6838] §3.2) follows the
+1.0 tag, naming <https://divejson.org> as the published specification; until the
+registration completes, the type is used as declared here. The registration template's required security section is §9 of this document.
 
 ## 9. Security considerations
 
