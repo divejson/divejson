@@ -55,6 +55,7 @@ report when they do.
 from __future__ import annotations
 
 import re
+import sys
 import uuid as uuid_pkg
 import xml.etree.ElementTree as ET
 from collections.abc import Iterator
@@ -88,6 +89,20 @@ TENTHS_PER_UNIT = Decimal(10)
 # At or above which a `<tankvolume>` is read as litres rather than the cubic metres UDDF
 # specifies — see `_volume_litres`.
 LITRES_THRESHOLD = Decimal(1)
+
+# The largest magnitude a source number may have. Not a physical bound — the format sets
+# none on a depth or a temperature, and inventing one here would be this module deciding
+# how deep a dive can be. It is a *representability* bound: JSON numbers are doubles in
+# every reader this format expects to meet, and a value past that range stops being a
+# number on the way out. `json.dumps` writes an overflowed float as the bare token
+# `Infinity`, which no RFC 8259 parser accepts, and a reader on a double-based parser turns
+# an integer that large back into infinity — in both directions the document silently stops
+# being readable, and this converter's own validation does not catch it, because
+# `jsonschema` is happy to call infinity a number greater than zero.
+#
+# Divided by the largest factor any conversion below applies (litres, ×1000), so that
+# checking the value on the way in also covers every value derived from it.
+MAX_MAGNITUDE = Decimal(sys.float_info.max) / 1000
 
 MAX_NOTES = 10_000
 MAX_NAME = 255
@@ -336,13 +351,23 @@ def _text_of(parent: ET.Element | None, *names: str) -> str | None:
 
 
 def _decimal(text: str | None) -> Decimal | None:
-    """A number from element text, or `None` for anything that is not a finite one.
+    """A number from element text, or `None` for anything that is not a usable one.
 
     `Decimal` rather than `float` throughout: the input is decimal text and every scale
     below is a decimal factor, so `Decimal("2.6") * 100` is exactly `260` where the float
     route arrives at 260.00000000000003 and has to be rounded back out. `Decimal` also
     accepts `"NaN"` and `"Infinity"` without complaint, which is what the finiteness check
     is for.
+
+    **The magnitude bound is the other half of that check and is not optional.** `Decimal`
+    parses `1e999` and `1e999999999` happily and calls both finite, and neither survives
+    the trip out: the first becomes a float infinity, which this converter would write into
+    a document as a bare `Infinity` token no JSON parser accepts and its own validation
+    would not object to; the second overflows `Decimal`'s arithmetic on the next
+    multiplication, raising something that is not one of this module's errors and so
+    abandoning a whole batch mid-migration rather than failing the one file. Text that
+    cannot be carried as a number is treated as text that is not a number, which is what
+    it is.
     """
     if text is None:
         return None
@@ -350,7 +375,12 @@ def _decimal(text: str | None) -> Decimal | None:
         value = Decimal(text)
     except InvalidOperation:
         return None
-    return value if value.is_finite() else None
+    # `copy_abs`, not `abs`: the builtin is a context operation and raises `Overflow` on
+    # exactly the values this line exists to reject, so the guard would be the thing that
+    # crashed. `copy_abs` and the comparison below both leave the context alone.
+    if not value.is_finite() or value.copy_abs() > MAX_MAGNITUDE:
+        return None
+    return value
 
 
 def _rounded(value: Decimal) -> int:
@@ -1244,6 +1274,12 @@ class _Converter:
                         "to; the switch is kept without saying what it was to (spec §6.6)",
                     )
                 events.append(event)
+
+        if not (depth["times"] or temperature["times"] or pressures or events):
+            # Waypoints whose every reading was unusable are not a profile. Emitting the
+            # bare `duration: 0` the members below would leave behind asserts a sampled
+            # record of zero length, which is a thing the source did not say.
+            return None, False
 
         latest = max(
             (channel["times"][-1] for channel in (depth, temperature, *pressures.values()) if channel["times"]),

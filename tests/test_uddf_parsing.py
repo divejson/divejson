@@ -8,6 +8,8 @@ by being helpful.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from helpers import STARTED_AT, before, one_dive, uddf
 
@@ -17,6 +19,10 @@ from divejson.uddf import (
     convert_uddf,
 )
 from divejson.validate import validate_document
+
+
+def _refuse_non_json(token: str) -> None:
+    raise AssertionError(f"the document carries the token {token}, which RFC 8259 has no room for")
 
 
 def dive(body: str, **kwargs) -> dict:
@@ -263,6 +269,35 @@ def test_an_email_that_is_not_an_address_costs_one_member_and_not_the_logbook(wr
     assert conversion.document["diver"] == {"uuid": conversion.document["diver"]["uuid"], "name": "Sam Reef"}
     assert len(conversion.document["dives"]) == 1
     assert any("is not an address" in note.message for note in conversion.notes)
+
+
+@pytest.mark.parametrize("written", ["1e999", "1e999999999", "-1e999", "NaN", "Infinity", "-Infinity"])
+def test_a_number_too_large_to_carry_is_not_a_number(written: str) -> None:
+    """`Decimal` parses all of these and calls the first three finite. Neither survives.
+
+    `1e999` reaches the output as a float infinity, which `json.dumps` writes as a bare
+    `Infinity` token that no JSON parser will read back — and the converter's own
+    validation does not object, since `jsonschema` is happy to call infinity a number
+    greater than zero. `1e999999999` overflows `Decimal`'s own arithmetic at the next
+    multiplication, raising something outside this module's errors, so the command dies
+    with a traceback and abandons every file after it in a batch.
+    """
+    header = f'<gasdefinitions><mix id="m"><name>Gas</name><o2>{written}</o2></mix></gasdefinitions>'
+    body = (
+        f'{STARTED_AT}<tankdata><link ref="m"/><tankvolume>{written}</tankvolume></tankdata>'
+        f"<samples><waypoint><depth>{written}</depth><divetime>0</divetime>"
+        f"<temperature>{written}</temperature></waypoint></samples>"
+        f"<informationafterdive><greatestdepth>{written}</greatestdepth>"
+        f"<diveduration>{written}</diveduration></informationafterdive>"
+    )
+    conversion = convert_uddf(one_dive(body, header=header))
+    assert validate_document(conversion.document) == []
+    found = conversion.document["dives"][0]
+    assert found["cylinders"][0] == {}
+    assert "max_depth" not in found and "duration" not in found and "profile" not in found
+    # `parse_constant` fires for exactly the three tokens RFC 8259 has no room for, which
+    # are what `json.dumps` emits for a float that overflowed.
+    json.loads(json.dumps(conversion.document), parse_constant=_refuse_non_json)
 
 
 def test_hostile_source_strings_still_produce_a_conforming_document() -> None:

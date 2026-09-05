@@ -67,8 +67,16 @@ times and nothing guarantees a writer emitted them in order.
 - **An id that is not an `NCName` is read anyway.** `mix(21/0)` carries parentheses,
   `2bbb3390` begins with a digit; both are what Subsurface writes, and both are refused by
   the XSD.
-- **A number that is not finite is absent.** `NaN` and `Infinity` are accepted by decimal
-  parsers and are not readings.
+- **A number that is not finite, or is too large to carry, is absent.** `NaN` and
+  `Infinity` are accepted by decimal parsers and are not readings. Neither is `1e999`: the
+  bound is not physical — this format sets none on a depth or a temperature, and inventing
+  one here would be a converter deciding how deep a dive can be — but a *representability*
+  one. JSON numbers are doubles in every reader this format expects to meet, so a value
+  past that range stops being a number on the way out: a serializer writes an overflowed
+  float as a bare `Infinity` token no JSON parser accepts, a double-based parser reads an
+  integer that large back as infinity, and a schema validator objects to neither. Reject
+  it at the point the text is read, before any scale is applied to it, and the members
+  derived from it are covered too.
 - **Text is compared after stripping.** A `<name>` of pure whitespace is no name.
 
 ### A `<!DOCTYPE>` is refused outright
@@ -339,6 +347,9 @@ temperatures rather than inventing 402 readings.
 
 - A waypoint with **no `<divetime>`** has no place on the axis and is dropped, reported.
   `<divetime>` is optional in the schema and is the only thing that can place a reading.
+- Waypoints whose readings are all unusable produce **no profile at all**, rather than one
+  carrying a bare `duration: 0`. A zero-length sampled record is a claim the source did not
+  make.
 - `<divetime>` is `xs:float` while §6.5's `times` are strictly increasing integers, so two
   waypoints that round to the same second keep the first and report the second.
 - A `<setmarker>` whose text is exactly `deep_stop`, `safety_stop` or `bookmark` becomes

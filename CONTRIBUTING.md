@@ -50,11 +50,26 @@ request that changes what a conforming document looks like must update all three
 `fixtures/invalid/` must keep one file per rule the schema alone cannot express.
 
 A change to the converter travels with `fixtures/uddf/` the same way. Each input there is
-paired with the document it must produce, so a mapping change shows up as a failing pair;
-regenerate the expected side with `divejson convert` and read the diff before committing
-it, because the point of the pair is that a human agreed with the new answer. The rules
-those expectations follow are written down in [`docs/uddf-mapping.md`](docs/uddf-mapping.md)
-— that document is the portable part of the converter, and it is not optional to update.
+paired with the document it must produce, so a mapping change shows up as a failing pair.
+Regenerate the expected side, and read the diff before committing it — the point of the
+pair is that a human agreed with the new answer:
+
+```bash
+uv run divejson convert fixtures/uddf/<name>.uddf --force \
+  --exported-at "$(grep -m1 exported_at fixtures/uddf/<name>.divejson | cut -d'"' -f4)"
+```
+
+Both flags matter. Without `--force` the command refuses to replace a file that exists,
+which is the right default everywhere except here. And `exported_at` is the one member a
+converted document asserts about itself rather than about the source, so left to default it
+moves on every run — reusing the value already in the file you are replacing keeps the only
+lines that move the ones your change actually moved. That is also why the pair comparison
+ignores it, along with `generator`; [`fixtures/README.md`](fixtures/README.md) says what
+else is compared.
+
+The rules those expectations follow are written down in
+[`docs/uddf-mapping.md`](docs/uddf-mapping.md) — that document is the portable part of the
+converter, and it is not optional to update.
 
 ## Pull request titles
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from . import __version__
@@ -57,11 +58,35 @@ def main(argv: list[str] | None = None) -> int:
         help="write the document here instead of beside the input; only with one input file",
     )
     convert.add_argument("-f", "--force", action="store_true", help="overwrite an existing output file")
+    convert.add_argument(
+        "--exported-at",
+        type=_offset_aware,
+        help="the document's exported_at, as an offset-aware date-time; defaults to now",
+    )
 
     args = parser.parse_args(argv)
     if args.command == "convert":
-        return _convert_command(args.files, args.output, force=args.force)
+        return _convert_command(args.files, args.output, force=args.force, exported_at=args.exported_at)
     return _validate_command(args.files)
+
+
+def _offset_aware(text: str) -> datetime:
+    """Parse `--exported-at`, which the format requires to carry a UTC offset (spec §5.2).
+
+    It is the one member a converted document asserts about itself rather than about the
+    source, so it is also the one thing that moves when the same file is converted twice.
+    Being able to pin it is what makes two conversions of one input diffable — and what
+    lets this repository's own fixture expectations be regenerated without every one of
+    them churning a line that carries no information about the change.
+    """
+    normalized = text[:-1] + "+00:00" if text.endswith(("Z", "z")) else text
+    try:
+        value = datetime.fromisoformat(normalized)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a date and time") from None
+    if value.utcoffset() is None:
+        raise argparse.ArgumentTypeError(f"{text!r} carries no UTC offset, which exported_at requires (spec §5.2)")
+    return value
 
 
 def _validate_command(files: list[Path]) -> int:
@@ -96,7 +121,9 @@ def _validate_command(files: list[Path]) -> int:
     return 1 if failed else 0
 
 
-def _convert_command(files: list[Path], output: Path | None, *, force: bool) -> int:
+def _convert_command(
+    files: list[Path], output: Path | None, *, force: bool, exported_at: datetime | None = None
+) -> int:
     """Convert each UDDF file, writing the document to a file and the report to stdout.
 
     **The document goes to a file and never to stdout**, which is why there is no `-`
@@ -124,7 +151,7 @@ def _convert_command(files: list[Path], output: Path | None, *, force: bool) -> 
             failed = True
             continue
         try:
-            conversion = convert_uddf(data)
+            conversion = convert_uddf(data, exported_at=exported_at)
         except NonConformingOutputError as error:
             # Not a property of the file: every way a source can be wrong is meant to
             # resolve to an omission and a note, so reaching here is this converter's bug.

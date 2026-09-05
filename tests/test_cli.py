@@ -65,6 +65,41 @@ def test_an_existing_output_is_refused_until_forced(source, capsys) -> None:
     assert main(["convert", str(source), "--force"]) == 0
 
 
+def test_exported_at_pins_the_one_member_that_otherwise_moves(source, capsys) -> None:
+    """Two conversions of one input have to be diffable, and this is the only thing between.
+
+    It is also what makes the documented regeneration of `fixtures/uddf/` reproduce the
+    committed bytes instead of churning a line per file (see `CONTRIBUTING.md`).
+    """
+    assert main(["convert", str(source), "--exported-at", "2026-09-05T00:00:00+00:00"]) == 0
+    first = source.with_suffix(".divejson").read_text(encoding="utf-8")
+    assert main(["convert", str(source), "--force", "--exported-at", "2026-09-05T00:00:00+00:00"]) == 0
+    assert source.with_suffix(".divejson").read_text(encoding="utf-8") == first
+    assert json.loads(first)["exported_at"] == "2026-09-05T00:00:00+00:00"
+
+
+@pytest.mark.parametrize("written", ["2026-09-05T00:00:00", "yesterday", "2026-13-05T00:00:00+00:00"])
+def test_exported_at_refuses_what_the_member_cannot_hold(source, written: str) -> None:
+    """§5.2: `exported_at` always carries an offset — it is generated, not recorded history."""
+    with pytest.raises(SystemExit):
+        main(["convert", str(source), "--exported-at", written])
+
+
+def test_the_fixture_corpus_regenerates_to_the_committed_bytes(tmp_path) -> None:
+    """`CONTRIBUTING.md`'s regeneration recipe, run as written, over the whole corpus.
+
+    A documented command nobody runs is a command that stops working. This is the one
+    instruction in the repository whose output is checked in, so it is the one worth
+    executing rather than trusting.
+    """
+    for uddf in sorted((FIXTURES / "uddf").glob("*.uddf")):
+        expected_path = uddf.with_suffix(".divejson")
+        expected = expected_path.read_text(encoding="utf-8")
+        destination = tmp_path / expected_path.name
+        assert main(["convert", str(uddf), "--output", str(destination), "--exported-at", json.loads(expected)["exported_at"]]) == 0
+        assert destination.read_text(encoding="utf-8") == expected
+
+
 def test_an_input_named_divejson_would_overwrite_itself(tmp_path, capsys) -> None:
     path = tmp_path / "logbook.divejson"
     path.write_bytes((FIXTURES / "uddf" / "subsurface.uddf").read_bytes())
