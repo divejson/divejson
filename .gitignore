@@ -1,9 +1,4 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-build/
+# This repository carries no Python of its own — the implementation lives in
+# divejson/divejson-py and is installed from PyPI to run the suite. A contributor
+# who follows CONTRIBUTING.md still ends up with a virtualenv in the checkout.
 .venv/
-.pytest_cache/
-uv.lock

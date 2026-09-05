@@ -5,52 +5,101 @@ on:
     branches: [main]
   pull_request:
 
+# The one place the implementation is pinned. This repository is the conformance
+# suite and carries no implementation of its own: CI installs a released one from
+# PyPI and asks it to run the corpus. Moving to a newer release is a one-line chore
+# here, and it is a deliberate act - an unpinned install would let a release the
+# maintainer has not looked at decide whether the corpus passes.
+env:
+  DIVEJSON_VERSION: "0.2.0"
+
 jobs:
+  # Named `conformance` since the repository's first workflow, and `trigger-site-deploy`
+  # below depends on it by that name.
   conformance:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # The floor and a current version: pyproject declares >=3.10, and 3.10's
-        # stricter datetime.fromisoformat is exactly the kind of thing only running
-        # the floor catches.
-        python-version: ["3.10", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install the validator
-        run: pip install -e ".[dev]"
-      - name: The schema is itself valid 2020-12
+          python-version: "3.12"
+
+      # No matrix. What ran on two interpreters here was the implementation's own
+      # test suite, which has moved to divejson/divejson-py along with the matrix
+      # that covers it. What is left is a corpus, and a corpus does not vary by
+      # interpreter.
+      - name: Install the pinned implementation
+        run: pip install "divejson==$DIVEJSON_VERSION"
+
+      # `jsonschema` arrives as a dependency of the implementation. This is the one
+      # check that is about the schema as a document rather than about what it
+      # accepts: a schema with a typo in a keyword name validates everything and
+      # would pass every fixture below.
+      - name: Each schema is itself valid 2020-12
         run: |
           python - <<'EOF'
-          import json
+          import json, pathlib
           from jsonschema import Draft202012Validator
-          with open("schema/1.0/divejson.schema.json") as f:
-              Draft202012Validator.check_schema(json.load(f))
-          print("schema OK")
+
+          schemas = sorted(pathlib.Path("schema").glob("*/divejson.schema.json"))
+          if not schemas:
+              raise SystemExit("no schema found under schema/*/divejson.schema.json")
+          for path in schemas:
+              with path.open() as handle:
+                  Draft202012Validator.check_schema(json.load(handle))
+              print(f"{path} OK")
           EOF
-      - name: Valid fixtures pass
-        run: divejson validate fixtures/valid/*.divejson
-      - name: Invalid fixtures fail
+
+      # Without this step the one below proves nothing about the schema in this
+      # tree. A released implementation carries its own copy and resolves that
+      # one; it never reads the corpus directory it is pointed at. So a schema
+      # edited here would be checked against no fixture at all, merge green, and
+      # be published by `trigger-site-deploy` to the $id URL validators fetch -
+      # while that job's comment claimed the fixtures had passed against it.
+      #
+      # Byte equality is what closes that: if the two copies are the same bytes,
+      # the run below is a run against this tree's schema. And when they are not,
+      # the red is the one CONTRIBUTING.md's first order describes - a change to
+      # what validates is not finished here until an implementation has released
+      # it and DIVEJSON_VERSION names that release.
+      - name: The pinned release carries exactly these schemas
         run: |
-          status=0
-          for fixture in fixtures/invalid/*.divejson; do
-            if divejson validate "$fixture" > /dev/null 2>&1; then
-              echo "UNEXPECTED PASS: $fixture"
-              status=1
-            fi
-          done
-          exit $status
+          python - <<'EOF'
+          import os, pathlib
+          import divejson
 
-      # The two legs above glob `*.divejson` and so cannot see a `.uddf` file at all: a
-      # converter fixture dropped into the tree would be silently ignored rather than
-      # checked. These two are what make `fixtures/uddf/` part of the suite.
-      - name: The converter's tests pass
-        run: pytest
+          version = os.environ["DIVEJSON_VERSION"]
+          packaged = pathlib.Path(divejson.__file__).resolve().parent / "_schema"
+          here = pathlib.Path("schema").resolve()
 
-      - name: The converter's expected outputs are themselves valid DiveJSON
-        run: divejson validate fixtures/uddf/*.divejson
+          def files(root):
+              return {p.relative_to(root) for p in root.rglob("*") if p.is_file()}
+
+          ours, theirs = files(here), files(packaged)
+          problems = [f"{p}: here, not in divejson {version}" for p in sorted(ours - theirs)]
+          problems += [f"{p}: in divejson {version}, not here" for p in sorted(theirs - ours)]
+          problems += [
+              f"{p}: differs between this tree and divejson {version}"
+              for p in sorted(ours & theirs)
+              if (here / p).read_bytes() != (packaged / p).read_bytes()
+          ]
+          if problems:
+              print("\n".join(problems))
+              raise SystemExit(
+                  f"schema/ and divejson {version}'s copy of it disagree. Either this "
+                  "change needs a release that carries it and a DIVEJSON_VERSION bump, "
+                  "or the pin is wrong. CONTRIBUTING.md, 'How a change lands'."
+              )
+          print(f"{len(ours)} schema file(s) byte-equal to divejson {version}'s")
+          EOF
+
+      # The whole suite in one command, which is the point of the split: `conform`
+      # is the contract every implementation provides, so this line is what a port
+      # in another language runs too. `--strict` turns a format the implementation
+      # registers and the corpus has no pairs for into an error - without it the
+      # suite could silently stop covering a reader.
+      - name: The corpus passes against that implementation
+        run: divejson conform fixtures/ --strict
 
   # A schema change only reaches its consumers once divejson.org serves it: every
   # schema's $id resolves there, so the site is the distribution channel rather

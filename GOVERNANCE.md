@@ -15,6 +15,10 @@ maker, everything argued in public.
    record.
 3. Accepted changes land as pull requests against the spec, the schema, and the fixtures
    together — a normative change that the schema and fixtures do not reflect is not done.
+   The implementations live in repositories of their own, so a change to what validates is
+   not finished until one of them has released it and this repository's CI runs against
+   that release: the two orders a change can take, and which one applies, are in
+   [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Versioning
 
