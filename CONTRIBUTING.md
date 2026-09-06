@@ -99,8 +99,11 @@ adopted into this corpus when it arrives with:
   [`docs/converting.md`](docs/converting.md) already says;
 - **at least one pair per writer it claims to read**, because a format is a family of
   dialects and a claim about a writer is only checked by a file that writer produced;
-- **its report's kinds documented** — what it reports as absent, as inferred, and as
-  dropped.
+- **its report's kinds documented** — every kind in
+  [`docs/converting.md`](docs/converting.md)'s table that its report can emit, with
+  `inferred` kept apart from `resolved`: only the first obliges the document to list its
+  member under `extensions.divejson.inferred`, so blurring them leaves the report and that
+  list disagreeing.
 
 The maintainer decides, as for everything else. This is a different bar from the one for
 new core fields above: that one is about what the format models, this one is about what the
