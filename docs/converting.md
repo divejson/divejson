@@ -218,8 +218,9 @@ learns what their file did not carry. In particular:
 spelling is genuinely in doubt — the same field written as a fraction by one writer and a
 percentage by another, both schema-valid, with no way to tell from the file which you have.
 None of those has a clean answer. Each is handled explicitly and reported when its
-heuristic fires, because a silent guess is the failure a converter exists to avoid. The
-difference from the rule above is that the value **was** recorded and only its
+heuristic fires — as a `resolved` finding, the kind *The report* below defines for exactly
+this — because a silent guess is the failure a converter exists to avoid. The difference
+from the rule above is that the value **was** recorded and only its
 interpretation is in doubt, so a magnitude test interprets data rather than inventing it;
 dropping the member instead would lose a real reading from every file that writer produced.
 Each format's mapping document names its own ambiguities and the test each one uses.
@@ -242,13 +243,18 @@ converter rather than a property of the file, and it is reported as one.
 
 ### A finding has a kind
 
-Three, and the difference between them is what a diver needs from the report:
+Four, and the difference between them is what a diver needs from the report:
 
 | kind | what it says |
 | --- | --- |
 | `absent` | the source never recorded this |
 | `inferred` | the converter computed this from readings the source did record |
+| `resolved` | the source recorded the number and left its scale or units ambiguous; the converter decided only how to read it, and the value is still the source's own |
 | `dropped` | the source recorded this and the converter could not carry it |
+
+They read in order of how much of the value the source itself supplied: nothing at all, the
+readings it was computed from, the number with its scale left open, and the whole thing,
+uncarriable.
 
 **An inferred value is emitted, and labelled.** A maximum depth computed from a dive's own
 depth samples is a summary of recorded readings rather than a fabrication under §5.4, and
@@ -261,6 +267,16 @@ change.
 
 **The list is written only when it is non-empty**, so a conversion that infers nothing
 produces exactly the document it would have produced without this rule.
+
+**A resolved value is not listed, and that is why it is its own kind.** The number a
+converter writes after settling an ambiguity is still the one the source recorded — only
+its scale was in doubt — so there is no derivation for a downstream reader to be told
+about, and nothing goes under `extensions.divejson.inferred`. Keeping the two apart is what
+makes the coupling above exact in both directions: every `inferred` note's member is listed,
+and every listed member has an `inferred` note. Filing a resolution under `inferred`
+instead would break one direction or the other — either a member appears in the list with
+no derivation behind it, or the list acquires an exception, and an exception a port has to
+know about is one a port will get wrong.
 
 **`profile.duration` is not inferred.** §6.4 defines it as the span of the profile's own
 samples, so a converter taking the largest sample time across every channel is reading a
