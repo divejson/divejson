@@ -286,9 +286,10 @@ inventing 402 readings.
 ## Three places UDDF does not hand over the answer
 
 The last two are `converting.md`'s ambiguities: a value the source did record, whose scale
-the file cannot settle, resolved by a heuristic that reports when it fires. The first is
-the opposite shape and no ambiguity at all — a required DiveJSON member with no UDDF source
-— and §6.4 settles it outright, so it guesses nothing and reports nothing.
+the file cannot settle, so a heuristic reads it at the scale it must have meant and reports
+a finding of kind `resolved` when it fires. The first is the opposite shape and no ambiguity
+at all — a required DiveJSON member with no UDDF source — and §6.4 settles it outright, so
+it guesses nothing and reports nothing.
 
 ### `profile.duration` has no UDDF source
 
@@ -314,8 +315,8 @@ because whichever build produced the fixture only demonstrates one of them.
 
 **Heuristic: below 1, cubic metres; at 1 or above, already litres.** A cubic metre of water
 capacity is a thousand-litre cylinder, and a litre-valued `0.012` would be twelve
-millilitres. Bubbletrail's UDDF importer uses the same threshold. Reported when the second
-branch fires.
+millilitres. Bubbletrail's UDDF importer uses the same threshold. Reported as `resolved`
+when the second branch fires.
 
 ### `<o2>` and `<he>`: fraction or percent
 
@@ -324,8 +325,8 @@ contradicts itself, and writers took both readings: pre-2017 Subsurface wrote `<
 where current writers write `0.34`. Both are schema-valid.
 
 **Heuristic: at or below 1, the documented fraction; above 1, already a percentage.** `1.0`
-is pure oxygen rather than a 1 % mix, because a 1 % mix is not a breathing gas. Reported
-when the second branch fires.
+is pure oxygen rather than a 1 % mix, because a 1 % mix is not a breathing gas. Reported as
+`resolved` when the second branch fires.
 
 ## Deliberately not mapped
 
