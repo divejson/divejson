@@ -281,9 +281,8 @@ A file with no `activity` message carries no offset to recover, and its dive is 
 UTC instant the device recorded, reported. That is not an invented offset — FIT states
 outright that its timestamps are UTC. What is lost is the wall clock the diver read.
 
-**A recorded sub-second fraction would be preserved.** FIT's `date_time` counts whole
-seconds, so no file can carry one today; §5.2 makes the fraction optional, and truncating a
-recorded value is not something any of the four report kinds could honestly describe.
+**FIT's `date_time` counts whole seconds**, so no file can carry the sub-second fraction
+`converting.md` preserves where a source records one.
 
 ### Cylinders — `dive_gas` (259)
 
@@ -350,9 +349,9 @@ is the only signal there is, so the two are paired in order and **only when the 
 exactly**; anything else — two gases and one pod — leaves the pressures out and says so,
 rather than attaching a start pressure to a cylinder it may not have been measured in.
 
-A file with tank telemetry and no gas list at all is the other way round: evidence of a tank
-is evidence of a tank, so each pod becomes a cylinder carrying its pressures and nothing
-else. A `tank_summary` naming a pod and carrying no pressures grows no cylinder, since it
+A file with tank telemetry and no gas list at all is the other way round, and
+`converting.md`'s evidence-of-a-tank rule is what settles it: each pod becomes a cylinder
+carrying its pressures and nothing else. A `tank_summary` naming a pod and carrying no pressures grows no cylinder, since it
 describes nothing; one with no `sensor` at all cannot be joined to anything and stands as its
 own cylinder, numbered after the identified ones and contributing no channel.
 
@@ -385,31 +384,25 @@ time, two samples on one second, a dive whose samples carry nothing this format 
 
 **Each channel takes only the records that carried its reading.** A Suunto Ocean writes 4,295
 `record`s of which 431 carry a depth and 4,294 a temperature, and padding either to the
-other's length would invent nearly four thousand depths the dive never reached. Readings from
-different messages at one instant are collected into one sample, so a `record` and a
-`tank_update` at one second are one sample rather than two; two readings of the *same*
-channel at one instant keep the first and report the second.
+other's length would invent nearly four thousand depths the dive never reached. A `record`
+and a `tank_update` on one second are one sample rather than two, by `converting.md`'s
+per-channel collision rule — the two carry different channels and were never in
+competition.
 
 `next_stop_depth` is FIT's deco ceiling — the depth of the next required stop, in metres,
 scaled like `depth` beside it. **Not** `next_stop_time` (94), `time_to_surface` (95) or
 `ndl_time` (96), the three neighbouring fields that measure durations rather than a depth.
 
-**A ceiling of zero is not a ceiling.** Zero says the diver may surface — the absence of an
-obligation rather than an obligation at 0 m — and reading it as a reading would draw a flat
-line along the surface across every no-deco dive in a logbook.
+A zero in it is not a ceiling, by `converting.md`'s rule: zero says the diver may surface
+rather than that an obligation sits at 0 m.
 
-### Positions, and where a fix belongs
+### Positions
 
-**No fix is taken underwater**, a receiver not reaching a wrist through seawater, so every
-position in a dive log was recorded at the surface and the only question worth asking of one
-is which surface interval it belongs to. The deepest sample is the split: the last fix at or
-before it is the entry and the first after it is the exit, because the fix that says where a
-diver got in is the one taken just before they descended rather than the one from when the
-boat left the jetty.
-
-The deepest sample is the pivot in preference to an in-water *window*, which would need a
-depth threshold this reader would have to invent. With no depth channel there is no pivot and
-so no answer, and nothing is written.
+A `record`'s `position_lat` / `position_long` pair is a fix, and which surface interval a
+fix belongs to is `converting.md`'s question rather than this format's — the deepest sample
+is the split. What is FIT's is the semicircle encoding above and the `0x7FFFFFFF` sentinel
+beside it. The Ocean pair in `fixtures/fit/` is the case that shape produces: all 28 of its
+fixes land after the deepest sample, so the dive has an exit position and no entry.
 
 ### Events — `event` (21)
 

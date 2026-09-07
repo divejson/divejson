@@ -79,11 +79,9 @@ six-digit sub-second fraction and rejects `.6`, which the same vendor's other ex
 That is a property of one interpreter version rather than of the data, so the timestamp is
 matched against a lenient ISO 8601 pattern and the calendar is checked afterwards.
 
-**The recorded fraction is preserved.** §5.2 makes it OPTIONAL rather than forbidden, the
-source recorded it, and nothing in this format asks for it to be dropped — so
-`2026-04-17T11:49:23.510+02:00` converts to exactly that. The offset is preserved and never
-supplied; the *spelling* is normalised, so a `+0200` with no colon and a lowercase `z` come
-out as `+02:00` and `Z`.
+This is the format that made `converting.md` state the fraction rule: nothing here asks for
+a recorded fraction to be dropped, so `2026-04-17T11:49:23.510+02:00` converts to exactly
+that, offset and all.
 
 ## Units
 
@@ -226,8 +224,8 @@ carries no pressures at all, which is the honest answer.
 
 Switch order is chronological, so the back gas comes first and a deco gas follows — the
 order a logbook lists them in. A slot that transmitted without a recorded switch is appended
-after those: evidence of a tank is evidence of a tank, whichever way round it arrived. At
-most 16 cylinders are read from one dive, since nothing else bounds how many distinct gas
+after those, by `converting.md`'s evidence-of-a-tank rule — whichever way round it
+arrived. At most 16 cylinders are read from one dive, since nothing else bounds how many distinct gas
 numbers a file may claim.
 
 **Only the pressures are real, and nothing else is invented to fill the gap.** This shape
@@ -311,16 +309,13 @@ switch that happened, and saying so is honest where guessing a position would no
 | `DiveEvents` / `Events` | | §6.5 events, below |
 | `Latitude` / `Longitude`, `DiveRouteOrigin` | | `entry_position` and `exit_position` |
 
-**Entries that land on one second are merged rather than one of them being dropped.** This
-exporter appends its sensor streams as separate entries: on the dive `suunto-ocean.json` is
-reduced from, 7 477 entries carry a depth, a temperature, a satellite fix or a battery
-reading, almost never two of those at once, and they collide on the whole seconds §6.5
-requires. Offering them one at a time leaves the axis choosing between a depth and a
-temperature recorded at the same instant, and it keeps 345 of that dive's 431 depths.
-Merging keeps all 431 — the count the same dive's FIT reading gives — because §6.5's
-channels each carry their own times and two *different* channels were never in competition.
-One channel twice on a second is still a collision, and is reported per channel rather than
-per entry.
+**This exporter is what made `converting.md`'s collision rule per channel.** It appends its
+sensor streams as separate entries: on the dive `suunto-ocean.json` is reduced from, 7 477
+entries carry a depth, a temperature, a satellite fix or a battery reading, almost never two
+of those at once, and they collide on the whole seconds §6.5 requires. Offering them to the
+axis one at a time leaves it choosing between a depth and a temperature recorded at the same
+instant, and keeps 345 of that dive's 431 depths; merging them keeps all 431 — the count the
+same dive's FIT reading gives.
 
 **Samples are ordered by their own recorded time.** The union of an Ocean export's sample
 timestamps is not monotonic: adjacent entries go backwards by up to a second — 1.05 s is
@@ -328,11 +323,10 @@ the worst step across these 35 files — because the separate sensor streams are
 of order. The last entry in the file is not the
 last reading of the dive.
 
-**A ceiling of zero is not a ceiling.** This export writes `"Ceiling": 0` on every no-deco
-sample where the same vendor's desktop export writes `xsi:nil` — 10 992 of the 12 643
-ceiling readings across these 35 files. The ceiling is the depth a diver may not ascend
-above, and zero says they may surface; reading it as a reading would draw a flat line along
-the surface across every no-deco dive in a logbook.
+**A zero ceiling is `converting.md`'s rule, and this is the export that showed it.** It
+writes `"Ceiling": 0` on every no-deco sample where the same vendor's desktop export writes
+`xsi:nil` — 10 992 of the 12 643 ceiling readings across these 35 files, every one of which
+would have drawn a flat line along the surface.
 
 **`DeviceInternalAbsPressure` is not a tank pressure.** It sits in the same sample object as
 `Cylinders` and reads about 96 400 Pa at the surface: it is the computer's own ambient
@@ -371,12 +365,10 @@ confirmation after; marking all three would put three ticks on one stop. `Deco W
 `Gas Switch`, `NoFly Time`, `Dive Time`, `Safety Stop Broken`, `Deco` and `Gas Available`
 have no §6.5 type and are dropped rather than forced into the nearest one.
 
-### Positions, and where a fix belongs
+### Positions
 
-The rule is the one every reader in this package applies: no fix is taken underwater, so the
-only question worth asking of one is which surface interval it belongs to, and the deepest
-sample is the split. What is at or before it is on the way in, what is after it is on the
-way out, and the last before and the first after are the two kept.
+Which surface interval a fix belongs to is `converting.md`'s question, and the deepest
+sample is its split. What is this format's is below.
 
 **This export writes its coordinates in two units, in one file.** A sample's own
 `Latitude`/`Longitude` are radians; the `DiveRouteOrigin` on the first sample is degrees.
