@@ -40,3 +40,13 @@ repositories.
   that expects ports, and of an implementation with no privileged standing over the suite
   it is measured against. `docs/converting.md` is new: the converter rules that hold
   whatever the source is, lifted out of `docs/uddf-mapping.md`, which keeps what is UDDF's.
+- Three more source formats join the corpus: Subsurface's `.ssrf` save file, ANT/Garmin FIT
+  and the Suunto app's JSON export, each with its pairs under `fixtures/` and its mapping
+  document under `docs/`. That is the two-repository order working as designed — the reader,
+  its pairs and its document land in an implementation repository first, are released, and
+  are adopted here verbatim against that release. FIT is the first binary input in the tree,
+  and the first committed whole rather than reduced by hand: a `.fit` cannot be hand-built
+  without proving only that an encoder and a decoder agree. Five rules the new documents
+  turned out to share moved into `docs/converting.md`, which is where a rule that holds for
+  more than one format belongs — among them that a ceiling of zero is not a ceiling, and
+  where a satellite fix belongs on a dive that has two of them.

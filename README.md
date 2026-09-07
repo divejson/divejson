@@ -55,7 +55,7 @@ DiveJSON's answers, as normative rules rather than aspirations:
 | [`spec/divejson.md`](spec/divejson.md) | The specification — the normative document. |
 | [`schema/1.0/divejson.schema.json`](schema/1.0/divejson.schema.json) | The normative JSON Schema (draft 2020-12), one directory per minor version. |
 | [`fixtures/`](fixtures/) | Conformance fixtures: valid documents, invalid ones covering each rule the schema alone cannot express, and source-format inputs paired with the documents a converter must produce from them. |
-| [`docs/`](docs/) | Non-normative notes. [`converting.md`](docs/converting.md) is the converter policy every implementation follows; a mapping document beside it per source format ([`uddf-mapping.md`](docs/uddf-mapping.md) is the first). |
+| [`docs/`](docs/) | Non-normative notes. [`converting.md`](docs/converting.md) is the converter policy every implementation follows; a mapping document beside it per source format the corpus covers — [`uddf-mapping.md`](docs/uddf-mapping.md), [`ssrf-mapping.md`](docs/ssrf-mapping.md), [`fit-mapping.md`](docs/fit-mapping.md), [`suunto-json-mapping.md`](docs/suunto-json-mapping.md). |
 
 ## Validating a document
 
@@ -81,8 +81,8 @@ were `0.000000`. **Nothing absent is filled in**: that report is the other half 
 output, not a diagnostic, and it is what tells a diver which parts of their history their
 old application never kept. The rules a converter follows whatever it is reading are in
 [`docs/converting.md`](docs/converting.md); each source format's own map, its ambiguities
-and what it leaves unmapped are in that format's document beside it, starting with
-[`docs/uddf-mapping.md`](docs/uddf-mapping.md).
+and what it leaves unmapped are in that format's document beside it, one per format the
+corpus covers — UDDF, Subsurface `.ssrf`, ANT/Garmin FIT and the Suunto app's JSON.
 
 ## Running the conformance suite
 
@@ -131,6 +131,17 @@ like any other. A port in another language is welcome to the same arrangement.
 Problems, ambiguities, and proposals are GitHub issues — a real document that the spec
 mishandles is the most valuable kind of report. See [CONTRIBUTING.md](CONTRIBUTING.md)
 and [GOVERNANCE.md](GOVERNANCE.md) for how changes land and who decides.
+
+## Notices
+
+The message and field numbers in [`docs/fit-mapping.md`](docs/fit-mapping.md) were read off
+the MIT-licensed global FIT profile that open decoders carry, and off the real files in
+[`fixtures/fit/`](fixtures/fit) — **not** from Garmin's `Profile.xlsx`.
+
+The FIT Protocol and FIT file format are proprietary to Garmin. This project is not
+affiliated with or endorsed by Garmin, carries no part of the FIT SDK, and does not use
+`garmin-fit-sdk`. Suunto, Subsurface and the other writers named in `docs/` are likewise
+named to say whose output a mapping was checked against, and for nothing else.
 
 ## License
 
