@@ -11,7 +11,7 @@ on:
 # here, and it is a deliberate act - an unpinned install would let a release the
 # maintainer has not looked at decide whether the corpus passes.
 env:
-  DIVEJSON_VERSION: "0.2.0"
+  DIVEJSON_VERSION: "0.3.0"
 
 jobs:
   # Named `conformance` since the repository's first workflow, and `trigger-site-deploy`
