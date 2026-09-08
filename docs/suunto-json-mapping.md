@@ -272,7 +272,9 @@ disagree, on purpose, and both fixtures encode that.
 
 **The extremes are taken over the samples' own recorded instants, not off the profile.**
 The merged axis is not what loses them — it folds an entry into a second another channel's
-entry already holds rather than dropping it, which is the rule above. Two other readings do,
+entry already holds rather than dropping it, which is `converting.md`'s collision rule
+read per channel, and *The profile* below is where this exporter's habit of appending its
+sensor streams separately makes that rule visible. Two other readings do,
 and both are measured on the dive `suunto-ocean.json` is reduced from, whose start pressure
 is 211.625 bar: an **unmerged** axis, one entry per second with the first winning it whole,
 gives 211.26562, the earlier depth entry taking the second and carrying the cylinder reading
