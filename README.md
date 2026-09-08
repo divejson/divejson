@@ -54,8 +54,8 @@ DiveJSON's answers, as normative rules rather than aspirations:
 | --- | --- |
 | [`spec/divejson.md`](spec/divejson.md) | The specification — the normative document. |
 | [`schema/1.0/divejson.schema.json`](schema/1.0/divejson.schema.json) | The normative JSON Schema (draft 2020-12), one directory per minor version. |
-| [`fixtures/`](fixtures/) | Conformance fixtures: valid documents, invalid ones covering each rule the schema alone cannot express, and source-format inputs paired with the documents a converter must produce from them. |
-| [`docs/`](docs/) | Non-normative notes. [`converting.md`](docs/converting.md) is the converter policy every implementation follows; a mapping document beside it per source format the corpus covers — [`uddf-mapping.md`](docs/uddf-mapping.md), [`ssrf-mapping.md`](docs/ssrf-mapping.md), [`fit-mapping.md`](docs/fit-mapping.md), [`suunto-json-mapping.md`](docs/suunto-json-mapping.md). |
+| [`fixtures/`](fixtures/) | Conformance fixtures: valid documents, invalid ones covering each rule the schema alone cannot express, source-format inputs paired with the documents a converter must produce from them, and under `write/` the pairs that run the other way — a document, and the file a writer must produce from it. |
+| [`docs/`](docs/) | Non-normative notes, one general document per direction: [`converting.md`](docs/converting.md) is the policy for reading a source format into DiveJSON, [`writing.md`](docs/writing.md) the policy for writing DiveJSON back out into one. Beside them, a document per format per direction — [`uddf-mapping.md`](docs/uddf-mapping.md), [`ssrf-mapping.md`](docs/ssrf-mapping.md), [`fit-mapping.md`](docs/fit-mapping.md), [`suunto-json-mapping.md`](docs/suunto-json-mapping.md) and [`suunto-xml-mapping.md`](docs/suunto-xml-mapping.md) coming in, [`uddf-writing.md`](docs/uddf-writing.md) going out. |
 
 ## Validating a document
 
@@ -82,7 +82,20 @@ output, not a diagnostic, and it is what tells a diver which parts of their hist
 old application never kept. The rules a converter follows whatever it is reading are in
 [`docs/converting.md`](docs/converting.md); each source format's own map, its ambiguities
 and what it leaves unmapped are in that format's document beside it, one per format the
-corpus covers — UDDF, Subsurface `.ssrf`, ANT/Garmin FIT and the Suunto app's JSON.
+corpus covers — UDDF ([`uddf-mapping.md`](docs/uddf-mapping.md)), Subsurface `.ssrf`
+([`ssrf-mapping.md`](docs/ssrf-mapping.md)), ANT/Garmin FIT
+([`fit-mapping.md`](docs/fit-mapping.md)), the Suunto app's JSON
+([`suunto-json-mapping.md`](docs/suunto-json-mapping.md)) and Suunto's DM5 XML
+([`suunto-xml-mapping.md`](docs/suunto-xml-mapping.md)).
+
+```bash
+divejson convert --to uddf my-logbook.divejson
+```
+
+goes the other way, and reports what the target format has no room for. Its rules are in
+[`docs/writing.md`](docs/writing.md) and, for UDDF, in
+[`docs/uddf-writing.md`](docs/uddf-writing.md) — the only format the corpus covers in this
+direction so far.
 
 ## Running the conformance suite
 
