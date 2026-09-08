@@ -5,8 +5,9 @@ document carries a complete logbook — dives with full sampled profiles, gas mi
 trips, training courses, dive sites, marine-life sightings, gear and its service
 history, certifications — so a diver's data can move between applications without loss.
 
-**Status: draft.** The 1.0 specification is feature-complete. It freezes as v1.0 when its
-maintainers tag it; until then, normative text, schema, and fixtures may change together.
+**Status: 1.0.** This text is what its maintainers tag as v1.0. Normative text, schema,
+and fixtures no longer change together without a version bump — §7 of the spec governs
+what a later version may change.
 
 ## Why another format
 

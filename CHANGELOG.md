@@ -5,11 +5,11 @@ version (`major.minor`, declared in every document) is what readers and writers 
 on; the implementations that read and write it are released separately, from their own
 repositories.
 
-## Unreleased
+## 1.0
 
 - Initial draft of the DiveJSON 1.0 specification, its JSON Schema (2020-12), the
-  conformance fixtures, and the `divejson validate` CLI. The draft freezes as v1.0 when
-  its maintainers tag it.
+  conformance fixtures, and the `divejson validate` CLI. This release is that draft
+  frozen: 1.0 is the text its maintainers tag.
 - `divejson convert` reads UDDF. The format has only ever met the implementation that
   wrote it, and reading somebody else's data is the thing it exists for — so the converter
   is as much a test of the specification as a tool: it is what turns "an open interchange
