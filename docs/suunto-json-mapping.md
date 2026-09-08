@@ -43,15 +43,17 @@ everything else anybody has ever exported; the suffix is a hint for a message to
 never how a source is decided.
 
 The id is `suunto_json` rather than `suunto`, because the same vendor's DM5 desktop
-application exports a different format that a reader may register beside this one.
+application exports a different format, [`suunto-xml-mapping.md`](suunto-xml-mapping.md),
+which a reader registers beside this one.
 
 ### One file, one activity, and not every activity is a dive
 
 The app writes one file per activity in this same shape — a run, a swim and a dive differ
 only in `Header.ActivityType`, which reads **51** for a dive on all 35 files in hand.
 Nothing else in the file distinguishes a run from a dive whose computer recorded no depth,
-so an activity that states some other type is dropped with a `dropped` finding rather than
-converted into a dive with no readings.
+so an activity that states some other type is skipped and reported — `converting.md`'s rule
+for a record that is not a scuba dive, and this is the format that shows it at its plainest,
+since a run and a dive here are the same shape.
 
 A header that states **no** `ActivityType` is read on. Absence is not a claim, and
 [`converting.md`](converting.md)'s first rule is that schema validity is never a
@@ -72,13 +74,11 @@ of it is in hand**, so `fixtures/suunto_json/header-only.json` is constructed; w
 proves is that the reader reaches the same answer by carrying nothing rather than by
 failing, which is the same code path the two real shapes take when their gas is missing.
 
-### A start time is parsed by pattern, not by the standard library
+### A start time carries its offset and its fraction
 
-A standard library's ISO 8601 parser is not reliably lenient enough for this: Python's
-`datetime.fromisoformat` before 3.11 accepts a three- or six-digit sub-second fraction and
-rejects `.6`, which the same vendor's other export writes. That is a property of one
-parser's version rather than of the data, so the timestamp is matched against a lenient
-ISO 8601 pattern and the calendar is checked afterwards.
+`converting.md` has how a date-time is parsed — by pattern, with the calendar checked
+afterwards — and this vendor's pair of exports is the reason it says so: the same dive's
+DM5 XML writes the `.6` that a standard library's ISO parser is most likely to reject.
 
 This is the format that made `converting.md` state the fraction rule: nothing here asks for
 a recorded fraction to be dropped, so `2026-04-17T11:49:23.510+02:00` converts to exactly
@@ -111,12 +111,12 @@ two Suunto exports: `EndTissue.CNS: 0.069` is the desktop export's `<CnsEnd>7</C
 while its OTU `17.89002799987793` is that export's rounded `18`. Converting both would
 report the oxygen tolerance units as 1 789 of them.
 
-**Nothing recorded is rounded.** A transmitter reports in steps far finer than a gauge a
-diver reads, so 21 162 500 Pa is `211.625` bar and not `211.62` — the digits are the
-source's, and rounding them here would write a convention into a conformance corpus that
-this corpus applies nowhere else. The one quantized value is the radian-to-degree
-conversion, which is this converter's own arithmetic on an irrational factor and is cut at
-six places, about 11 cm. `DiveRouteOrigin` is already degrees and is carried untouched.
+**Nothing recorded is rounded** (`converting.md`), and this format is where it costs the
+most digits: a transmitter reports in steps far finer than a gauge a diver reads, so
+21 162 500 Pa is `211.625` bar and not `211.62`. The one quantized value is the
+radian-to-degree conversion, which is a converter's own arithmetic on an irrational factor
+and is cut at six places, about 11 cm. `DiveRouteOrigin` is already degrees and is carried
+untouched.
 
 **Two coordinate units in one file is not an ambiguity.** A sample fix and a route origin
 are different members, each with one unit, so there is no magnitude test and no `resolved`

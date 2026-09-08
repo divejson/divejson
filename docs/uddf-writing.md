@@ -1,12 +1,19 @@
 # Writing DiveJSON as UDDF
 
-The way back out. `uddf-mapping.md` is the other direction — every element a reader takes
-into DiveJSON — and this document is what a writer does with a DiveJSON document that has
-to become a UDDF file: which member lands in which element, what UDDF has no room for, and
-what a reader will make of each thing that did not fit.
+**Non-normative.** The specification is [`spec/divejson.md`](../spec/divejson.md); nothing
+here changes what a conforming document is. [`uddf-mapping.md`](uddf-mapping.md) is the
+other direction — every element a reader takes into DiveJSON — and this document is what a
+writer does with a DiveJSON document that has to become a UDDF file: which member lands in
+which element, what UDDF has no room for, and what a reader will make of each thing that
+did not fit.
 
-It is written for a port in another language as much as for a reader of the Python. The
-*rules* are here; only their implementation is in `divejson/uddf_write.py`.
+The rules a writer follows whatever format it is writing are in
+[`writing.md`](writing.md) — how a writer is checked, the three answers to a required
+element the document has nothing for, the report's kinds read on the way out, and a
+writer being a function of its input — and the rules that hold in **either** direction are
+in [`converting.md`](converting.md), identity among them. Neither is repeated here. This
+document carries what is UDDF's, and keeps beside each general rule the example that first
+showed it.
 
 ## Why write UDDF at all
 
@@ -25,76 +32,51 @@ thing it counts being a second place for it to be wrong.
 
 ## What a correct writer is checked against
 
-Two things, and neither is a byte comparison against another implementation. A writer built
-to match another implementation byte for byte is a mirror of it, and the first divergence
-between the two is a bug in whichever was read last.
+The three checks are `writing.md`'s. What is UDDF's is how each one lands here.
 
-**The writer pairs.** `fixtures/write/uddf/` holds a DiveJSON document and the UDDF a
-correct writer produces from it — the reader pair's shape with its halves swapped. They are
-compared as **canonical XML with `<generator>` ignored**: two runs of one writer differ in
-the version stamped there and in nothing else, and a corpus that failed on every release
-would be a corpus nobody keeps green. `divejson conform` runs them.
+**The pairs are compared as canonical XML with `<generator>` ignored**, which is this
+format's answer to the general question of how two of its files are compared when one was
+produced just now: two runs of one writer differ in the version stamped there and in nothing
+else. [`fixtures/write/uddf/`](../fixtures/write/uddf) holds them and `divejson conform` runs
+them; what each covers is in [`fixtures/README.md`](../fixtures/README.md#writeuddf).
 
-**The self round trip.** Reading a written file back through a UDDF reader returns the
-document it was written from, on every member `uddf-mapping.md`'s element map carries — and
-everything that does not come back is named in the report. That is the check this whole
-document is a description of, and the list of what a pair loses is committed beside the
-implementation rather than left to be rediscovered.
+**The self round trip** reads a written file back through a UDDF reader and expects the
+document it was written from, on every member [`uddf-mapping.md`](uddf-mapping.md)'s element
+map carries. This document is the description of what does not come back.
 
-Two members are outside that comparison, for the reasons `conform.compared` gives:
-`exported_at` and `generator` are facts about a *run*. A third is outside it and is this
-direction's own: **`extensions`**. A converted document keeps the source file's own
-generator and declared version under the `divejson` producer key (§5.5), and once a writer
-has run, the file in front of a reader is one *it* produced — so `<generator>` and
-`/uddf/@version` describe the rewrite. Carrying the old block across would mean writing
-another application's name into the element that says what wrote this file.
+**`extensions` is the exclusion this direction adds** to the two the corpus already ignores
+(`writing.md`), and UDDF is where it is visible: `<generator>` and `/uddf/@version` describe
+the file in front of a reader, which after a write is the one this writer produced, so the
+source's own generator and declared version stay behind.
 
-The XSD is a third check and it belongs in an implementation's own suite rather than in a
-corpus, since a corpus holds documents and not schemas. It is the only check that can see
-element **order**, and order is a live hazard: `informationbeforedive`, `waypoint`,
-`equipment`, `tankdata` and `trippart` are all `xs:sequence`, so a member added in the wrong
-place produces a file a lenient reader — including this format's own, which takes children
-by name — is perfectly happy with and no other implementation can open.
+**The XSD is the check the corpus cannot make.** UDDF 3.2.2 has one, so validating output
+against it belongs in an implementation's own suite — and here it is the only check that can
+see element **order**, which is a live hazard in this format: `informationbeforedive`,
+`waypoint`, `equipment`, `tankdata` and `trippart` are all `xs:sequence`, so a member added
+in the wrong place produces a file a lenient reader — including this format's own, which
+takes children by name — is perfectly happy with and no other implementation can open.
 
-## The three answers, and the one that is never taken
+## The three answers, in UDDF
 
-Every hard case here is UDDF requiring something DiveJSON does not, or having nowhere to put
-something DiveJSON does. Three answers are available:
+`writing.md` states them: write the format's own spelling for "not recorded", or drop the
+value and report it, and never invent. UDDF is a clean example of the distinction that
+decides between the first two, because it has both shapes as **mandatory** elements.
 
-1. **Write the format's own spelling for "not recorded".** UDDF has one for some members —
-   a `<greatestdepth>` of `0` — and a reader takes it straight back off.
-2. **Drop the value and say so in the report.**
-3. **Invent something.**
-
-The third is never taken. The distinction that keeps it that way is whether the format has a
-spelling for absence at all: `<greatestdepth>` is mandatory and its zero *is* that spelling,
-while `<geography><location>` is mandatory and a place name has none — so a site with
-coordinates and no `location` loses the coordinates rather than having its own **name**
-copied into a member that means something else. A round trip would then hand the diver back
-a location they never wrote, which is §5.4's fabrication with an extra step.
+`<greatestdepth>` is mandatory and its `0` *is* the format's spelling for absence, so it is
+written and a reader takes it straight back off. `<geography><location>` is mandatory and a
+place name has no such spelling — so a site with coordinates and no `location` loses the
+coordinates rather than having its own **name** copied into a member that means something
+else. A round trip through that would hand the diver back a location they never wrote.
 
 ## The report, going out
 
-A writer returns a report beside the bytes, the same way a reader returns one beside the
-document, and it is half the output rather than a diagnostic. Its findings carry
-`converting.md`'s kinds, read in this direction:
+`writing.md` has the kinds and what a `where` is. In this format `absent` is an element UDDF
+requires that the document had nothing for, and `dropped` is a member UDDF has nowhere to
+put; the paths are `dives/0`, `dives/0/cylinders/1`, `trips/0/locations/1` and `$`.
 
-| kind | what it says on the way out |
-| --- | --- |
-| `absent` | UDDF requires an element the document has nothing for, so the format's own placeholder is written; the entry says what a reader will take it as |
-| `dropped` | the document recorded this and UDDF has nowhere to put it |
-| `inferred` | never produced by a writer: it computes nothing |
-| `resolved` | never produced by a writer: it reads no ambiguous scale |
-
-A finding's `where` is a path into the **document being written** — `dives/0`,
-`dives/0/cylinders/1`, `trips/0/locations/1`, `$` for the document itself — where a reader's
-is a path into the source file. Indices are zero-based and count records in document order.
-
-**A member with nowhere to go is reported from the record itself, not from a list.** A
-writer that carried a hand-kept list of unmapped members would silently drop the next member
-the format gains; asking each record which of its members were not placed reports that one
-instead. The tables below are therefore a description of the code's behaviour and not its
-source.
+A member with nowhere to go is reported from the record itself and not from a list
+(`writing.md`), so **the tables below are a description of what a writer does and not the
+source of it** — the next member §6 gains reports itself here rather than going silently.
 
 ## The element map
 
@@ -113,10 +95,10 @@ same rows. What follows is only where writing is not simply reading in reverse.
 `<generator><type>` is `converter`, which is one of the three values `generatorType`
 enumerates. The reference writer says `logbook`, being one.
 
-**`<generator><datetime>` is the document's own `exported_at` and never the clock.** That
-makes the whole file a function of its input: two writes of one document are one set of
-bytes, a writer pair in a corpus does not churn every time it is regenerated, and the pair
-comparison can ignore `<generator>` without losing anything but the version.
+**`<generator><datetime>` is the document's own `exported_at` and never the clock**, which
+is where `writing.md`'s function-of-its-input rule lands in this format: the only thing left
+moving between two writes of one document is the version stamped beside it, which is exactly
+what the pair comparison ignores.
 
 ### Identity
 

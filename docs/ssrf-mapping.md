@@ -170,9 +170,9 @@ would be this converter asserting a zone the file does not. `converting.md` forb
 supplying one, and §5.2 is what it is protecting.
 
 A dive with no `@date` is dropped, since §6.2 makes `started_at` REQUIRED. A `@time` missing
-its seconds is read as `:00` and reported — §5.2's grammar requires them, so a hand-edited
-file would otherwise produce a document that fails this converter's own validation and cost
-the whole logbook.
+its seconds is read as `:00` and reported, which is `converting.md`'s leniency: a
+hand-edited save file writes exactly that, and without it one such dive would fail a
+converter's own output validation and cost the whole logbook.
 
 `@cns` and `@otu` are the dive's *end* figures. Subsurface records no starting pair, so
 `cns_start` and `otu_start` have no source here.
