@@ -270,12 +270,15 @@ really recorded, and truncating it would drop surface readings the depth and tem
 channels keep. So a converted dive's last channel value and its cylinder's `end_pressure`
 disagree, on purpose, and both fixtures encode that.
 
-**The extremes are taken over the samples' own recorded instants, not over the profile's
-whole-second axis.** The axis rounds to whole seconds and keeps the first entry on each of
-them; a cylinder reading that shares its second with an earlier entry of another channel is
-dropped by that rule, which is right for a channel and wrong for the extremes. On the dive
-`suunto-ocean.json` is reduced from, taking them off the axis moves the start pressure from
-211.625 bar to 211.26562.
+**The extremes are taken over the samples' own recorded instants, not off the profile.**
+The merged axis is not what loses them — it folds an entry into a second another channel's
+entry already holds rather than dropping it, which is the rule above. Two other readings do,
+and both are measured on the dive `suunto-ocean.json` is reduced from, whose start pressure
+is 211.625 bar: an **unmerged** axis, one entry per second with the first winning it whole,
+gives 211.26562, the earlier depth entry taking the second and carrying the cylinder reading
+0.1 s later away with it; and the axis's pressure **channel**, which §6.5 stores in tenths
+of a bar, gives 211.6, which is a rounding of a value the source recorded and so is
+`converting.md`'s rule the other way round.
 
 ### Numbering — a source gas number is a label, not a position
 
