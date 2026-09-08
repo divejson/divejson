@@ -63,8 +63,8 @@ The implementations live in repositories of their own —
 a copy of this repository's `schema/`, `fixtures/` and `docs/` and pins the commit it was
 taken from, and its CI asserts that every file this repository owns is byte-identical over
 there. **An implementation never edits a file this repository owns.** It may carry files
-this repository does not have yet — that is how a new reader lands self-contained, with the
-expected documents it produces and the mapping document that explains them.
+this repository does not have yet — that is how a new reader or writer lands self-contained,
+with the pairs it produces and the document that explains them.
 
 So a change goes one of two ways, and which one it is depends on whether it touches a file
 that already exists here.
@@ -78,11 +78,13 @@ which passes its byte check and fails only its ancestor check; this pull request
 the implementation re-pins to the merged commit, merges, and is released; a one-line chore
 here moves `DIVEJSON_VERSION` to that release.
 
-**A new reader** starts **there**: self-contained and green in the implementation
-repository, with its pairs and its mapping document, then a release, then a pull request
-here adopting the pairs and the document verbatim and moving the pin. If the new document
-turns out to state a rule that holds for every format, that pull request is where it moves
-into [`docs/converting.md`](docs/converting.md); the implementation picks the edited
+**A new reader or writer** starts **there**: self-contained and green in the implementation
+repository, with its pairs and its document, then a release, then a pull request here
+adopting the pairs and the document verbatim and moving the pin. If the new document turns
+out to state a rule that holds for every format, that pull request is where it moves into
+the general document **for its direction** — [`docs/converting.md`](docs/converting.md) for
+a reader's rule, [`docs/writing.md`](docs/writing.md) for a writer's — and the format's own
+document keeps the example that first showed it. The implementation picks the edited
 documents back up at its next pin bump.
 
 Regenerating an expected document is the implementation's business — its recipe is in
@@ -92,18 +94,44 @@ agreed with the new answer.
 
 ## Adding an adapter
 
-An adapter — a reader for a new source format, in any implementation repository — is
-adopted into this corpus when it arrives with:
+An adapter is support for one other format, in any implementation repository, and the two
+directions are separate: reading a format and writing it are separate registrations under
+one format id, and a format may have either without the other. So the bar below is stated
+per direction — what the corpus can hold an adapter to is not the same question going in as
+coming out.
+
+**A reader** is adopted into this corpus when it arrives with:
 
 - a **mapping document** in `docs/`, carrying what is that format's and nothing that
   [`docs/converting.md`](docs/converting.md) already says;
-- **at least one pair per writer it claims to read**, because a format is a family of
-  dialects and a claim about a writer is only checked by a file that writer produced;
+- **at least one pair per writer it claims to read**, under `fixtures/<format>/`, because a
+  format is a family of dialects and a claim about a writer is only checked by a file that
+  writer produced;
 - **its report's kinds documented** — every kind in
   [`docs/converting.md`](docs/converting.md)'s table that its report can emit, with
   `inferred` kept apart from `resolved`: only the first obliges the document to list its
   member under `extensions.divejson.inferred`, so blurring them leaves the report and that
   list disagreeing.
+
+**A writer** is adopted when it arrives with:
+
+- a **`<format>-writing.md`** in `docs/` beside that format's mapping document, carrying
+  what is that format's and nothing [`docs/writing.md`](docs/writing.md) already says;
+- **pairs under `fixtures/write/<format>/`** — enough of them that the writing document's
+  answers are exercised and not only its map. That is a property rather than a count: a
+  document that is itself the reading of a file in that format loses nothing on the way back
+  out, so it exercises none of the report, and a corpus of one such pair proves the round
+  trip and nothing about what the format cannot hold;
+- **how two files of that format are compared** when one of them was produced just now,
+  since every writer stamps something that moves without the mapping moving;
+- **the checks the corpus cannot make**, and where they live instead: the self round trip —
+  reading a written file back and finding the document it was written from — and, where the
+  format has a schema, validation against it, which is commonly the only check that can see
+  element order.
+
+A writer's report kinds are not on that list, because `writing.md` fixes them: `absent` and
+`dropped`, never `inferred` or `resolved`. A reader's genuinely vary by format, which is why
+they are on the reader's.
 
 The maintainer decides, as for everything else. This is a different bar from the one for
 new core fields above: that one is about what the format models, this one is about what the

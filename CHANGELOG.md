@@ -50,3 +50,23 @@ repositories.
   turned out to share moved into `docs/converting.md`, which is where a rule that holds for
   more than one format belongs — among them that a ceiling of zero is not a ceiling, and
   where a satellite fix belongs on a dive that has two of them.
+- The corpus gains a direction. `fixtures/write/uddf/` holds the first **writer** pairs — a
+  DiveJSON document, and the UDDF file a correct writer produces from it, a reader pair with
+  its halves swapped — and `docs/writing.md` is new: the rules a converter follows whatever
+  format it is *writing*, the counterpart to `docs/converting.md` rather than an extension
+  of it, which scopes itself to reading. It opens by settling the inversion the two
+  documents live with, since §1.1 defines a "writer" as software that produces DiveJSON: a
+  converter is a §1.1 writer, and something turning a document back into UDDF is a §1.1
+  reader. What is UDDF's own is in `docs/uddf-writing.md`, and `CONTRIBUTING.md`'s adoption
+  bar now states a reader's and a writer's separately, because what the suite can hold an
+  adapter to differs by direction.
+- Suunto's DM5 XML is the fifth source format read, with `fixtures/suunto_xml/` and
+  `docs/suunto-xml-mapping.md`. Four rules its document turned out to share with a sibling
+  moved into `docs/converting.md` — a date-time matched by pattern rather than by a standard
+  library's ISO parser, a time of day with no seconds, nothing a source recorded being
+  quantized, and a record that is not a scuba dive being skipped and reported rather than
+  arriving mislabelled by omission, DiveJSON having no member for the kind of a dive.
+- Two sentences here were wrong and are corrected: `fixtures/README.md` said there were no
+  writer pairs yet, and `docs/suunto-json-mapping.md` attributed first-entry-wins to a
+  sample axis that merges — contradicting itself forty lines later, and mis-stating what a
+  cylinder's extremes are taken over.

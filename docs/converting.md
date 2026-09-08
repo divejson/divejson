@@ -12,6 +12,11 @@ what it deliberately does not map. Those documents do not repeat what is here. W
 turns out to hold for more than one format, it moves into this file and the format's
 document keeps the example that first showed it.
 
+The other direction has a document of its own, [`writing.md`](writing.md): the rules a
+converter follows whatever format it is *writing*, and one `<format>-writing.md` beside it
+per written format. Rules that hold in either direction — the note kinds, identity, decimal
+arithmetic — stay here, and that document points at them.
+
 A claim about a real writer is checked against a file that writer produced. Where a rule
 rests on a file this repository does not carry — a personal export, a sample from a public
 issue tracker — the document says so in place rather than implying otherwise.
@@ -52,6 +57,15 @@ own schema forbids, and where refusing would cost a diver their logbook.
 - **Samples are ordered by their own recorded time, never by their position in the source.**
   §6.5 requires strictly increasing sample times and nothing guarantees a writer emitted
   them in order.
+- **A date-time is matched against a lenient ISO 8601 pattern, and the calendar is checked
+  afterwards.** A standard library's own ISO parser is not reliably lenient enough to be the
+  whole answer: Python's `datetime.fromisoformat` before 3.11 accepts a three- or six-digit
+  sub-second fraction and rejects `.6`, which real exports write. That is a property of one
+  parser's version rather than of the data, and every language has its own version of it.
+  What a pattern cannot do is tell a real date from a well-formed one, which is what the
+  library parser is then used for.
+- **A time of day with no seconds is read as `:00`, and reported.** §5.2's grammar requires
+  them, and refusing would cost a diver a whole dive over a spelling.
 
 ### For every XML source, a `<!DOCTYPE>` is refused outright
 
@@ -78,6 +92,13 @@ are worth more than its fixtures here.
 **The channel conversions carry a scale the scalar ones do not.** That is the trap. The
 most-executed conversion in a converter is its depth samples, and a list of the scalar
 conversions alone does not contain it.
+
+**Nothing a source recorded is quantized.** A transmitter or an application commonly records
+in steps far finer than a gauge a diver reads, and those digits are the source's: rounding
+them to something more human writes a convention into the document that nothing else here
+applies, and a conformance pair carrying such a document freezes it. Rounding happens where
+§6.5's integer channels require it, and on values the converter itself computed — a derived
+mean, a conversion by an irrational factor — which each format's mapping document names.
 
 Arithmetic runs on decimal values parsed from the source text, not on floating point:
 `2.6 × 100` is exactly `260` that way, where the float route arrives at
@@ -143,6 +164,13 @@ document. `exported_at` is the moment of conversion, always offset-aware.
   a dangling reference, so the references go with the record. A source that records nothing
   at all about a logbook's owner produces no `diver` member (§6.1): minting an identity for
   one would be §5.4's fabrication applied to people.
+- **A source record that is not a scuba dive is skipped, and reported.** §6.2 has no member
+  for the *kind* of a dive, so a freedive or a swim converted as an ordinary one arrives
+  indistinguishable from a scuba dive that recorded no gas and no decompression algorithm —
+  mislabelled by omission, in a logbook it shares with real ones. Skipping it and saying so
+  is the honest answer; a marker under `extensions` would invent vocabulary the format does
+  not have, in a document that outlives the converter. Each format's mapping document names
+  the element or field its source states the kind in.
 - **An exact `0.000000` / `0.000000` pair is not a position.** Null Island is a place: a
   reader that trusts it pins a Red Sea wreck into the Atlantic. Half a pair is not a
   position either — §6's Position object makes both members REQUIRED, which is §5.4

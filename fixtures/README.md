@@ -7,7 +7,9 @@ conforms shows up here as a failing fixture — update the three together
 
 Beside those two sit the **pair** corpora, which are for *converters* rather than
 validators: each input is paired with the document a correct reader produces from it.
-`uddf/` was the first; `ssrf/`, `fit/` and `suunto_json/` sit beside it.
+`uddf/` was the first; `ssrf/`, `fit/`, `suunto_json/` and `suunto_xml/` sit beside it. The
+pairs under `write/` run the other way — a document, and the file a correct writer produces
+from it — and `write/uddf/` is the first of those.
 
 An implementation walks all of it with one command — `divejson conform fixtures/ --strict`
 ([CONTRIBUTING.md](../CONTRIBUTING.md)) — and the directory layout is that command's
@@ -18,7 +20,7 @@ contract:
 | `valid/` | documents that must validate |
 | `invalid/` | documents that must not, one defect each |
 | `<format>/` | reader pairs, the directory named for the source format's registry id: every file whose suffix is not `.divejson` is an input, and `<stem>.divejson` beside it is what a reader must produce from it |
-| `write/<format>/` | writer pairs, the other direction: `<name>.divejson` in, `<name>.<ext>` beside it the file a writer must produce, compared as canonical XML with `<generator>` ignored. There are none yet — the first writer brings the first ones |
+| `write/<format>/` | writer pairs, the other direction: `<name>.divejson` in, `<name>.<ext>` beside it the file a writer must produce, compared the way that format's writing document says two of its files are compared when one was produced just now |
 
 A pair directory for a format the implementation running the suite does not read is a
 corpus-shape error rather than a failure, because it means cases that never ran. That is
@@ -98,6 +100,14 @@ a device's file reads. Such an input is committed **as recorded**, whole, from a
 position the recorder is content to publish. `fit/` is the only directory this applies to
 today.
 
+**A writer pair is the same unit with its halves swapped**, and the two rules above are
+where it differs. `<name>.divejson` is the input and `<name>.<ext>` is what a correct writer
+produces from it, so what is compared is two files of *that* format rather than two DiveJSON
+documents, and each written format says how ([`docs/writing.md`](../docs/writing.md)). And
+its input is a document rather than a reduction of somebody's export, so neither the
+hand-built rule nor the binary exception reaches it: both of `write/uddf/`'s inputs are
+documents this tree already carries, which is what makes the answers checkable by eye.
+
 Each directory's mapping rules — what each expectation below follows from — are in that
 format's document under [`docs/`](../docs).
 
@@ -145,3 +155,37 @@ reduced.
 | `suunto-d5.json` | Suunto D5, 2025 | The header's own gas block, in SI: two gases at 21 % and 49 % from cubic metres, Pascal and 0-1 fractions, the second carried and never transmitted from; telemetry on slot 1 resolving to cylinder 0; a switch to gas 2 resolving to cylinder 1; and the oxygen clock, `CNS` as a fraction beside `OTU` as itself. |
 | `header-only.json` | Suunto D5, 2021 | The shape with no gas anywhere: a header and no samples at all, so no cylinders and no profile, and neither reported — the source recorded none rather than a reader failing to carry them. Constructed rather than reduced; no real export of this shape is in hand. |
 | `not-a-dive.json` | Suunto Ocean, 2026 | An activity that is not a dive, skipped and reported, producing a document with no dives. Constructed: every real export in hand is a dive, which is exactly why this rule needs a pair. |
+
+## suunto_xml/
+
+[`docs/suunto-xml-mapping.md`](../docs/suunto-xml-mapping.md). One dive per document, so a
+whole logbook is a directory of these and reaches a converter as an archive. The three
+reductions keep every element a reader reads or refuses, with its recorded value unaltered,
+and drop the bulk elements nothing reads: `<SampleBlob>`, the four `TissuePressures*` arrays
+and their four blobs, most of the samples, and all but two of the `<Mark>`s. The two
+constructed files are shapes no real export in hand has, which is exactly why they need
+pairs — the branches they exercise would otherwise be reachable only by reading an
+implementation.
+
+| file | modelled on | what it covers |
+| --- | --- | --- |
+| `suunto-d5.xml` | Suunto D5, 2021 | The known answer: `max_depth` 32.41 and `started_at` `2021-04-06T11:16:42.6`, the fraction preserved and no offset supplied. **The same dive as `fit/suunto-d5.fit`**, recorded once and exported twice, which is what lets the two be read against each other through entirely different unit paths: on every second both documents sample, their depths are equal to the centimetre. They are not one grid, though — this reduction's last two samples, at 1 991 s and 2 001 s, have no counterpart in the FIT recording, whose own last sample is at 1 992 s. Also the untransmitted cylinder whose pressures are both the zero absent-marker, a single-gas switch at second 0, and the `<Marks>` block producing nothing. |
+| `nitrox-deco.xml` | Suunto D5, 2025 | Two cylinders and three elements that have to agree: a 21 % back gas with the pod on it, a 52 % deco bottle that never transmitted and so carries no pressures at all, a pressure channel labelled from `<TransmitterId>`, markers at 0 and 1 592 s taken from the `<DiveMixture>` each sits inside, and a real ceiling channel. |
+| `freedive.xml` | Suunto D5, 2023 | `<Mode>3</Mode>`: not a scuba dive, so it is skipped and reported, producing a conforming logbook with no dives. Its samples also carry the duplicate second that every one of the corpus's 37 collisions is in. |
+| `refusals.xml` | constructed | Everything this format's reader refuses that fits on one dive: a `<StartTime>` with no seconds, an average depth deeper than the maximum, a millibar surface pressure, a ppO₂ limit of 3.2 bar, a mix summing to 110 %, a gas change at -30 s, text in a `<Depth>`, a sample with a nil `<Time>`, two samples on one second, a tank reading past 350 bar, the dive-conditions block, and **two** cylinders claiming the transmitter. |
+| `unlabelled-pressure.xml` | constructed | Tank readings no cylinder claims, arriving as a cylinder of their own with nothing but the channel; beside them a zero `<MaxDepth>`, `<AvgDepth>` and `<Duration>`, a nil `<Mode>`, and a `<Note>` with whitespace around it. |
+
+## write/uddf/
+
+[`docs/uddf-writing.md`](../docs/uddf-writing.md), and the corpus's first writer pairs.
+Compared as canonical XML with `<generator>` ignored, which is what makes them stable across
+releases: everything else in a written file is a function of the document, `<datetime>`
+included — it is the document's own `exported_at` and never the clock.
+
+Both inputs are documents this tree already carries, and the pair is the two of them
+together — the point of each row below is which half of `uddf-writing.md` it reaches.
+
+| file | written from | what it covers |
+| --- | --- | --- |
+| `opendiving.divejson` | `uddf/opendiving.divejson` | The round trip that matters most, and the pair that exercises almost none of the report: this document is itself the *reading* of a UDDF export, so there is nothing in it UDDF cannot hold, and the only finding is the `extensions` exclusion every written file carries. `dive-<uuid>` ids that come back as those uuids, a trip as a `<trippart>` with its dates and its place, a kit list under `<equipment>` with per-dive `<equipmentused>` links, two cylinders on two gases with their pressure channels, a `<switchmix>` gas switch and a `<setmarker>`. |
+| `technical-dive.divejson` | `valid/technical-dive.divejson` | Everything the first one cannot reach, being hand-built to hold what no UDDF export carries. The `dropped` half of the report: `courses`, `certifications`, `gear_sets`, gear service and `species`, which UDDF has no slot for; `role` and `usage` on a sidemount pair and its staged deco cylinders; a ceiling channel; a location's bounding box; the gas numbering UDDF cannot record; `shears` landing in `<variouspieces>` and reading back as `other`; a trip location with coordinates and no name, which loses the coordinates rather than borrowing the name; a `bookmark` carrying a label, which keeps its type and loses the label; and an empty note, which no UDDF file can spell. The `absent` half is its second dive: no maximum depth, no duration and a cylinder with no start pressure, so `<greatestdepth>`, `<diveduration>` and `<tankpressurebegin>` are each written as the `0` a reader takes back off. |
