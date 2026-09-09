@@ -227,8 +227,9 @@ about the dive, and the recording is where it lives.
   dive from a model string would fill a logbook's kit list with duplicates of one computer,
   which is why `ssrf-mapping.md` refused to, and that refusal stands. UDDF is the one
   source that carries both in one element, and its document says what that costs.
-- **A serial is opaque**, matched against other serials and never parsed — `converting.md`'s
-  id rule applied to hardware. This holds for both members that carry one: a device's
+- **A serial is opaque**, matched against other serials and never parsed — *Reading the
+  source*'s ids-and-references rule, applied to hardware. This holds for both members that
+  carry one: a device's
   (§6.4b) and a gear item's (§6.12), which a source stating a serial on a piece of kit fills
   the same way. Equality between the two is what says a kit item and a device are one
   machine, which is why neither may be normalised beyond trimming and case-folding.
@@ -254,8 +255,10 @@ which is an absence rather than a gap to fill (§5.4).
 Four things the table does not say on its own.
 
 **Which record the device comes from is the format's own question**, and each document
-answers it: UDDF takes the `<divecomputer>` the dive's `<equipmentused><link>` names, so a
-dive that links no computer has no device; `.ssrf` gives a recording to every
+answers it: UDDF gives a recording to each `<divecomputer>` the dive's
+`<equipmentused><link>` names, so a dive that links none has no device — and where it links
+two, the dive's single `<samples>` and `<internaldivenumber>` go to the primary, those being
+the dive's rather than any computer's; `.ssrf` gives a recording to every
 `<divecomputer>` on a dive **that yields either a device or a profile**, and none to one
 that yields neither, §6.4a forbidding a recording carrying nothing; the three
 one-dive-per-file formats have exactly one.

@@ -211,7 +211,7 @@ on both — and that overlap is the point, being exactly what lets a writer reco
 as one computer again. A dive that links no computer gets no device, which is most files
 — see *Device* below.
 
-### Device — the linked `<divecomputer>`
+### Device — the linked `<divecomputer>` elements
 
 | UDDF | DiveJSON (§6.4b) |
 | --- | --- |
@@ -259,6 +259,26 @@ way ([`uddf-writing.md`](uddf-writing.md)) matters as much as it does.
 
 UDDF has no equipment element for a firmware version, so §6.4b's `firmware` has no source
 here.
+
+**A dive may link more than one computer, and each linked `<divecomputer>` is a recording**
+(§6.4a), in the order the dive's `<equipmentused>` links them, the first primary. That is
+`converting.md`'s general rule rather than anything of UDDF's, and it is the same shape
+`.ssrf` reaches from its own repeated element. Two consequences are this format's, because
+UDDF states each of these once per **dive** and not once per computer:
+
+- **The `<samples>` go to the primary recording**, and every recording after it is
+  device-only. A dive has one `<samples>` element, so there is nothing to give the others and
+  nothing to divide.
+- **So does `<internaldivenumber>`.** It is a child of the dive (above), so a dive linking
+  two computers has one counter and no way to say whose it is; giving it to the primary is
+  the only reading that does not put one machine's count on another's device.
+
+**No file in this corpus links two**, so this has no pair of its own and is written down
+here rather than discovered by the first reader to meet one. It is not hypothetical output,
+though: [`uddf-writing.md`](uddf-writing.md) emits an element and a `<link>` per computer
+for exactly the dive this describes, so a written file's own read-back depends on this rule
+— it returns the recordings the document was written from, less the samples of every
+recording after the first, which the writer had nowhere to put and reported as dropped.
 
 ### Dives — `/uddf/profiledata/repetitiongroup/dive`
 

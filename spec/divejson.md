@@ -457,9 +457,15 @@ two can describe the same physical object without being the same record.
 | `name` | string | O | 1–64. What the device calls itself, as its owner set it. |
 | `dive_number` | integer | O | ≥ 0. **The device's own counter** — how many dives this piece of hardware has recorded. It is not the diver's numbering, which is §6.2's `dive_number`: a counter starts at 1 on a new or factory-reset device and starts again on the next one. |
 
-Every string is trimmed, and none may be empty — an absent value is absence (§5.4), and a
-device that records nothing at all about itself is not written: a writer emits no `device`
-member rather than an object with no members in it.
+**None of these strings may be empty**, which the schema's own lower bounds enforce — an
+absent value is absence (§5.4), and a device that records nothing at all about itself is not
+written: a writer emits no `device` member rather than an object with no members in it.
+**A writer also trims every string before writing it**, which binds the writer rather than
+the document: whitespace is not on §3's list of requirements outside the schema, so nothing
+validates it, and `"  Perdix 2  "` is a conforming document. A reader strips before it
+compares, so a writer that skips the trim costs itself a match rather than a valid file —
+which is why the comparison rules elsewhere say *trimmed and case-folded* rather than
+assuming it was done upstream.
 
 The serial earns its place for one reason: it is the only thing that reliably tells one
 device's record from another's when a diver wears two computers of one make. §6.12 carries
@@ -622,7 +628,7 @@ create catalog entries from the snapshot.
 | `uuid` | uuid | R | |
 | `name` | string | R | 1–255. |
 | `brand` | string | O | ≤ 255. |
-| `serial` | string | O | 1–64, trimmed and non-empty. The maker's serial for this piece, opaque — never parsed for meaning. **Shorter than every other string in this section on purpose**: §6.4b bounds a device's `serial` at 1–64, and a gear serial that could not fit there could never equal one. Allowed on any gear type, though a `"computer"` is where it does its work — it is what identifies the piece of kit as the hardware a recording's device (§6.4b) describes, rather than leaving a writer to guess from a name and a maker. It is a stable hardware identifier and therefore personal data; §9 says so. |
+| `serial` | string | O | 1–64 and non-empty; a writer trims it before writing, on §6.4b's terms. The maker's serial for this piece, opaque — never parsed for meaning. **Shorter than every other string in this section on purpose**: §6.4b bounds a device's `serial` at 1–64, and a gear serial that could not fit there could never equal one. Allowed on any gear type, though a `"computer"` is where it does its work — it is what identifies the piece of kit as the hardware a recording's device (§6.4b) describes, rather than leaving a writer to guess from a name and a maker. It is a stable hardware identifier and therefore personal data; §9 says so. |
 | `type` | string | O | One of `"mask"`, `"snorkel"`, `"fins"`, `"wetsuit"`, `"drysuit"`, `"vest"`, `"hood"`, `"gloves"`, `"boots"`, `"bcd"`, `"regulator"`, `"computer"`, `"cylinder"`, `"light"`, `"smb"`, `"mirror"`, `"whistle"`, `"reel"`, `"knife"`, `"line_cutter"`, `"shears"`, `"compass"`, `"camera"`, `"other"`. An OPTIONAL member, so this vocabulary can grow in minor versions (§7) — an air horn rides `"other"` until it earns a value. |
 | `notes` | string | O | ≤ 10000. |
 | `rented` | boolean | O | |
