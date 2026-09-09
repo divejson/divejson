@@ -248,6 +248,15 @@ an id built from a dive's uuid would come back as a gear item wearing that dive'
 which §5.3 forbids outright. The dive's `<equipmentused>` gains a `<link>` to it, after the
 links its `gear_uuids` produced.
 
+**A folded device reaches a dive only through its gear item's link**, which is the one place
+this arrangement loses something. The element is the gear item's, so a dive whose
+`gear_uuids` does not list that item carries no link to the computer that recorded it, and a
+reader gives that dive no device — a document may perfectly well say a recording's device was
+D while leaving the matching kit item off that dive's list. It is reported, per dive, like
+every other loss here. Linking the element anyway would be the tidier file and a worse one:
+`<equipmentused>` is what the diver wore, and a writer adding a piece to it would be
+answering a question about the dive that the document answered differently.
+
 **`device.firmware` has no slot**, `equipmentPieceType` carrying no such element, and is
 reported once per device that has one. So is a recording's **`source_files`**: §6.7 is
 metadata about bytes UDDF has nowhere to reference, which is the same answer the dive-level
