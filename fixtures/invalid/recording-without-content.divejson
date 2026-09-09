@@ -98,6 +98,14 @@
       ],
       "recordings": [
         {
+          "device": {
+            "manufacturer": "Shearwater",
+            "model": "Perdix 2",
+            "serial": "D9123456",
+            "firmware": "V92",
+            "name": "Deco",
+            "dive_number": 87
+          },
           "profile": {
             "duration": 5520,
             "depth": {
@@ -236,6 +244,11 @@
                 "time": 5200,
                 "type": "other",
                 "label": "Tissue ceiling cleared"
+              },
+              {
+                "time": 5605,
+                "type": "bookmark",
+                "label": "Surface marker"
               }
             ],
             "extensions": {
@@ -246,6 +259,13 @@
                   70
                 ]
               }
+            }
+          }
+        },
+        {
+          "extensions": {
+            "opendiving": {
+              "note": "a recording that describes nothing"
             }
           }
         }
@@ -431,6 +451,7 @@
     {
       "uuid": "0198a6f0-1111-7080-8000-000000000080",
       "agency": "other",
+      "agency_other": "NZ Tech Diving Society",
       "name": "Normoxic Trimix Diver",
       "certification_number": "NZT-2044",
       "certified_on": "2025-03-14",
