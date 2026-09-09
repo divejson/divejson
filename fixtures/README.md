@@ -41,6 +41,14 @@ One defect per file. Every rule the schema alone cannot express (spec §3) has a
 here; several schema-level defects are included so the validator's schema pass and the
 format's structural guarantees (Position objects, the null ban) are exercised too.
 
+**Three of §3's rules now read *per recording*, and each keeps its defect off the first
+one** — `recording-without-content` puts the empty recording second, `non-increasing-samples`
+puts the bad channel in a second recording behind a device-only first, and
+`duplicate-file-uuid-across-recordings` spans two. A validator that walked only the primary
+recording would accept all three, which is exactly the implementation §6.4a's ordering rule
+invites and the only thing that catches it is a fixture that puts the defect where such a
+validator does not look.
+
 | file | defect | spec |
 | --- | --- | --- |
 | `bad-version.divejson` | `version` is `"0.9"` | §4, §7 |
@@ -64,7 +72,7 @@ format's structural guarantees (Position objects, the null ban) are exercised to
 | `avg-depth-exceeds-max.divejson` | `avg_depth > max_depth` on a dive | §6.2 |
 | `profile-duration-short.divejson` | `profile.duration` below the latest sample | §6.4 |
 | `channel-length-mismatch.divejson` | a series' `times` and `values` differ in length | §6.5 |
-| `non-increasing-samples.divejson` | a series' `times` is not strictly increasing | §6.5 |
+| `non-increasing-samples.divejson` | a series' `times` is not strictly increasing, **in a dive's second recording** | §6.5, §3 rule 3 |
 | `event-other-without-label.divejson` | an `"other"` event with no label | §6.6 |
 | `trip-dates-reversed.divejson` | `ends_on` before `starts_on` on a trip | §6.8 |
 | `course-dates-reversed.divejson` | `ends_on` before `starts_on` on a course | §6.17 |
