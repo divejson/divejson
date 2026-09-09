@@ -74,12 +74,14 @@ the schema and this list:
 2. Cross-member arithmetic: `oxygen + helium ≤ 100` and `end_pressure ≤ start_pressure`
    on a cylinder (§6.3); `avg_depth ≤ max_depth` on a dive (§6.2); `ends_on ≥ starts_on`
    on a trip (§6.8) and on a course (§6.17); `south ≤ north` on a bounding box (§6.9).
-3. Profile series integrity: equal `times`/`values` lengths and strictly increasing
-   `times` (§6.5), and `profile.duration` covering the latest sample (§6.4).
-4. The offset requirement on `exported_at` (§5.2) — every other date-time may be a
+3. Profile series integrity, in every recording (§6.4a): equal `times`/`values` lengths
+   and strictly increasing `times` (§6.5), and `profile.duration` covering the latest
+   sample (§6.4).
+4. A recording carries at least one of `device`, `profile` and `source_files` (§6.4a).
+5. The offset requirement on `exported_at` (§5.2) — every other date-time may be a
    local time, and the schema's `format` annotations are not required to be enforced by
    validators.
-5. The member-order rule for `format` and `version` (§4) — a property of the document's
+6. The member-order rule for `format` and `version` (§4) — a property of the document's
    text, which the reference validator checks on the parsed member order (JSON parsing
    preserves it).
 
@@ -210,7 +212,7 @@ site or animal species in two different logbooks will carry two unrelated uuids.
 record has an external identity that does mean the same thing everywhere — a species'
 WoRMS AphiaID (§6.11) — that identity, not the uuid, is the interchange key.
 
-Embedded objects (cylinders, profile, trip locations, positions) have no
+Embedded objects (cylinders, recordings, profile, trip locations, positions) have no
 independent identity; stored-file records (§6.7) do carry a `uuid` because files are
 addressable objects in the source logbook.
 
@@ -343,7 +345,7 @@ member overwrite the destination account's own identity or settings.
 | `uuid` | uuid | R | |
 | `dive_number` | integer | O | The diver's own numbering. Unbounded; duplicates are legal (renumbering histories are messy and this format records, not adjudicates). |
 | `started_at` | date-time | R | Local wall clock, with its UTC offset when the source recorded one (§5.2). |
-| `duration` | integer | O | Seconds; > 0. The dive's own duration as logged, which MAY differ from the profile's span. |
+| `duration` | integer | O | Seconds; > 0. The dive's own duration as logged, which MAY differ from any recording's profile span. |
 | `notes` | string | O | ≤ 10000. |
 | `max_depth` | number | O | Meters; > 0. |
 | `avg_depth` | number | O | Meters; > 0, and MUST be ≤ `max_depth` when both are present. |
@@ -365,10 +367,16 @@ member overwrite the destination account's own identity or settings.
 | `gear_uuids` | array of uuid | O | → `gear`; the diver's own order. |
 | `species_uuids` | array of uuid | O | → `species`; the diver's own order. |
 | `cylinders` | array of Cylinder | O | §6.3, in the diver's own cylinder order. |
-| `source_file` | Stored File | O | §6.7 — the original dive-computer file this dive was imported from. |
-| `profile` | Profile | O | §6.4. |
+| `recordings` | array of Recording | O | §6.4a — one entry per device that recorded this dive, the first primary. |
 | `created_at` | date-time | O | §5.7. |
 
+What stays on the dive is the **diver's logbook entry**: `duration`, `max_depth`,
+`avg_depth`, `bottom_temperature`, the oxygen-clock members, `surface_pressure`, the
+positions and `cylinders` are the dive as its owner logs it, and a hand-entered dive
+carries them with no recording at all. A writer that seeds them from a device's record is
+not emitting a derived member (§5.7): the dive's figure is the logbook's, a recording's
+samples are the device's, and the two legitimately diverge — a diver corrects the first
+and never the second.
 
 ### 6.3 Cylinder
 
@@ -388,7 +396,7 @@ per §5.4 — nothing invented, nothing required.
 | `oxygen` | number | O | Percent; 0–100. **Absent means not recorded, not 21** — readers MUST NOT assume air (§5.4). |
 | `helium` | number | O | Percent; 0–100. |
 | `po2_limit` | number | O | Bar; 0.4–2.0. The planned pO₂ ceiling for this gas. |
-| `gas_number` | integer | O | ≥ 0. The dive computer's own label for this gas, scoped to this dive — **a label, not an array index**; some devices number from 0, some from 1. It is the join key to `profile.pressures[].gas_number` and to `gas_switch` events. |
+| `gas_number` | integer | O | ≥ 0. The dive computer's own label for this gas, scoped to this dive — **a label, not an array index**; some devices number from 0, some from 1. It is the join key from every recording's `profile.pressures[].gas_number` and `gas_switch` events (§6.4a). |
 | `role` | string | O | One of `"bottom"`, `"deco"`, `"diluent"`, `"oxygen"`. |
 | `usage` | string | O | One of `"parallel"` (breathed alongside others, e.g. sidemount pairs), `"staged"` (carried for a later phase). |
 
@@ -397,17 +405,79 @@ fractions are present, `oxygen + helium` MUST be ≤ 100 — the remainder is tr
 nitrogen; the ~1 % of argon and trace gases in air is not modeled, matching
 dive-planning convention.
 
-### 6.4 Profile
+### 6.4a Recording
 
-The sampled record of a dive, embedded in the dive.
+One device's record of one dive, embedded in the dive. A dive worn on two computers has
+two recordings; one recording exported twice — an application's JSON beside the same
+device's binary — is one recording carrying two files.
+
+The section is lettered rather than numbered so that §6.4 onward keep the numbers every
+cross-reference already uses; §6.4a and §6.4b are read in the order they appear here,
+before Profile, because a recording is what a profile now sits inside.
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `duration` | integer | R | Seconds spanned by the profile's **samples**; ≥ 0, and MUST be ≥ the largest `times` entry in any channel. An event `time` MAY fall outside it — see below. MAY differ from the dive's logged `duration` — a gap after the last sample is real: a computer that stops *sampling* at the surface can keep *timing* the dive. |
+| `device` | Device | O | §6.4b — what recorded it. |
+| `started_at` | date-time | O | The device's own start (§5.2). **Absent means the dive's `started_at`**; a writer that knows a different one MUST write it — a second computer starts when its diver's wrist goes under, not when the first one's did. A recording's profile `times` are elapsed from this instant. |
+| `source_files` | array of Stored File | O | §6.7 — the original dive-computer files this recording was read from, in the order they were attached. |
+| `profile` | Profile | O | §6.4. |
+
+A recording MUST carry at least one of `device`, `profile` and `source_files` — a §3
+requirement the schema does not express. An object carrying none of the three describes
+nothing, while a computer worn that recorded no samples *is* a fact about the dive and
+travels as a device-only recording: a source that names a device and records no samples
+yields one recording carrying that device and nothing else.
+
+**`recordings` is ordered, and the first entry is primary**: the one a reader shows by
+default, and the one whose file a consumer that can hold only one takes. Order rather
+than a flag on the primary, because a flag every writer has to set is a value every
+reader has to default (§5.4), and because a reader that shows one record of a dive is
+already choosing the first.
+
+**Cylinders stay on the dive and are shared by every recording.** `cylinders[].gas_number`
+(§6.3) is the join key from each recording's `profile.pressures[].gas_number` and
+`gas_switch` events, so two devices' channels resolve against one list — the list the
+diver maintains. A device's own gas labels are that device's; where two recordings label
+one supply differently, it is the dive's `cylinders` that say which supply it was.
+
+### 6.4b Device
+
+What recorded a dive: the hardware, not a piece of kit the diver keeps. A device is data
+on a recording and never a gear item (§6.12) — a logbook that minted a `computer` gear
+item per dive from a model string would fill its kit list with duplicates of one computer,
+while a logbook holding two records of one dive needs to tell the two devices apart. The
+two can describe the same physical object without being the same record.
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `manufacturer` | string | O | 1–64. As the source spelled it; readers comparing two devices SHOULD case-fold. |
+| `model` | string | O | 1–64. The product, as the source names it. |
+| `serial` | string | O | 1–64. The device's own serial, opaque — never parsed for meaning. |
+| `firmware` | string | O | 1–32. The version the device was running. |
+| `name` | string | O | 1–64. What the device calls itself, as its owner set it. |
+| `dive_number` | integer | O | ≥ 0. **The device's own counter** — how many dives this piece of hardware has recorded. It is not the diver's numbering, which is §6.2's `dive_number`: a counter starts at 1 on a new or factory-reset device and starts again on the next one. |
+
+Every string is trimmed, and none may be empty — an absent value is absence (§5.4), and a
+device that records nothing at all about itself is not written: a writer emits no `device`
+member rather than an object with no members in it.
+
+The serial is carried where the rest of this format deliberately drops hardware identity,
+and it earns its place for one reason: it is the only thing that reliably tells one
+device's record from another's when a diver wears two computers of one make. It is
+personal data of a kind §9 already covers, and readers publishing documents should know
+it is in them.
+
+### 6.4 Profile
+
+The sampled record of one recording of a dive (§6.4a), embedded in that recording.
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `duration` | integer | R | Seconds spanned by the profile's **samples**; ≥ 0, and MUST be ≥ the largest `times` entry in any channel. An event `time` MAY fall outside it — see below. MAY differ from the dive's logged `duration`, and from another recording's span — a gap after the last sample is real: a computer that stops *sampling* at the surface can keep *timing* the dive. |
 | `depth` | Series | O | Samples in **centimeters** (§5.1). |
 | `ceiling` | Series | O | Decompression ceiling, in **centimeters**. Present only while a ceiling existed: a gap in `times` means "no deco obligation", not a sensor dropout — and readers MUST NOT interpolate across a ceiling gap, which would fabricate an obligation that was not there. |
 | `temperature` | Series | O | Samples in **tenths of a degree Celsius**. |
-| `pressures` | array of Pressure Series | O | One entry per monitored cylinder; samples in **tenths of a bar**. |
+| `pressures` | array of Pressure Series | O | One entry per cylinder **this recording's device** monitored; samples in **tenths of a bar**. Two recordings of one dive each carry their own entries, and both join to the dive's `cylinders` by `gas_number` (§6.3, §6.4a). |
 | `events` | array of Event | O | In time order. |
 
 **An event may fall after the last sample, and readers MUST preserve it where it is.**
@@ -426,33 +496,38 @@ this format's first principle applied to its bulkiest data.
 ### 6.5 Series and Pressure Series
 
 A **Series** is `{"times": [...], "values": [...]}`: two parallel integer arrays.
-`times` holds elapsed seconds from the start of the dive, ≥ 0 and **strictly
+`times` holds elapsed seconds from the start of the **recording** the series belongs to —
+its `started_at` where it has one, and the dive's otherwise (§6.4a) — ≥ 0 and **strictly
 increasing**; `values` holds the readings in the channel's scale. The arrays MUST be the
 same length and MUST NOT contain nulls — a sensor dropout is a gap in `times`, never a
 null in `values`. Sampling MAY be irregular; readers MUST NOT assume a fixed interval.
+Two recordings of one dive keep their own axes: a reader placing both on one timeline
+works from each recording's own start and MUST NOT assume they share an origin.
 
 A **Pressure Series** is a Series plus `gas_number` (integer, REQUIRED, ≥ 0): the
-device's label tying this cylinder's channel to the dive's cylinders and gas-switch
-events. The correspondence to a `cylinders` entry with the same `gas_number` SHOULD hold
-but is not guaranteed — a device can report a channel for a transmitter the diver never
-described as a cylinder.
+recording device's label tying this cylinder's channel to the dive's cylinders and
+gas-switch events. The correspondence to a `cylinders` entry with the same `gas_number`
+SHOULD hold but is not guaranteed — a device can report a channel for a transmitter the
+diver never described as a cylinder, and two devices of one dive label the same supply
+however each of them pleases.
 
 ### 6.6 Event
 
-A point event on the profile timeline.
+A point event on one recording's profile timeline (§6.4a).
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `time` | integer | R | Elapsed seconds from dive start; ≥ 0. |
+| `time` | integer | R | Elapsed seconds from the start of the recording this profile belongs to — its `started_at` where it has one, and the dive's otherwise (§6.4a, §6.5); ≥ 0. |
 | `type` | string | R | One of `"gas_switch"`, `"deep_stop"`, `"safety_stop"`, `"bookmark"`, `"other"`. |
 | `gas_number` | integer | O | On a `gas_switch`: what was switched to, in the device's own labeling (§6.3). Absent when the device recorded a switch without saying to what. |
 | `label` | string | O | The device's own wording. On `type: "other"` it is REQUIRED and MUST NOT be null — an unclassified event with no label carries no information at all. |
 
 ### 6.7 Stored File
 
-Metadata for a binary the source logbook stores — a dive computer's original export file,
-or a scan of a certification card. The bytes themselves are not in the document; inside
-an archive (Appendix A) they travel as members of the container.
+Metadata for a binary the source logbook stores — one of a recording's original
+dive-computer files (§6.4a), or a scan of a certification card. The bytes themselves are
+not in the document; inside an archive (Appendix A) they travel as members of the
+container.
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
@@ -463,9 +538,12 @@ an archive (Appendix A) they travel as members of the container.
 | `sha256` | string | R | Lowercase hex SHA-256 of the stored bytes — 64 characters. This is the digest of the bytes as stored in the source system, so a restored copy can be verified end-to-end. |
 | `archive_path` | string | O | Inside an archive: the container-relative path of the bytes (Appendix A). In a bare document: absent — there is no container for it to point into. |
 
-The reference implementation records which of its parsers understood a dive-computer file
-under its producer key (`"extensions": {"opendiving": {"parser_key": "suunto_json"}}`);
-parser registries are application-specific and have no core member.
+The reference implementation records which of its parsers understood each dive-computer
+file under its producer key (`"extensions": {"opendiving": {"parser_key":
+"suunto_json"}}`); parser registries are application-specific and have no core member.
+Two files of one recording (§6.4a) — an application's JSON export beside the same
+device's binary — carry a `parser_key` each, since the two were read by different
+parsers and each record describes its own bytes.
 
 ### 6.8 Trip
 
@@ -703,8 +781,9 @@ one. Beyond generic JSON concerns:
   diver's avatar in its archives). Extraction of third-party archives MUST treat member paths as untrusted (reject
   absolute paths and `..` traversal), and SHOULD verify each extracted file against its
   `sha256` before use.
-- **Numeric and size limits.** Documents can be large — a sampled profile per dive,
-  thousands of dives; instructors' and divemasters' logbooks run five figures. Readers SHOULD bound memory (streaming or spooled parsing, input
+- **Numeric and size limits.** Documents can be large — a sampled profile per recording
+  and a dive may have several, thousands of dives; instructors' and divemasters' logbooks
+  run five figures. Readers SHOULD bound memory (streaming or spooled parsing, input
   size caps) and MUST NOT let unexpected magnitudes in numeric members index or allocate
   unchecked.
 - **Re-rendering text.** Free-text members are arbitrary user content. Software
@@ -739,8 +818,8 @@ members the document does not reference. The RECOMMENDED extension for the conta
 
 ## Appendix B. Example (informative)
 
-A minimal but realistic document — one dive with a cylinder and a short profile, its
-site, and the diver:
+A minimal but realistic document — one dive with a cylinder and one recording carrying a
+short profile, its site, and the diver:
 
 ```json
 {
@@ -764,12 +843,17 @@ site, and the diver:
       "cylinders": [
         { "volume": 12.0, "start_pressure": 200.0, "end_pressure": 70.0, "oxygen": 32.0 }
       ],
-      "profile": {
-        "duration": 2460,
-        "depth": { "times": [0, 60, 120, 2400], "values": [0, 950, 1840, 310] },
-        "temperature": { "times": [0, 1200], "values": [261, 224] },
-        "events": [{ "time": 2100, "type": "safety_stop" }]
-      }
+      "recordings": [
+        {
+          "device": { "manufacturer": "Suunto", "model": "Ocean" },
+          "profile": {
+            "duration": 2460,
+            "depth": { "times": [0, 60, 120, 2400], "values": [0, 950, 1840, 310] },
+            "temperature": { "times": [0, 1200], "values": [261, 224] },
+            "events": [{ "time": 2100, "type": "safety_stop" }]
+          }
+        }
+      ]
     }
   ],
   "sites": [
