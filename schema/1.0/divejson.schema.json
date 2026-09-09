@@ -166,7 +166,7 @@
     "device": {
       "type": "object",
       "properties": {
-        "manufacturer": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "brand": { "type": "string", "minLength": 1, "maxLength": 64 },
         "model": { "type": "string", "minLength": 1, "maxLength": 64 },
         "serial": { "type": "string", "minLength": 1, "maxLength": 64 },
         "firmware": { "type": "string", "minLength": 1, "maxLength": 32 },
@@ -352,6 +352,7 @@
         "uuid": { "$ref": "#/$defs/uuid" },
         "name": { "type": "string", "minLength": 1, "maxLength": 255 },
         "brand": { "type": "string", "maxLength": 255 },
+        "serial": { "type": "string", "minLength": 1, "maxLength": 64 },
         "type": {
           "enum": [
             "mask", "snorkel", "fins", "wetsuit", "drysuit", "vest", "hood",

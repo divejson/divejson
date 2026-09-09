@@ -15,7 +15,7 @@ repositories.
   exported twice, as an application's JSON beside the same device's binary, which arrived
   as two dives with two identities and half the data each; and a computer worn that
   recorded nothing, which is a fact about the dive with nowhere to sit. `recordings` is
-  each of those, and §6.4b's device — manufacturer, model, serial, firmware, name and the
+  each of those, and §6.4b's device — brand, model, serial, firmware, name and the
   device's own dive counter — is what tells one apart from another. The serial reverses a
   sentence two mapping documents used to carry, that nothing in a logbook needs one:
   nothing did, until a logbook had to hold two records of one dive.
@@ -28,6 +28,22 @@ repositories.
   shape, kept as a negative fixture so the failure is a named one. §3's beyond-schema list
   gains a rule — a recording carries at least one of `device`, `profile` and
   `source_files` — and its profile-series rule now reads per recording.
+
+  **A gear item carries a `serial` (§6.12), and a device's maker is `brand` on both
+  objects.** The two changes are one: a `computer` in the kit list and a recording's device
+  are the same machine described from the logbook's two sides, and until now nothing let a
+  writer say so. A serial does — equality between §6.12's and §6.4b's is what identifies
+  them as one piece of hardware, where a comparison of names and makers is a guess — so
+  §6.12 gains one, bounded at 1–64 rather than this section's usual 255 because a gear
+  serial that could not fit a device's could never equal one. It is allowed on any gear
+  type; only a computer has anything to fold with. And §6.4b's maker becomes `brand`, the
+  word §6.12 already used, because two words for one fact read as two facts — the newer and
+  smaller of the two collapses, rather than renaming every gear type's `brand` to a word
+  that suits a wetsuit no better than it suits a reel.
+  `docs/uddf-writing.md` carries the test a writer applies, and
+  `docs/uddf-mapping.md` the `<serialnumber>` that feeds it. §9's personal-data bullet names
+  both members now: a serial is a stable hardware identifier wherever it sits, and the kit
+  list carries them for gear that never recorded a dive.
 
   Cylinders stay on the dive. Two devices label one gas supply however each pleases, and
   the diver keeps one list; `gas_number` remains the join key from every recording's

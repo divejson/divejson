@@ -200,13 +200,13 @@ rather than one absence.
 
 | `<Dive>` child | | into (§6.4b) |
 | --- | --- | --- |
-| — | | `manufacturer`, the literal `Suunto` |
+| — | | `brand`, the literal `Suunto` |
 | `<Source>` | | `model` |
 | `<SerialNumber>` | | `serial` |
 | `<Software>` | | `firmware` |
 | `<DiveNumberInSerie>` | | `dive_number`, the device's counter |
 
-The manufacturer is supplied rather than read, which is the format's own property and not a
+The brand is supplied rather than read, which is the format's own property and not a
 guess about the file — `suunto-json-mapping.md` states the reasoning in full and it is the
 same here.
 

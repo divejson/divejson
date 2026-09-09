@@ -56,7 +56,8 @@
       "recordings": [
         {
           "device": {
-            "manufacturer": "Suunto"
+            "brand": "Suunto",
+            "name": "Ocean"
           },
           "profile": {
             "duration": 2880,

@@ -150,6 +150,14 @@ it is reported, since the type did not survive.
 extends `ID_TYPE` rather than `namedType`, so a `<camera>` has no `<name>` at all and could
 carry only a nameless body-and-lens breakdown.
 
+**A gear item's `serial` (§6.12) is written to `<serialnumber>`**, on whatever element its
+type produced. `equipmentPieceType` carries that element for every piece rather than only
+for a computer, which is the same breadth §6.12 gives the member, so a serialled regulator
+keeps its serial through a round trip like any other piece. On a `computer` it does more
+than travel: it is what the fold below tests first, and it is what a folded element hands
+back to the gear item on the way in ([`uddf-mapping.md`](uddf-mapping.md)), which is what
+closes that round trip rather than merely surviving it.
+
 **Differs from the reference writer**: it sends `line_cutter` and `shears` to `<knife>`, on
 the grounds that they are cutting tools and that scattering a diver's cutting tools into the
 catch-all beside the SMB reads worse. A converter does not, because `<knife>` asserts a
@@ -168,15 +176,34 @@ element: **one `<divecomputer>` per computer in the whole document**, not one pe
 plus one per recording. Writing the same computer twice would put two kit items in a
 reader's gear list where the diver owns one, and give one machine two `xs:ID`s.
 
-**When two are one computer.** The test is the same serial where both sides carry one — and
-a gear item carries none, §6.12 having no serial member, so between a gear item and a device
-it is always the second test: the strings the two would each write into `<name>` and
-`<manufacturer><name>` are equal, trimmed and case-folded. A gear item writes its `name` and
-its `brand`; a device writes its `name` (else its `model`) and its `manufacturer`. The
-serial test does the real work between two **devices** — one computer recording ten dives is
-ten recordings and one element — and **no pair in this corpus reaches it**, both writer
-inputs having a single recording. It is written down here rather than discovered later; a
-file that exercises it is the fixture this section is waiting for.
+**When two are one computer.** Between a gear item `G` whose `type` is `"computer"` and a
+device `D`, with every string trimmed and case-folded and `label_D` being `D.name` else
+`D.model`:
+
+- **Both carry a serial** — §6.12's and §6.4b's — → fold **iff** the two serials are equal.
+  **Serials that differ mean different computers, and there is no fall-through to the
+  label.** Without that leg, two Suunto Oceans each plausibly named `Suunto Ocean` with
+  brand `Suunto` fold on the label and one machine's serial goes out on the other's element.
+- **Otherwise** → fold iff `label_D` is present, `G.name` equals it, and the brands do not
+  disagree — `G.brand` against `D.brand`, an absent brand on either side disagreeing with
+  nothing.
+- **`label_D` absent** → **no fold**, whatever else matches. A device carrying only a brand
+  matches nothing.
+- The **same predicate folds two devices**, `label` being `name` else `model` on each side.
+  That is where the serial leg does its real work: one computer recording ten dives is ten
+  recordings and one element.
+- **At most one gear item per device and one device per gear item.** On a tie, the first in
+  document order wins and the rest are reported — a fold is not a merge, and silently
+  picking one of three would put a serial on an element the diver never meant.
+
+**This is deliberately not symmetric about absence, and the asymmetry is worth stating
+because the neighbouring comparison is.** Asking whether two *files* are records of one
+computer, an absent member on either side means "this format has no such field" rather than
+a mismatch — calling it one there would split one computer's recordings across two records.
+The fold is not that comparison. One side is a user's own record whose `name` is REQUIRED
+(§6.12) and the other is a file reading that is routinely one member wide, so carrying the
+symmetric rule across would make a bare device match every computer the diver owns. Hence
+the third leg above: absence on the device's side is a refusal to guess, not a match.
 
 What a folded element carries, in `equipmentPieceType`'s own sequence — `<name>`,
 `<manufacturer>`, `<model>`, `<serialnumber>`, `<notes>`, which is an `xs:sequence` and not
@@ -184,11 +211,19 @@ a free order:
 
 | DiveJSON | UDDF |
 | --- | --- |
-| the gear item's `name`, else the device's `name`, else its `model` | `<name>` — mandatory, exactly one |
-| the gear item's `brand`, else the device's `manufacturer` | `<manufacturer><name>` |
+| the gear item's `name`, else the device's `name` | `<name>` — mandatory, exactly one; **empty** where neither side carries one |
+| the gear item's `brand`, else the device's `brand` | `<manufacturer><name>` |
 | `recordings[].device.model` | `<model>` |
-| `recordings[].device.serial` | `<serialnumber>` |
+| the device's `serial`, else the gear item's | `<serialnumber>` — where both carry one the fold has already made them equal |
 | `recordings[].device.dive_number` | the dive's `<internaldivenumber>` |
+
+**The `<name>` row stops at the device's `name` and does not fall through to its `model`**,
+which is what makes an unmatched device's element round-trip. `<name>` is mandatory on the
+element, so a device with neither a gear item nor a `name` gets an **empty** one — a valid
+`xs:string` that the reading direction takes as no name at all, so it comes back as no
+`device.name` (§6.4b forbids an empty member) and, because §6.12 makes a gear item's `name`
+REQUIRED, as no gear item either. Writing the model there instead would hand a reader back
+two things the document never had: a `device.name` and a kit item, both spelled `Perdix 2`.
 
 `<internaldivenumber>` sits on the dive rather than on the element, between `<divenumber>`
 and `<datetime>` in `informationbeforediveType`'s sequence, and it is an
@@ -197,9 +232,12 @@ of `0` is **not written**, and is reported, the same trade `<divenumber>` alread
 zero there invalidates the whole document rather than one element.
 
 **A device that matches no gear item gets an element of its own, and that element reads back
-as a gear item.** This is the one place a written file returns *more* than it was written
-from, and it is the only documented exception to `writing.md`'s self round trip, which is
-otherwise a rule about what does not come back. A logbook whose dives were imported from
+as a gear item — where the device carries a name.** This is the one place a written file
+returns *more* than it was written from, and it is the only documented exception to
+`writing.md`'s self round trip, which is otherwise a rule about what does not come back. A
+**nameless** unmatched device is outside the exception rather than a second one: its element
+carries the empty `<name>` above, the reading direction drops a nameless piece, and nothing
+comes back that did not go out. A logbook whose dives were imported from
 files but whose owner never listed the computer in their kit is the ordinary case, so the
 alternative — writing no element — would lose the device from every such file, and the
 device is why this member exists. The element is `<divecomputer id="device-<n>">`, numbered
@@ -273,9 +311,12 @@ a dive of no length.
 
 Members with no UDDF slot anywhere: `water_type`, `cns_start`, `cns_end`, `otu_start`,
 `otu_end`, `entry_position`, `exit_position`, `course_uuid`, `species_uuids`,
-`created_at`. A recording's own slotless members are under *Devices* above, `source_files`
-among them — it was a dive member until it moved onto the recording (§6.4a) and the answer
-did not change with it.
+`created_at`, and — on the recording rather than the dive —
+`recordings[].source_files`, `recordings[].started_at` and
+**`recordings[].device.firmware`**, `equipmentPieceType` carrying no firmware element, so
+`unmapped` reports it on every export whose device has one. *Devices* above has the reasoning
+for each of the three. `source_files` was a dive member until it moved onto the recording
+(§6.4a) and the answer did not change with it.
 
 ### Cylinders and gases
 

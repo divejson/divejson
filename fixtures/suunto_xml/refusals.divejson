@@ -37,7 +37,7 @@
       "recordings": [
         {
           "device": {
-            "manufacturer": "Suunto",
+            "brand": "Suunto",
             "model": "Suunto D5",
             "serial": "192410004212",
             "firmware": "3.0.2143",

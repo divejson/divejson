@@ -16,7 +16,7 @@
       "recordings": [
         {
           "device": {
-            "manufacturer": "Suunto",
+            "brand": "Suunto",
             "firmware": "2.5.1947",
             "name": "Suunto D5"
           }

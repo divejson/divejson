@@ -24,7 +24,7 @@
       "recordings": [
         {
           "device": {
-            "manufacturer": "suunto",
+            "brand": "suunto",
             "model": "Suunto D5",
             "dive_number": 5
           },

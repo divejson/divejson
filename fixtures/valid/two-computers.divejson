@@ -35,7 +35,7 @@
       "recordings": [
         {
           "device": {
-            "manufacturer": "Suunto",
+            "brand": "Suunto",
             "model": "Suunto Ocean",
             "serial": "000000000042",
             "firmware": "2.51.28",
@@ -126,7 +126,7 @@
         },
         {
           "device": {
-            "manufacturer": "Shearwater",
+            "brand": "Shearwater",
             "model": "Perdix 3",
             "serial": "D9000042"
           },

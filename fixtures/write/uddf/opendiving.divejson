@@ -56,9 +56,10 @@
       "recordings": [
         {
           "device": {
-            "manufacturer": "Suunto",
+            "brand": "Suunto",
             "model": "Ocean",
             "serial": "000000000042",
+            "name": "Ocean",
             "dive_number": 118
           },
           "profile": {
@@ -185,6 +186,7 @@
       "uuid": "0198a6f0-2222-7002-8000-000000000002",
       "name": "Ocean",
       "brand": "Suunto",
+      "serial": "000000000042",
       "type": "computer",
       "notes": "Firmware 2.4.1; wrist strap replaced 2026-03."
     },

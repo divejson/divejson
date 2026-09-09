@@ -172,8 +172,17 @@ trip at its dives. It is not read, because no writer in the corpus emits it.
 ### Gear — `/uddf/diver/owner/equipment`
 
 The element's own name is the type. `name` is REQUIRED by §6.12, so a nameless piece is
-dropped; `manufacturer/name` becomes `brand` and `notes/para` becomes `notes`. A dive's
+dropped; `manufacturer/name` becomes `brand`, `serialnumber` becomes `serial` and
+`notes/para` becomes `notes`. A dive's
 `informationbeforedive/equipmentused/link/@ref` becomes `dives[].gear_uuids`.
+
+`<serialnumber>` is on `equipmentPieceType`, so it is read for **every** gear type that
+carries one and not only for a computer — which is what §6.12's own member says. On a
+computer it is the member that lets a writer recognise the kit item and a recording's
+device (§6.4b) as one machine without comparing names, and
+[`uddf-writing.md`](uddf-writing.md) is where that test is written down. `<model>` is not
+read: §6.12 has no member for it, and on a computer the model is the *device's*
+(§6.4b), read from the same element below.
 
 | UDDF element | `gear.type` |
 | --- | --- |
@@ -194,41 +203,59 @@ together, not a piece.
 it is the hardware that recorded a dive, and UDDF has one element for both — alone among
 the formats here. So the reader does both: it keeps minting the gear item of type
 `computer`, exactly as the table above says, **and** reads a recording's device (§6.4b) from
-the same element for every dive whose `<equipmentused><link>` names it. Nothing is
-duplicated by that, because the two are different records of one object: the gear item is a
-thing in a kit list, with the diver's own name for it, and the device is what a recording
-says about the hardware. A dive that links no computer gets no device, which is most files
+the same element for every dive whose `<equipmentused><link>` names it. The two are
+different records of one object rather than one record written twice: the gear item is a
+thing in a kit list and the device is what a recording says about the hardware. They
+overlap on this format more than on any other — a `<name>` and a `<serialnumber>` each land
+on both — and that overlap is the point, being exactly what lets a writer recognise the two
+as one computer again. A dive that links no computer gets no device, which is most files
 — see *Device* below.
 
 ### Device — the linked `<divecomputer>`
 
 | UDDF | DiveJSON (§6.4b) |
 | --- | --- |
-| `divecomputer/manufacturer/name` | `manufacturer` |
+| `divecomputer/manufacturer/name` | `brand` |
 | `divecomputer/model` | `model` |
 | `divecomputer/serialnumber` | `serial` |
+| `divecomputer/name` | `name` |
 | `informationbeforedive/internaldivenumber` | `dive_number`, the **device's** counter |
 
-`<divecomputer><name>` is not on this list: it is the diver's label for the piece and it is
-already the gear item's `name`. §6.4b's `name` is what the *device* calls itself, which
-UDDF has no element for.
+**`<divecomputer><name>` is read twice, into two members of two records, and that is not a
+duplication.** It is the only string in this format that names the computer at all, and the
+two members it lands in mean different things: §6.12's `name` is the diver's label for a
+thing in their kit list, and §6.4b's `name` is what the device calls itself. UDDF has one
+element for both because it has one element for the whole computer. Reading it only as the
+gear item's name would leave the corpus's only UDDF computer with a device that has no
+string naming it — `opendiving.uddf` below carries a `<name>` and no `<model>` — and reading
+it into `model` instead would put `Ocean` where the same dive's FIT export puts
+`Suunto Ocean`, conflating two members §6.4b defines separately.
+
+A `<name>` of pure whitespace is no name (*What UDDF's leniencies look like* above), so it
+yields neither, and an **empty** `<name>` is the same answer — which is what makes a written
+file round-trip: [`uddf-writing.md`](uddf-writing.md) emits an empty one for a device that
+has no name, `<name>` being mandatory on the element.
 
 `<internaldivenumber>` is on the dive rather than on the element, which is where UDDF puts
 it, and it is why a device read from a shared element still differs between two dives that
 link it. It is the counter §6.2's `dive_number` is explicitly not — `<divenumber>` is the
 diver's and stays there.
 
-**A device whose every member is absent is not written at all** (§6.4b). Since a
-`<divecomputer>`'s `<name>` is not on the list above, an element carrying only a `<name>`
-yields a gear item and no device — the whole element goes to the gear item and there is
-nothing left for a device to be made of.
+**A device whose every member is absent is not written at all** (§6.4b). With `<name>` on
+the list above, that now takes an element carrying **nothing** this reader maps — no
+`<name>`, no `<manufacturer>`, no `<model>`, no `<serialnumber>` — on a dive that also
+states no `<internaldivenumber>`.
+An element carrying only a `<name>` yields both records: a gear item named by it and a
+device named by it.
 
-Real files sit close to that line. `fixtures/uddf/opendiving.uddf`, the reference writer's
-own export, has one `<divecomputer>` with a `<name>` and a `<manufacturer><name>` and no
-`<model>`, `<serialnumber>` or `<internaldivenumber>` — so its dive's recording carries a
-device of exactly one member, `{"manufacturer": "Suunto"}`, and the gear item keeps the
-name. That is the ordinary shape a reader should expect from this format: UDDF records what
-the diver owns far more often than it records what recorded the dive.
+`fixtures/uddf/opendiving.uddf`, the reference writer's own export, is the shape to expect.
+It has one `<divecomputer>` with a `<name>` and a `<manufacturer><name>` and no `<model>`,
+`<serialnumber>` or `<internaldivenumber>` — so its dive's recording carries a device of
+exactly two members, `{"brand": "Suunto", "name": "Ocean"}`, and the gear item carries the
+same name beside its own uuid and notes. UDDF records what the diver owns far more often
+than it records what recorded the dive, and on this format the two overlap almost entirely:
+a device read here is usually the kit item read again, which is why the fold going the other
+way ([`uddf-writing.md`](uddf-writing.md)) matters as much as it does.
 
 UDDF has no equipment element for a firmware version, so §6.4b's `firmware` has no source
 here.

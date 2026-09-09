@@ -99,7 +99,7 @@
       "recordings": [
         {
           "device": {
-            "manufacturer": "Shearwater",
+            "brand": "Shearwater",
             "model": "Perdix 2",
             "serial": "D9123456",
             "firmware": "V92",
@@ -273,7 +273,7 @@
         },
         {
           "device": {
-            "manufacturer": "Suunto",
+            "brand": "Suunto",
             "model": "Ocean"
           },
           "source_files": [

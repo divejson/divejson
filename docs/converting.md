@@ -228,7 +228,10 @@ about the dive, and the recording is where it lives.
   which is why `ssrf-mapping.md` refused to, and that refusal stands. UDDF is the one
   source that carries both in one element, and its document says what that costs.
 - **A serial is opaque**, matched against other serials and never parsed — `converting.md`'s
-  id rule applied to hardware.
+  id rule applied to hardware. This holds for both members that carry one: a device's
+  (§6.4b) and a gear item's (§6.12), which a source stating a serial on a piece of kit fills
+  the same way. Equality between the two is what says a kit item and a device are one
+  machine, which is why neither may be normalised beyond trimming and case-folding.
 - **`source_generator` and the device are the same fact seen twice**, for the formats a
   wrist writes: the provenance block records what produced the *file*, and for those
   formats that is the computer. Both are written. The block is about the file and the
@@ -240,20 +243,30 @@ about the dive, and the recording is where it lives.
 What each reader takes a device from. A blank cell is a member that format does not carry,
 which is an absence rather than a gap to fill (§5.4).
 
-| format | `manufacturer` | `model` | `serial` | `firmware` | `name` | `dive_number` |
+| format | `brand` | `model` | `serial` | `firmware` | `name` | `dive_number` |
 | --- | --- | --- | --- | --- | --- | --- |
-| `uddf` | `<divecomputer><manufacturer><name>` | `<model>` | `<serialnumber>` | | | the dive's `<internaldivenumber>` |
-| `ssrf` | | `<divecomputer @model>` | the `Serial` `<extradata>` | | | |
-| `fit` | `file_id.manufacturer` | `file_id.product_name`, else `product` | the `device_info` at `device_index` 0's `serial_number`, else `file_id.serial_number` | that `device_info`'s `software_version` | | `session.dive_number` |
+| `uddf` | `<divecomputer><manufacturer><name>` | `<model>` | `<serialnumber>` | | `<divecomputer><name>` | the dive's `<internaldivenumber>` |
+| `ssrf` | | `<divecomputer @model>` | the `Serial` `<extradata>` | the `FW Version` `<extradata>` | | |
+| `fit` | `file_id.manufacturer` | `file_id.product_name` | the `device_info` at `device_index` 0's `serial_number`, else `file_id.serial_number` | that `device_info`'s `software_version` | | `session.dive_number` |
 | `suunto_json` | the literal `Suunto` | | `Header.Device.SerialNumber` | `Header.Device.Info.SW` | `Header.Device.Name` | `Header.Diving.NumberInSeries` |
 | `suunto_xml` | the literal `Suunto` | `<Source>` | `<SerialNumber>` | `<Software>` | | `<DiveNumberInSerie>` |
 
-Three things the table does not say on its own.
+Four things the table does not say on its own.
 
 **Which record the device comes from is the format's own question**, and each document
 answers it: UDDF takes the `<divecomputer>` the dive's `<equipmentused><link>` names, so a
-dive that links no computer has no device; `.ssrf` gives every `<divecomputer>` on a dive a
-recording of its own; the three one-dive-per-file formats have exactly one.
+dive that links no computer has no device; `.ssrf` gives a recording to every
+`<divecomputer>` on a dive **that yields either a device or a profile**, and none to one
+that yields neither, §6.4a forbidding a recording carrying nothing; the three
+one-dive-per-file formats have exactly one.
+
+**A model comes from a name the source wrote, never from a code a decoder resolved.** §6.4b
+defines `model` as the product string as the source names it, so a numeric vendor id is not
+one and neither is a profile constant a decoder maps such an id onto — the string those
+produce is the decoder's vocabulary rather than what the vendor calls the computer. Where a
+format states no product name, the device carries **no model**, which is the ordinary
+absence (§5.4) rather than a gap to fill from the brand: `brand` is a member of its own and
+copying it into `model` would say the maker's name is the product's.
 
 **The two literal `Suunto`s are not fabrications.** §5.4 forbids inventing a value the
 source did not record, and a vendor-proprietary export format *is* the vendor saying so —

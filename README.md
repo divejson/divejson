@@ -49,7 +49,7 @@ DiveJSON's answers, as normative rules rather than aspirations:
       "cylinders": [{ "volume": 12.0, "oxygen": 32.0, "start_pressure": 200.0 }],
       "recordings": [
         {
-          "device": { "manufacturer": "Suunto", "model": "Ocean" },
+          "device": { "brand": "Suunto", "model": "Ocean" },
           "profile": { "duration": 2460, "depth": { "times": [0, 60, 120], "values": [0, 950, 1840] } }
         }
       ]

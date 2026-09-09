@@ -164,13 +164,13 @@ One file is one activity, so a document converted from one has at most one recor
 
 | member | | into (§6.4b) |
 | --- | --- | --- |
-| — | | `manufacturer`, the literal `Suunto` |
+| — | | `brand`, the literal `Suunto` |
 | `Device.SerialNumber` | | `serial` |
 | `Device.Info.SW` | | `firmware` |
 | `Device.Name` | | `name` |
 | `Diving.NumberInSeries` | | `dive_number`, the device's counter |
 
-**The manufacturer is written without being read**, which is the one place this reader
+**The brand is written without being read**, which is the one place this reader
 supplies a value the file does not state. It is not §5.4's fabrication: this is a
 vendor-proprietary export format, so the vendor is a property of the format rather than a
 guess about the file — the same reading that already lets `source_generator` name the device

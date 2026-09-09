@@ -34,7 +34,7 @@
       "recordings": [
         {
           "device": {
-            "manufacturer": "Suunto",
+            "brand": "Suunto",
             "firmware": "2.40.56",
             "name": "Suunto Ocean"
           },

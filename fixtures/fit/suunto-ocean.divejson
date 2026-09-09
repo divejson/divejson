@@ -32,7 +32,7 @@
       "recordings": [
         {
           "device": {
-            "manufacturer": "suunto",
+            "brand": "suunto",
             "model": "Suunto Ocean",
             "dive_number": 3
           },

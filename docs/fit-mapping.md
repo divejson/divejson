@@ -197,8 +197,8 @@ exactly one recording (§6.4a) and that recording's device is this:
 
 | field | | into (§6.4b) |
 | --- | --- | --- |
-| `file_id.manufacturer` (1) | | `manufacturer` |
-| `file_id.product_name` (8), else `product` (2) | | `model` |
+| `file_id.manufacturer` (1) | | `brand` |
+| `file_id.product_name` (8) | | `model` — and **no `model` at all** where the file states none |
 | `device_info.serial_number` (3) at `device_index` (0) **0**, else `file_id.serial_number` (3) | | `serial` — **untested**, no file in hand carries either |
 | `device_info.software_version` (5), the one already taken for the generator | | `firmware` — **untested**, neither file carries one |
 | `session.dive_number` (156) | | `dive_number`, the device's counter |
@@ -213,8 +213,21 @@ wrote it. Neither fixture here carries a `device_index` at all — the Ocean wri
 `device_info` messages with no index and no serial, the D5 writes none — so both rows above
 wait on a file that has one, exactly as the tank-telemetry rows do.
 
-`manufacturer` decodes to the profile's own lowercase spelling (`suunto`), where the same
-vendor's JSON export writes `Suunto`. Both are carried as read: §6.4b compares devices
+**`product` (2) is not a model, and there is no fall-through to it.** It is a numeric vendor
+id where §6.4b's `model` is the product string as the source names it, and a decoder that
+resolves one resolves it to a profile constant — `descent_mk2s` — which is the profile's
+vocabulary rather than what the vendor calls the computer. The global profile resolves it
+only for the manufacturers the `garmin_product` and `favero_product` subfields name, so a
+Suunto file's stays the bare `62` the Ocean here writes, and a Garmin file that states no
+`product_name` reports **no model** rather than a constant. Falling back to
+`file_id.manufacturer` instead — which is what this reader's single-string
+`source_generator.name` does one section above — is not open to a device either: §6.4b gives
+the maker a member of its own, and copying it into `model` would say `suunto` is the
+product. Both fixtures here carry a `product_name`, so both devices have a model; the
+absent case waits on a file, like the two rows marked untested above.
+
+`file_id.manufacturer` decodes to the profile's own lowercase spelling (`suunto`), where the
+same vendor's JSON export writes `Suunto`. Both are carried as read: §6.4b compares devices
 case-folded rather than asking either reader to tidy the other's spelling.
 
 FIT has no field for what a device calls itself, so §6.4b's `name` has no source here.

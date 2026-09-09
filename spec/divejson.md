@@ -450,7 +450,7 @@ two can describe the same physical object without being the same record.
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `manufacturer` | string | O | 1–64. As the source spelled it; readers comparing two devices SHOULD case-fold. |
+| `brand` | string | O | 1–64. The maker, as the source spelled it; readers comparing two devices SHOULD case-fold. The same word §6.12 uses for the maker of a piece of kit, and deliberately so: a computer described on both sides of a logbook is one machine, and two words for its maker would read as two facts. |
 | `model` | string | O | 1–64. The product, as the source names it. |
 | `serial` | string | O | 1–64. The device's own serial, opaque — never parsed for meaning. |
 | `firmware` | string | O | 1–32. The version the device was running. |
@@ -461,12 +461,14 @@ Every string is trimmed, and none may be empty — an absent value is absence (�
 device that records nothing at all about itself is not written: a writer emits no `device`
 member rather than an object with no members in it.
 
-The serial is carried where the rest of this format deliberately drops hardware identity,
-and it earns its place for one reason: it is the only thing that reliably tells one
-device's record from another's when a diver wears two computers of one make. It is a
+The serial earns its place for one reason: it is the only thing that reliably tells one
+device's record from another's when a diver wears two computers of one make. §6.12 carries
+one too — the diver's own record of a piece of kit — and the two are one machine seen from
+the logbook's two sides, which is what lets a writer recognise a `computer` gear item and a
+device as the same hardware rather than guessing from the strings around them. It is a
 stable identifier for a piece of hardware and therefore personal data, which §9 says in
-its own terms; a writer publishing documents rather than handing them to their owner
-should know it is in them.
+its own terms for both members; a writer publishing documents rather than handing them to
+their owner should know it is in them.
 
 ### 6.4 Profile
 
@@ -620,6 +622,7 @@ create catalog entries from the snapshot.
 | `uuid` | uuid | R | |
 | `name` | string | R | 1–255. |
 | `brand` | string | O | ≤ 255. |
+| `serial` | string | O | 1–64, trimmed and non-empty. The maker's serial for this piece, opaque — never parsed for meaning. **Shorter than every other string in this section on purpose**: §6.4b bounds a device's `serial` at 1–64, and a gear serial that could not fit there could never equal one. Allowed on any gear type, though a `"computer"` is where it does its work — it is what identifies the piece of kit as the hardware a recording's device (§6.4b) describes, rather than leaving a writer to guess from a name and a maker. It is a stable hardware identifier and therefore personal data; §9 says so. |
 | `type` | string | O | One of `"mask"`, `"snorkel"`, `"fins"`, `"wetsuit"`, `"drysuit"`, `"vest"`, `"hood"`, `"gloves"`, `"boots"`, `"bcd"`, `"regulator"`, `"computer"`, `"cylinder"`, `"light"`, `"smb"`, `"mirror"`, `"whistle"`, `"reel"`, `"knife"`, `"line_cutter"`, `"shears"`, `"compass"`, `"camera"`, `"other"`. An OPTIONAL member, so this vocabulary can grow in minor versions (§7) — an air horn rides `"other"` until it earns a value. |
 | `notes` | string | O | ≤ 10000. |
 | `rented` | boolean | O | |
@@ -773,8 +776,10 @@ one. Beyond generic JSON concerns:
   fixes, trip bounding boxes) that together form a movement history; the diver's name,
   handle, and email address; certification numbers, instructor names, and training
   centers, which function as identity documents; the serial numbers of the dive computers
-  on their wrist (§6.4b), which are stable hardware identifiers that link two documents to
-  one diver even when every other member differs; and free-text notes of up to 10,000
+  on their wrist (§6.4b) **and of the kit they own** (§6.12), which are stable hardware
+  identifiers that link two documents to one diver even when every other member differs —
+  and the kit list carries them for gear that never recorded a dive, so a document with no
+  `recordings` at all can still hold one; and free-text notes of up to 10,000
   characters on six record types. Software handling documents SHOULD treat them with the
   care of a personal data export: serve them only to their owner, over authenticated
   channels, without shared caching.
@@ -848,7 +853,7 @@ short profile, its site, and the diver:
       ],
       "recordings": [
         {
-          "device": { "manufacturer": "Suunto", "model": "Ocean" },
+          "device": { "brand": "Suunto", "model": "Ocean" },
           "profile": {
             "duration": 2460,
             "depth": { "times": [0, 60, 120, 2400], "values": [0, 950, 1840, 310] },

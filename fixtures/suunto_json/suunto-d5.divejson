@@ -41,7 +41,7 @@
       "recordings": [
         {
           "device": {
-            "manufacturer": "Suunto",
+            "brand": "Suunto",
             "firmware": "3.0.2143",
             "name": "Suunto D5"
           },
