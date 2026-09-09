@@ -209,8 +209,32 @@ change.** That is what makes a dive with 431 depth readings carry 29 temperature
 the writer that taught `converting.md`'s no-padding rule: the two channels sit on their own
 axes rather than one gaining 402 invented readings.
 
-A dive may carry **more than one `<divecomputer>`**, one per computer the diver wore. §6.4
-gives a dive one profile, so the first is read and the rest are reported.
+A dive may carry **more than one `<divecomputer>`**, one per computer the diver wore, and
+**each one is a recording** (§6.4a) in file order, the first primary — this is the format
+that made the case for the member, being the only interchange format here that carries two
+computers' records of one dive at all. A `<divecomputer>` with samples becomes a recording
+with a profile; one without becomes a device-only recording, or none at all where it names
+no device either, since §6.4a forbids a recording that carries nothing.
+
+### Device — `dive/divecomputer`
+
+| `.ssrf` | DiveJSON (§6.4b) |
+| --- | --- |
+| `@model` | `model` |
+| `<extradata key="Serial">` | `serial` — **untested**, no file in hand carries an `<extradata>` |
+| `@date`, `@time` | the recording's own `started_at`, where the element states them |
+
+`@model` was refused until this member existed, and the reason it was refused still holds:
+it names the source of one dive's telemetry rather than an item the diver owns, so it is a
+device and never a gear item (`converting.md`, *Recordings and devices*). Subsurface's own
+UDDF export of the same logbook carries no `<divecomputer>` equipment element for it either.
+
+`@date` and `@time` on the element are the **recording's** start where they differ from the
+dive's, which is what keeps a second computer's samples on their own axis (§6.5). Absent,
+§6.4a reads the dive's — which is every file in hand.
+
+This format carries no firmware, no device name and no device counter: `@diveid` is a
+per-dive key rather than a counter, and there is nowhere else for the other two.
 
 ## This format settles no ambiguity
 
@@ -231,11 +255,15 @@ make the two agree.
 `dropped`.** No pair in `fixtures/ssrf/` expects another, and a `resolved` finding appearing
 there would mean a reader had started guessing at a scale.
 
-## Three things read and deliberately not carried
+## Two things read and deliberately not carried
 
 Different from an attribute this reader never looks at, which is what the next section
-lists. These three are read, refused, and named in the report, because a diver looking for
+lists. These are read, refused, and named in the report, because a diver looking for
 them in the converted document deserves to be told where they went.
+
+`<divecomputer @model>` was a third of these until §6.4b gave a device a home. It is
+carried now, under *Device* above, and the rationale that refused it is the same one that
+keeps it off the gear list.
 
 - **`<dive @visibility>` is a five-star rating**, and §6.2's `visibility` is metres. A `5`
   would validate perfectly and claim five metres of visibility on a dive the diver rated
@@ -243,11 +271,6 @@ them in the converted document deserves to be told where they went.
   for that `5` — its exporter converts the rating to a distance — so the two readers of one
   logbook differ here **by design**, and this reader's silence is the truthful half.
 - **`<dive @sac>`** is a surface air consumption, which §6 has no member for at all.
-- **`<divecomputer @model>`** names the source of one dive's telemetry rather than an item
-  the diver owns. §6.12 has a `computer` gear type, and a gear item is a thing in a kit list;
-  minting one per dive from a model string would fill a logbook's gear with duplicates of the
-  same computer. Subsurface's own UDDF export carries no `<divecomputer>` equipment element
-  for it either.
 
 ## Deliberately not mapped
 
@@ -263,11 +286,11 @@ one, so nothing about it could be checked against output Subsurface actually pro
 | `<weightsystem>` | `dive.weight` is the member, and the unit spelling and the multiple-system summing rule are both unchecked against a real file. |
 | `<sample @pressure>`, `@sensor` | `profile.pressures[]` and the cylinder numbering it needs. No file in hand carries a sample pressure, and a channel tied to the wrong cylinder is worse than no channel. |
 | `<divecomputer><event>` | gas switches and markers, whose `@name` vocabulary no file here exercises. |
-| `<divecomputer @deviceid>`, `@diveid`, `@last-manual-time` | the computer's serial, its own dive key, and a marker saying the duration was typed by hand. No core member. |
+| `<divecomputer @deviceid>`, `@diveid`, `@last-manual-time` | Subsurface's own key for the computer, its own key for the dive, and a marker saying the duration was typed by hand. None is a core member: `@deviceid` is not the serial §6.4b asks for — that is the `Serial` `<extradata>`, under *Device* above — and `@diveid` keys a dive rather than counting one, so it is not the device counter either. |
 | `<temperature @air>` | surface air temperature; no core member. |
 | `<cylinder @description>`, `@workpressure`, `@use`, `@depth` | the cylinder's model name, its working pressure, its role and its maximum operating depth. `@use` would land on §6.3's `role`, whose value spellings no file here shows. |
 | `<dive @tags>`, `@rating` | no core member. |
-| `<settings>` | Subsurface's per-computer device records; no core member, and the reference logbook's is empty. |
+| `<settings>` | Subsurface's per-computer device records, keyed by the `@deviceid` a `<divecomputer>` carries. §6.4b now *does* have members for what they hold, so this stopped being "no core member" and became the highest-value entry in this table: a document-level table resolving a dive's computer to a model, a serial and a firmware is exactly a device, and reading it would fill in the three §6.4b members a `<divecomputer>` element alone cannot. It waits on a file: `<settings>` is empty in both fixtures that have the element and absent from the third, so neither the child element's spelling nor its attribute names can be checked against output Subsurface actually produces. Until then a serial comes from the `Serial` `<extradata>`, which is also untested. |
 | the logbook's owner | the format records nothing about one, so no `diver` member is written (§6.1). Minting an identity for one would be §5.4's fabrication applied to people. |
 | `courses`, `certifications`, `gear`, `gear_sets`, `species` | `.ssrf` has no slot for any of them. |
 

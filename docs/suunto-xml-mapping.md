@@ -159,6 +159,8 @@ export.
 
 A DM5 export **records no id for its dive**. `<DiveNumberInSerie>` is the computer's own
 counter and not an identifier; `<SerialNumber>` identifies the device rather than the dive.
+Both are carried, on the recording's device (§6.4b, *Device* below) — which changes nothing
+here, since neither was ever a candidate for the dive's own identity.
 So a dive takes `converting.md`'s positional stand-in and the report says so: an identity
 that moves if the file's order changes is a fact a diver may need.
 
@@ -188,6 +190,33 @@ that application's rendering of what the computer on the diver's wrist recorded.
 An archive whose files came off two firmware versions has no single `source_generator`, so
 the merged logbook records none and says so — `converting.md`'s merge rule, and it fires on
 the owner's own directory, whose 384 files span three firmware versions.
+
+### Device — `<Source>`, `<SerialNumber>`, `<Software>`, `<DiveNumberInSerie>`
+
+One file is one dive, so a document converted from one has at most one recording (§6.4a),
+and its device is where the archive-wide merge above does *not* reach: a device is per
+recording, so two firmware versions across a directory are two devices' worth of recordings
+rather than one absence.
+
+| `<Dive>` child | | into (§6.4b) |
+| --- | --- | --- |
+| — | | `manufacturer`, the literal `Suunto` |
+| `<Source>` | | `model` |
+| `<SerialNumber>` | | `serial` |
+| `<Software>` | | `firmware` |
+| `<DiveNumberInSerie>` | | `dive_number`, the device's counter |
+
+The manufacturer is supplied rather than read, which is the format's own property and not a
+guess about the file — `suunto-json-mapping.md` states the reasoning in full and it is the
+same here.
+
+`<Source>` lands on `model` where the app JSON's `Device.Name` lands on `name`: this
+element is the product ("Suunto D5"), the JSON's is settable by the owner, and reading each
+as what it is keeps a device converted from either comparable with the other.
+
+Every element here is one this document previously read and refused, and the refusals are
+withdrawn together under *Deliberately not mapped* below: they were refused for want of a
+place to put them, and §6.4b is that place.
 
 ### The dive — `<Dive>`
 
@@ -368,7 +397,7 @@ is `converting.md`'s refuse-rather-than-guess rule, not its ambiguity rule.
   placeholder; a duration below a whole second; tank readings no cylinder claims, arriving as
   a cylinder of their own.
 - **`dropped`** — a freedive; a start time that is not one; text in a numeric element;
-  `<DiveNumberInSerie>`; `<Visibility>`, `<Weather>` and `<Weight>`; an average depth deeper
+  `<Visibility>`, `<Weather>` and `<Weight>`; an average depth deeper
   than the maximum; a surface pressure or ppO₂ limit outside what §6 allows; a mix whose
   halves sum above 100 %; an end pressure above its start; a cylinder pressure past 350 bar;
   cylinders past the cap; a gas change before the dive began, or one left with no profile to
@@ -383,10 +412,13 @@ is `converting.md`'s refuse-rather-than-guess rule, not its ambiguity rule.
 Read as a list of what was considered, not of what was missed. The datacontract puts 68
 elements on `<Dive>`, and this reader maps 16 of them and reads and refuses 4 more.
 
-- **`<DiveNumberInSerie>`** — read and refused, with a finding. It is the *computer's*
-  counter rather than the diver's lifetime dive number: it starts at 1 on a new or
-  factory-reset device and starts again on the next one, so carrying it would stamp a dive #1
-  onto somebody's three-hundredth dive. §6.2's `dive_number` is the diver's.
+- **`<DiveNumberInSerie>`** — **no longer refused.** It is the *computer's* counter rather
+  than the diver's lifetime dive number: it starts at 1 on a new or factory-reset device and
+  starts again on the next one, so carrying it as §6.2's `dive_number` would stamp a dive #1
+  onto somebody's three-hundredth dive. That reasoning is unchanged and is now the reason it
+  has a member of its own — §6.4b's `dive_number`, defined as the device's counter — so it is
+  carried under *Device* above and the finding is gone. §6.2's `dive_number` is still the
+  diver's, and this reader still writes nothing into it.
 - **`<Visibility>`, `<Weather>`, `<Weight>`** — read and refused, each with a finding. They
   are the desktop application's dive-conditions panel and arrive as a block: 25 of the 384
   exports carry all three, 359 carry none, and every recorded value is `0`. None can be read
@@ -459,9 +491,11 @@ elements on `<Dive>`, and this reader maps 16 of them and reads and refuses 4 mo
   carries and neither is one of them.
 - **`<Dive.Sample>`'s `<Heading>`** — a compass bearing, nil on all 115 602 samples in hand
   and with no §6.5 channel either way.
-- **`<SerialNumber>`** — the computer's serial. The firmware version is carried as
-  provenance and the serial deliberately is not: it identifies a piece of hardware and
-  nothing in a logbook needs it.
+- **`<SerialNumber>`** — **no longer refused.** It was left out on the grounds that it
+  identifies a piece of hardware and nothing in a logbook needs it. That is no longer true:
+  a logbook holding two records of one dive needs to tell one wrist's computer from the
+  other's, and the serial is the only thing that does it reliably. It is carried under
+  *Device* above; §9 covers what publishing a document with one in it means.
 - **`<Boat>`, `<Master>`, `<Partner>`, `<DiveTags>`, `<Deleted>`, `<BatteryLevel>`** — a
   boat name, a dive master, a buddy, a tag list, a deletion flag and a battery reading. Nil
   or empty on all 384, so there is nothing to carry from this corpus. `<Boat>`, `<Master>`

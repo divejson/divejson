@@ -190,6 +190,43 @@ catch-all, and a scooter and a weight belt are equipment this format's vocabular
 yet name. `<equipmentconfiguration>` is skipped — it describes how the pieces are rigged
 together, not a piece.
 
+**`<divecomputer>` is one element read two ways.** It is a piece of kit the diver owns, and
+it is the hardware that recorded a dive, and UDDF has one element for both — alone among
+the formats here. So the reader does both: it keeps minting the gear item of type
+`computer`, exactly as the table above says, **and** reads a recording's device (§6.4b) from
+the same element for every dive whose `<equipmentused><link>` names it. Nothing is
+duplicated by that, because the two are different records of one object: the gear item is a
+thing in a kit list, with the diver's own name for it, and the device is what a recording
+says about the hardware. A dive that links no computer gets no device, which is most files
+— see *Device* below.
+
+### Device — the linked `<divecomputer>`
+
+| UDDF | DiveJSON (§6.4b) |
+| --- | --- |
+| `divecomputer/manufacturer/name` | `manufacturer` |
+| `divecomputer/model` | `model` |
+| `divecomputer/serialnumber` | `serial` |
+| `informationbeforedive/internaldivenumber` | `dive_number`, the **device's** counter |
+
+`<divecomputer><name>` is not on this list: it is the diver's label for the piece and it is
+already the gear item's `name`. §6.4b's `name` is what the *device* calls itself, which
+UDDF has no element for.
+
+`<internaldivenumber>` is on the dive rather than on the element, which is where UDDF puts
+it, and it is why a device read from a shared element still differs between two dives that
+link it. It is the counter §6.2's `dive_number` is explicitly not — `<divenumber>` is the
+diver's and stays there.
+
+A device whose every member is absent is not written at all (§6.4b), so a `<divecomputer>`
+carrying only a `<name>` yields a gear item and no device. That is the shape the reference
+writer's own export has today, and `fixtures/uddf/opendiving.uddf` is it: one
+`<divecomputer>` with a name and a manufacturer, whose dive's recording therefore carries a
+device of one member.
+
+UDDF has no equipment element for a firmware version, so §6.4b's `firmware` has no source
+here.
+
 ### Dives — `/uddf/profiledata/repetitiongroup/dive`
 
 Repetition groups are walked *through*: a group is a surface interval's worth of dives and
@@ -283,13 +320,58 @@ inventing 402 readings.
   a linked double measured at one pressure — is taken as the dive's cylinder when there is
   exactly one, and dropped when there is a choice to get wrong.
 
+## Generators this reader knows
+
+`converting.md` settles a *meaning* on the writer, not on the value, and this is the table
+that does it: an entry here changes how one generator's files are read and no others'. It is
+the sharpest tool in this document — a wrong entry misreads every file that generator ever
+produced — so it gains a row only against real files, and each row says which.
+
+| `<generator><name>` | what is read differently |
+| --- | --- |
+| `Shearwater Cloud Desktop` | a `Z` on a dive's `<datetime>` means **no offset** |
+
+**The Shearwater `Z` is the local wall clock, not UTC.** Shearwater Cloud Desktop writes the
+time the diver read off their wrist and suffixes it `Z`, so the instant the file appears to
+state is wrong by the diver's own offset — three hours, for the Red Sea export this rule was
+written against, where a Perdix 3 stamped `15:18:10Z` for the same moment a Suunto beside it
+on the same wrist stamped `15:17:38+03:00`. So under this generator `_date_time` reads the
+`Z` as absent: the value becomes a **local date-time** (§5.2's third state, the wall clock
+with the instant unknown) and the report carries a `resolved` finding — "the generator writes
+the local wall clock with a `Z` suffix; read as a wall clock with no offset (spec §5.2)". It
+is `resolved` rather than `inferred` because the digits written are the ones the source
+recorded and only their meaning was in doubt, so nothing goes under
+`extensions.divejson.inferred`.
+
+The alternatives are both worse. Trusting the `Z` puts the dive three hours from where it
+happened and can never pair it with the same dive off another computer. Correcting it with
+an offset would be the fabrication §5.2 forbids outright — a wall clock with no offset is a
+state this format has precisely so a converter never has to invent one.
+
+Matching is on the exact `<generator><name>` string, with the manufacturer id
+`Shearwater_Research_Inc` checked beside it: a name alone is a string anything may claim,
+and two agreeing beats one. `<generator><datetime>` is left alone under this rule and every
+other — it is the export instant, a fact about the run rather than logbook data.
+
+**No first-party statement of this exists either way**, which is why the rule is keyed on
+the generator rather than asserted as the format's. What is on record: the owner of the two
+files confirms the wall clock; a third-party reader states in its own source that
+Shearwater's exports carry "a wall-clock reading stored as if it were a UTC epoch";
+Subsurface's import is consistent with it, copying the time part verbatim and ignoring a
+trailing `Z`; and one issue asserts the opposite with no evidence behind it. Three further
+Shearwater Cloud Desktop exports in public repositories carry the same shape. **No
+Shearwater-generated file is in this corpus**, so this rule has no pair of its own and rests
+on the files named above rather than on one this repository carries —
+`converting.md`'s rule about a claim resting on a file that is not here, said in place.
+
 ## Three places UDDF does not hand over the answer
 
-The last two are `converting.md`'s ambiguities: a value the source did record, whose scale
-the file cannot settle, so a heuristic reads it at the scale it must have meant and reports
-a finding of kind `resolved` when it fires. The first is the opposite shape and no ambiguity
-at all — a required DiveJSON member with no UDDF source — and §6.4 settles it outright, so
-it guesses nothing and reports nothing.
+The last two are `converting.md`'s ambiguities of *scale*: a value the source did record,
+whose scale the file cannot settle, so a heuristic reads it at the scale it must have meant
+and reports a finding of kind `resolved` when it fires. The generator table above is the
+same kind of finding settled the other way, on the writer rather than on the value. The
+first below is the opposite shape and no ambiguity at all — a required DiveJSON member with
+no UDDF source — and §6.4 settles it outright, so it guesses nothing and reports nothing.
 
 ### `profile.duration` has no UDDF source
 

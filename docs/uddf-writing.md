@@ -160,6 +160,70 @@ near one, and the report is what makes the loss visible either way.
 rather than in the order the document listed it. Nothing is lost by that — every piece keeps
 its uuid — so it carries no finding.
 
+### Devices, and the one element they share with gear
+
+UDDF's `<divecomputer>` is a piece of kit *and* the hardware that recorded a dive
+(`uddf-mapping.md` reads it both ways), and this direction has to put both into one
+element: **one `<divecomputer>` per computer in the whole document**, not one per gear item
+plus one per recording. Writing the same computer twice would put two kit items in a
+reader's gear list where the diver owns one, and give one machine two `xs:ID`s.
+
+**When two are one computer.** The test is the same serial where both sides carry one — and
+a gear item carries none, §6.12 having no serial member, so between a gear item and a device
+it is always the second test: the strings the two would each write into `<name>` and
+`<manufacturer><name>` are equal, trimmed and case-folded. A gear item writes its `name` and
+its `brand`; a device writes its `name` (else its `model`) and its `manufacturer`. The
+serial test does the real work between two **devices** — one computer recording ten dives is
+ten recordings and one element — and **no pair in this corpus reaches it**, both writer
+inputs having a single recording. It is written down here rather than discovered later; a
+file that exercises it is the fixture this section is waiting for.
+
+What a folded element carries, in `equipmentPieceType`'s own sequence — `<name>`,
+`<manufacturer>`, `<model>`, `<serialnumber>`, `<notes>`, which is an `xs:sequence` and not
+a free order:
+
+| DiveJSON | UDDF |
+| --- | --- |
+| the gear item's `name`, else the device's `name`, else its `model` | `<name>` — mandatory, exactly one |
+| the gear item's `brand`, else the device's `manufacturer` | `<manufacturer><name>` |
+| `recordings[].device.model` | `<model>` |
+| `recordings[].device.serial` | `<serialnumber>` |
+| `recordings[].device.dive_number` | the dive's `<internaldivenumber>` |
+
+`<internaldivenumber>` sits on the dive rather than on the element, between `<divenumber>`
+and `<datetime>` in `informationbeforediveType`'s sequence, and it is an
+`xs:positiveInteger` where §6.4b puts a floor of 0 under the counter — so a device counter
+of `0` is **not written**, and is reported, the same trade `<divenumber>` already makes: a
+zero there invalidates the whole document rather than one element.
+
+**A device that matches no gear item gets an element of its own, and that element reads back
+as a gear item.** This is the one place a written file returns *more* than it was written
+from, and it is the only documented exception to `writing.md`'s self round trip, which is
+otherwise a rule about what does not come back. A logbook whose dives were imported from
+files but whose owner never listed the computer in their kit is the ordinary case, so the
+alternative — writing no element — would lose the device from every such file, and the
+device is why this member exists. The element is `<divecomputer id="device-<n>">`, numbered
+from 0 over the document's recordings in order, with `<manufacturer id="mfr-device-<n>">`
+beside it: a deliberately **non-UUID** id, so that `converting.md`'s identity rule mints the
+returning gear item a derived uuid of its own rather than reading a real one back off it —
+an id built from a dive's uuid would come back as a gear item wearing that dive's identity,
+which §5.3 forbids outright. The dive's `<equipmentused>` gains a `<link>` to it, after the
+links its `gear_uuids` produced.
+
+**`device.firmware` has no slot**, `equipmentPieceType` carrying no such element, and is
+reported once per device that has one. So is a recording's **`source_files`**: §6.7 is
+metadata about bytes UDDF has nowhere to reference, which is the same answer the dive-level
+member got before it moved.
+
+**A recording's `started_at` has no slot either**, and this is the one worth being careful
+about. UDDF gives a dive one `<datetime>` and one `<samples>`, so a document whose dive
+carries more than one recording cannot be written whole: the **primary** recording — the
+first, §6.4a — supplies the `<samples>`, and every other recording is reported as dropped,
+with its device still folded into `<equipment>` so that what was worn is not lost along with
+what it sampled. Where the primary recording states its own `started_at`, `<datetime>`
+remains the **dive's**: §6.2's `started_at` is the logbook's and is what every reader of a
+UDDF file expects to find there.
+
 ### Sites and trips
 
 `geographyType` makes `<location>` mandatory, so **coordinates are written only where the
@@ -201,15 +265,17 @@ members, so a reader takes the zero back as "not recorded" rather than as the su
 a dive of no length.
 
 `informationbeforediveType` is an `xs:sequence`: `<link>`s first, then `<divenumber>`,
-`<datetime>`, `<altitude>`, `<equipmentused>`, `<tripmembership>`, `<surfacepressure>`.
-`informationafterdiveType` is an `xs:all` and its order is free.
+`<internaldivenumber>`, `<datetime>`, `<altitude>`, `<equipmentused>`, `<tripmembership>`,
+`<surfacepressure>`. `informationafterdiveType` is an `xs:all` and its order is free.
 
 `started_at` is written **exactly as recorded**, offset and sub-second fraction and all;
 §5.2's rule that an offset is never supplied applies as much to a writer as to a reader.
 
 Members with no UDDF slot anywhere: `water_type`, `cns_start`, `cns_end`, `otu_start`,
-`otu_end`, `entry_position`, `exit_position`, `course_uuid`, `species_uuids`, `source_file`,
-`created_at`.
+`otu_end`, `entry_position`, `exit_position`, `course_uuid`, `species_uuids`,
+`created_at`. A recording's own slotless members are under *Devices* above, `source_files`
+among them — it was a dive member until it moved onto the recording (§6.4a) and the answer
+did not change with it.
 
 ### Cylinders and gases
 
@@ -322,6 +388,7 @@ once per record that carries it, and none of them has anywhere in UDDF to go:
 | a record's `created_at` | no slot on any of them |
 | `gear` `rented`, `archived`, `archived_at`, `dive_count` | no slot |
 | `diver.username` | `<owner id>` is an XML id and not a handle |
+| a recording's `source_files`, `started_at` and its device's `firmware`, and every recording after the first | UDDF gives a dive one `<samples>`, and `equipmentPieceType` no firmware element — *Devices* above has each answer and why the device of a dropped recording is kept even so |
 | `trips[].locations[].bbox` | `geographyType` carries a point, not a box |
 | a record's `extensions` | producer-defined members (§5.5) |
 
