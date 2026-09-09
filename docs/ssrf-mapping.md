@@ -166,14 +166,28 @@ and no version.
 one place the plural recording forces a choice. `max_depth`, `avg_depth` and
 `bottom_temperature` are the diver's logbook figures (§6.2) and a dive has one of each,
 while `<depth>` and `<temperature>` sit inside `<divecomputer>` and a dive may carry several.
-**The first `<divecomputer>` in file order supplies all three** — it is the primary recording
-(§6.4a), it is what "the first is read" meant before recordings existed, and a rule keyed on
-file order is one two implementations cannot disagree about. Every later element's `<depth>`
-and `<temperature>` are **dropped and reported**, one finding per element, because two
-computers routinely differ on a maximum depth and silently preferring one of them would put
-an unmarked choice in a logbook. Nothing is averaged, and a value missing from the first
-element is *not* taken from a later one: an absence on the primary is what the primary
-recorded, and reaching past it would be the same silent choice in a different disguise.
+**The first `<divecomputer>` in file order supplies all three** — it is what "the first is
+read" meant before recordings existed, and a rule keyed on file order is one two
+implementations cannot disagree about. Every later element's `<depth>` and `<temperature>`
+are **dropped and reported**, one finding per element, because two computers routinely differ
+on a maximum depth and silently preferring one of them would put an unmarked choice in a
+logbook. Nothing is averaged, and a value missing from the first element is *not* taken from
+a later one: an absence on the first element is what that computer recorded, and reaching
+past it would be the same silent choice in a different disguise.
+
+**The rule is keyed on the element, not on the recording**, and the two are not always the
+same one. An element that names no computer and carries no samples yields no recording at all
+(§6.4a forbids one that carries nothing) while still being the first element and still
+supplying these three — which is the shape of dives 43 and 44 in
+`fixtures/ssrf/trip-grouping.ssrf`, each carrying a `<depth>` on an element that becomes
+nothing. Keying on "the primary recording" would leave those three members with no source at
+all on exactly the files where the format is at its thinnest.
+
+The corpus exercises this: `fixtures/ssrf/refusals.ssrf`'s two-computer dive gives its second
+element a deeper `@max`, its own `@mean` and a warmer `<temperature>` than the first, and the
+expected document carries the first element's figures throughout — so a reader that preferred
+the last element, averaged the two, or reached past the first for the `@mean` it does not
+keep produces a different document and fails the pair.
 
 That leaves the later elements carrying their samples and their device and nothing else,
 which is what §6.4a is for — the readings that are genuinely per device stay per device, and
