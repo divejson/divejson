@@ -1,9 +1,10 @@
 # DiveJSON
 
 <https://divejson.org> — an open interchange format for scuba dive logs. One JSON
-document carries a complete logbook — dives with full sampled profiles, gas mixtures,
-trips, training courses, dive sites, marine-life sightings, gear and its service
-history, certifications — so a diver's data can move between applications without loss.
+document carries a complete logbook — dives with a full sampled profile from every
+computer that recorded them, gas mixtures, trips, training courses, dive sites,
+marine-life sightings, gear and its service history, certifications — so a diver's data
+can move between applications without loss.
 
 **Status: draft.** The 1.0 specification is feature-complete. It freezes as v1.0 when its
 maintainers tag it; until then, normative text, schema, and fixtures may change together.
@@ -21,6 +22,10 @@ DiveJSON's answers, as normative rules rather than aspirations:
 
 - **Nothing invented.** Absent means "not recorded". Writers never emit fabricated
   defaults; readers never substitute them.
+- **A dive is what its computers recorded.** A dive carries `recordings` — one per device
+  that recorded it, each with that device, its own start, its files and its profile — so a
+  diver wearing two computers keeps both records, and one dive exported twice stays one
+  dive.
 - **One canonical unit system.** Metric, fixed by the spec — no per-document unit
   declarations for readers to half-implement.
 - **Offsets survive.** Times travel as single offset-aware strings, and a conforming
@@ -42,7 +47,12 @@ DiveJSON's answers, as normative rules rather than aspirations:
       "duration": 2460,
       "max_depth": 18.4,
       "cylinders": [{ "volume": 12.0, "oxygen": 32.0, "start_pressure": 200.0 }],
-      "profile": { "duration": 2460, "depth": { "times": [0, 60, 120], "values": [0, 950, 1840] } }
+      "recordings": [
+        {
+          "device": { "manufacturer": "Suunto", "model": "Ocean" },
+          "profile": { "duration": 2460, "depth": { "times": [0, 60, 120], "values": [0, 950, 1840] } }
+        }
+      ]
     }
   ]
 }
