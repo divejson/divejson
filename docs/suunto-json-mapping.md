@@ -487,7 +487,9 @@ Read as a list of what was considered, not of what was missed.
   it is carried now, under *Device* above. §6.2's `dive_number` is still the diver's own
   numbering and a device's counter is still not reliably it — which is why the two are
   different members rather than one. **Untested**: no file in hand carries a
-  `Header.Diving.NumberInSeries`, the D5 shapes having no `Header.Diving` at all.
+  `Header.Diving.NumberInSeries`. Only the D5 shapes have a `Header.Diving` at all — the
+  Ocean shape has none, per *The three header shapes* above — and the one D5 file in
+  `fixtures/suunto_json/` states no number inside it.
 - **`Diving.StartTissue` / `EndTissue`'s `Helium`, `Nitrogen`, `OLF`, `RgbmHelium` and
   `RgbmNitrogen`** — everything under those blocks but `CNS` and `OTU`. §6.2 has no member
   for a tissue model's state, and a loading figure is only meaningful beside the algorithm

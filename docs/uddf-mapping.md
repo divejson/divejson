@@ -218,11 +218,17 @@ it, and it is why a device read from a shared element still differs between two 
 link it. It is the counter §6.2's `dive_number` is explicitly not — `<divenumber>` is the
 diver's and stays there.
 
-A device whose every member is absent is not written at all (§6.4b), so a `<divecomputer>`
-carrying only a `<name>` yields a gear item and no device. That is the shape the reference
-writer's own export has today, and `fixtures/uddf/opendiving.uddf` is it: one
-`<divecomputer>` with a name and a manufacturer, whose dive's recording therefore carries a
-device of one member.
+**A device whose every member is absent is not written at all** (§6.4b). Since a
+`<divecomputer>`'s `<name>` is not on the list above, an element carrying only a `<name>`
+yields a gear item and no device — the whole element goes to the gear item and there is
+nothing left for a device to be made of.
+
+Real files sit close to that line. `fixtures/uddf/opendiving.uddf`, the reference writer's
+own export, has one `<divecomputer>` with a `<name>` and a `<manufacturer><name>` and no
+`<model>`, `<serialnumber>` or `<internaldivenumber>` — so its dive's recording carries a
+device of exactly one member, `{"manufacturer": "Suunto"}`, and the gear item keeps the
+name. That is the ordinary shape a reader should expect from this format: UDDF records what
+the diver owns far more often than it records what recorded the dive.
 
 UDDF has no equipment element for a firmware version, so §6.4b's `firmware` has no source
 here.

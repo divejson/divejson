@@ -158,9 +158,26 @@ and no version.
 | `@otu` | `otu_end` |
 | `<notes>` | `notes` |
 | `<cylinder>` | `cylinders[]` |
-| `<divecomputer><depth @max>`, `@mean` | `max_depth`, `avg_depth` |
-| `<divecomputer><temperature @water>` | `bottom_temperature` |
-| `<divecomputer><sample>` | `profile` |
+| `<divecomputer><depth @max>`, `@mean` | `max_depth`, `avg_depth` — **the primary element's only**, see below |
+| `<divecomputer><temperature @water>` | `bottom_temperature` — the primary element's only |
+| `<divecomputer><sample>` | that element's `recordings[].profile` |
+
+**Three of those rows are dive-level and the element they sit on is not**, and this is the
+one place the plural recording forces a choice. `max_depth`, `avg_depth` and
+`bottom_temperature` are the diver's logbook figures (§6.2) and a dive has one of each,
+while `<depth>` and `<temperature>` sit inside `<divecomputer>` and a dive may carry several.
+**The first `<divecomputer>` in file order supplies all three** — it is the primary recording
+(§6.4a), it is what "the first is read" meant before recordings existed, and a rule keyed on
+file order is one two implementations cannot disagree about. Every later element's `<depth>`
+and `<temperature>` are **dropped and reported**, one finding per element, because two
+computers routinely differ on a maximum depth and silently preferring one of them would put
+an unmarked choice in a logbook. Nothing is averaged, and a value missing from the first
+element is *not* taken from a later one: an absence on the primary is what the primary
+recorded, and reaching past it would be the same silent choice in a different disguise.
+
+That leaves the later elements carrying their samples and their device and nothing else,
+which is what §6.4a is for — the readings that are genuinely per device stay per device, and
+only the members the format keeps on the dive have to be adjudicated at all.
 
 **Subsurface writes no UTC offset into a `.ssrf`** — there is none on a dive, none in
 `<settings>` and none at the root of the reference logbook — so every converted dive carries
@@ -238,12 +255,15 @@ per-dive key rather than a counter, and there is nowhere else for the other two.
 
 ## This format settles no ambiguity
 
-`converting.md` defines a `resolved` finding for a value the source recorded whose *scale*
-is genuinely in doubt. **This reader emits none**, and that is a property of the format
-rather than an omission: every measurement states its unit, so there is no
-fraction-or-percent and no litres-or-cubic-metres for a magnitude test to settle. Where
-UDDF's `<o2>0.32</o2>` and `<o2>34</o2>` are both schema-valid and mean the same gas, `.ssrf`
-writes `o2='32.0%'` and there is nothing left to decide.
+`converting.md` defines a `resolved` finding for a value the source recorded whose scale,
+units or *meaning* are genuinely in doubt. **This reader emits none**, and that is a property
+of the format rather than an omission. There is no scale to settle: every measurement states
+its unit, so there is no fraction-or-percent and no litres-or-cubic-metres for a magnitude
+test to reach. Where UDDF's `<o2>0.32</o2>` and `<o2>34</o2>` are both schema-valid and mean
+the same gas, `.ssrf` writes `o2='32.0%'` and there is nothing left to decide. And there is
+no meaning to settle either, so this document carries no generator table: one application
+writes this format, its `<divelog @program>` says so on every file, and a table keyed on the
+writer needs two writers to tell apart.
 
 `profile.duration` is the other thing that is not a finding, for `converting.md`'s reason:
 §6.4 defines it as the span of the profile's own samples, so taking the largest sample time

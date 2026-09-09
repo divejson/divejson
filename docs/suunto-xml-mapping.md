@@ -410,7 +410,9 @@ is `converting.md`'s refuse-rather-than-guess rule, not its ambiguity rule.
 ## Deliberately not mapped
 
 Read as a list of what was considered, not of what was missed. The datacontract puts 68
-elements on `<Dive>`, and this reader maps 16 of them and reads and refuses 4 more.
+elements on `<Dive>`, and this reader maps 18 of them and reads and refuses 3 more.
+`<DiveNumberInSerie>` and `<SerialNumber>` are the two that moved: the first out of the
+refusals and the second out of the silently unmapped, both into the device map above.
 
 - **`<DiveNumberInSerie>`** — **no longer refused.** It is the *computer's* counter rather
   than the diver's lifetime dive number: it starts at 1 on a new or factory-reset device and
