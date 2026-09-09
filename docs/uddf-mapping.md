@@ -244,7 +244,8 @@ diver's and stays there.
 **A device whose every member is absent is not written at all** (§6.4b). With `<name>` on
 the list above, that now takes an element carrying **nothing** this reader maps — no
 `<name>`, no `<manufacturer>`, no `<model>`, no `<serialnumber>` — on a dive that also
-states no `<internaldivenumber>`.
+states no `<internaldivenumber>` the element is entitled to, which the multi-computer rule
+below makes the dive's first link alone.
 An element carrying only a `<name>` yields both records: a gear item named by it and a
 device named by it.
 
@@ -260,22 +261,31 @@ way ([`uddf-writing.md`](uddf-writing.md)) matters as much as it does.
 UDDF has no equipment element for a firmware version, so §6.4b's `firmware` has no source
 here.
 
-**A dive may link more than one computer, and each linked `<divecomputer>` that yields a
-device is a recording** (§6.4a), in the order the dive's `<equipmentused>` links them. That
-is `converting.md`'s general rule rather than anything of UDDF's, and it is the same shape
-`.ssrf` reaches from its own repeated element — the carve-out included: a linked element
-that yields **no** device yields no recording either, there being nothing else for a
-non-primary recording to hold and §6.4a forbidding one that carries nothing. Two more
-consequences are this format's, because UDDF states each of these once per **dive** and not
-once per computer:
+**A dive may link more than one computer, and each linked `<divecomputer>` is a recording**
+(§6.4a), in the order the dive's `<equipmentused>` links them. That is `converting.md`'s
+general rule rather than anything of UDDF's, and it is the same shape `.ssrf` reaches from
+its own repeated element — the carve-out included, and in `converting.md`'s own words: a
+link that yields **neither a device nor a profile** yields no recording, §6.4a forbidding
+one that carries nothing.
 
-- **The `<samples>` go to the first of them**, and every recording after it is device-only.
-  A dive has one `<samples>` element, so there is nothing to give the others and nothing to
-  divide. A dive that links no computer at all still has the recording its samples make,
-  which is most files.
-- **So does `<internaldivenumber>`.** It is a child of the dive (above), so a dive linking
-  two computers has one counter and no way to say whose it is; giving it to the first is the
-  only reading that does not put one machine's count on another's device.
+**The first link is where the dive's own once-per-dive facts land**, both of them, because
+UDDF states each once per **dive** and never once per computer:
+
+- **Its `<samples>` become that first recording's profile.** A dive has one `<samples>`
+  element, so there is nothing to give the others and nothing to divide, and every recording
+  after the first is device-only. This is also what keeps the carve-out from reaching the
+  first link: it has a profile whether or not its element names a device, exactly as a dive
+  linking no computer at all is one recording made of its samples alone. The carve-out
+  therefore bites on a *later* link whose element names no device — or on a lone link that
+  names none on a dive with no samples, which leaves the dive with no recordings.
+- **Its `<internaldivenumber>` joins that first link's device**, and only that one's. It is a
+  child of the dive (above), so a dive linking two computers has one counter and no way to
+  say whose it is; giving it to the first is the only reading that does not put one machine's
+  count on another's device. Confining it there is also what keeps the rule above from
+  circling: every **later** link's device is made of that element's own four members and
+  nothing the dive supplies, so whether it yields a device never depends on which link came
+  first — while the first link's device may still be a counter and nothing else, which is why
+  the emptiness test above names the dive's `<internaldivenumber>` beside the element's own.
 
 **No file in this corpus links two**, so this has no pair of its own and is written down
 here rather than discovered by the first reader to meet one.

@@ -256,9 +256,10 @@ Four things the table does not say on its own.
 
 **Which record the device comes from is the format's own question**, and each document
 answers it: UDDF gives a recording to each `<divecomputer>` the dive's
-`<equipmentused><link>` names, so a dive that links none has no device — and where it links
-two, the dive's single `<samples>` and `<internaldivenumber>` go to the primary, those being
-the dive's rather than any computer's; `.ssrf` gives a recording to every
+`<equipmentused><link>` names **that yields either a device or a profile**, so a dive that
+links none has no device — and where it links two, the dive's single `<samples>` and
+`<internaldivenumber>` go to the first, those being the dive's rather than any computer's;
+`.ssrf` gives a recording to every
 `<divecomputer>` on a dive **that yields either a device or a profile**, and none to one
 that yields neither, §6.4a forbidding a recording carrying nothing; the three
 one-dive-per-file formats have exactly one.
