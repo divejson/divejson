@@ -463,9 +463,10 @@ member rather than an object with no members in it.
 
 The serial is carried where the rest of this format deliberately drops hardware identity,
 and it earns its place for one reason: it is the only thing that reliably tells one
-device's record from another's when a diver wears two computers of one make. It is
-personal data of a kind §9 already covers, and readers publishing documents should know
-it is in them.
+device's record from another's when a diver wears two computers of one make. It is a
+stable identifier for a piece of hardware and therefore personal data, which §9 says in
+its own terms; a writer publishing documents rather than handing them to their owner
+should know it is in them.
 
 ### 6.4 Profile
 
@@ -771,7 +772,9 @@ one. Beyond generic JSON concerns:
   precise timestamped positions (dive-site coordinates, per-dive entry/exit satellite
   fixes, trip bounding boxes) that together form a movement history; the diver's name,
   handle, and email address; certification numbers, instructor names, and training
-  centers, which function as identity documents; and free-text notes of up to 10,000
+  centers, which function as identity documents; the serial numbers of the dive computers
+  on their wrist (§6.4b), which are stable hardware identifiers that link two documents to
+  one diver even when every other member differs; and free-text notes of up to 10,000
   characters on six record types. Software handling documents SHOULD treat them with the
   care of a personal data export: serve them only to their owner, over authenticated
   channels, without shared caching.
