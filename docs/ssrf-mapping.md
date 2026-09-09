@@ -158,8 +158,8 @@ and no version.
 | `@otu` | `otu_end` |
 | `<notes>` | `notes` |
 | `<cylinder>` | `cylinders[]` |
-| `<divecomputer><depth @max>`, `@mean` | `max_depth`, `avg_depth` — **the primary element's only**, see below |
-| `<divecomputer><temperature @water>` | `bottom_temperature` — the primary element's only |
+| `<divecomputer><depth @max>`, `@mean` | `max_depth`, `avg_depth` — **the first element's only**, see below |
+| `<divecomputer><temperature @water>` | `bottom_temperature` — the first element's only |
 | `<divecomputer><sample>` | that element's `recordings[].profile` |
 
 **Three of those rows are dive-level and the element they sit on is not**, and this is the
