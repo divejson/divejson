@@ -113,13 +113,14 @@ its input is a document rather than a reduction of somebody's export, so neither
 hand-built rule nor the binary exception reaches it: both of `write/uddf/`'s inputs are
 documents this tree already carries, which is what makes the answers checkable by eye.
 
-`write/uddf/opendiving.divejson` is the one place that stops being literally true, in one
-member and on purpose. It is `uddf/opendiving.divejson` with a richer **device** on its
-recording, because the reader pair's device is only what its UDDF input states — a
-manufacturer and nothing else — and a writer pair carrying that would exercise none of what
-the writer does with a device. The two documents are otherwise identical, and the difference
-is the point of the pair: a serial and a device counter, so the written file has a
-`<serialnumber>` and an `<internaldivenumber>` to be checked against.
+`write/uddf/opendiving.divejson` is the one place that stops being literally true, and only
+on purpose. It is `uddf/opendiving.divejson` with a richer **device** on its recording,
+because the reader pair's device is only what its UDDF input states — a manufacturer and
+nothing else — and a writer pair carrying that would exercise none of what the writer does
+with a device. Its device adds exactly three members to the reader pair's, and each buys one
+element of the written file: `model` → `<model>`, `serial` → `<serialnumber>`, `dive_number`
+→ the dive's `<internaldivenumber>`. Regenerate the input from any shorter list and the pair
+stops matching. The two documents are identical in every other member.
 
 Each directory's mapping rules — what each expectation below follows from — are in that
 format's document under [`docs/`](../docs).

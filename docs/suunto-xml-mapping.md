@@ -232,7 +232,7 @@ place to put them, and §6.4b is that place.
 | `<OtuStart>`, `<OtuEnd>` | `otu_start`, `otu_end` | as above |
 | `<SurfacePressure>` | `surface_pressure` | Pascal; outside 0.4-1.2 bar it is dropped |
 | `<DiveMixtures>` | `cylinders` | below |
-| `<DiveSamples>` | `profile` | below |
+| `<DiveSamples>` | the recording's `profile` | below; a profile is a member of `recordings[]` (§6.4a), never of the dive |
 
 `<Duration>` is the whole period the computer logged, and it is the only element in this
 format observed holding a dive's length. `<BottomTime>` is the time spent at depth and runs
