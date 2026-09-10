@@ -154,9 +154,9 @@ carry only a nameless body-and-lens breakdown.
 type produced. `equipmentPieceType` carries that element for every piece rather than only
 for a computer, which is the same breadth §6.12 gives the member, so a serialled regulator
 keeps its serial through a round trip like any other piece. On a `computer` it does more
-than travel: it is what the fold below tests first, and it is what a folded element hands
-back to the gear item on the way in ([`uddf-mapping.md`](uddf-mapping.md)), which is what
-closes that round trip rather than merely surviving it.
+than travel: it is what the fold below tests before any name, and it is what a folded
+element hands back to the gear item on the way in ([`uddf-mapping.md`](uddf-mapping.md)),
+which is what closes that round trip rather than merely surviving it.
 
 **Differs from the reference writer**: it sends `line_cutter` and `shears` to `<knife>`, on
 the grounds that they are cutting tools and that scattering a diver's cutting tools into the
@@ -172,14 +172,22 @@ its uuid — so it carries no finding.
 
 UDDF's `<divecomputer>` is a piece of kit *and* the hardware that recorded a dive
 (`uddf-mapping.md` reads it both ways), and this direction has to put both into one
-element: **one `<divecomputer>` per computer in the whole document**, not one per gear item
+element wherever it can: **one `<divecomputer>` per computer**, not one per gear item
 plus one per recording. Writing the same computer twice would put two kit items in a
-reader's gear list where the diver owns one, and give one machine two `xs:ID`s.
+reader's gear list where the diver owns one, and give one machine two `xs:ID`s. The fold
+below is how the two are recognised as one — and its first leg is the only thing that can
+still cost a computer a second element, for a reason set out below.
 
 **When two are one computer.** Between a gear item `G` whose `type` is `"computer"` and a
 device `D`, with every string trimmed and case-folded and `label_D` being `D.name` else
 `D.model`:
 
+- **The dive must link the gear item.** `D` belongs to a recording of a dive, and a folded
+  element reaches that dive only through the `<equipmentused><link>` the dive's own
+  `gear_uuids` produced — so where the dive does not list `G`, there is **no fold** for that
+  dive whatever the legs below would say, and `D` takes an element of its own. This leg asks
+  whether folding is open to `D` at all; the ones below ask which gear item a linked `D`
+  folds into.
 - **Both carry a serial** — §6.12's and §6.4b's — → fold **iff** the two serials are equal.
   **Serials that differ mean different computers, and there is no fall-through to the
   label.** Without that leg, two Suunto Oceans each plausibly named `Suunto Ocean` with
@@ -189,9 +197,12 @@ device `D`, with every string trimmed and case-folded and `label_D` being `D.nam
   nothing.
 - **`label_D` absent** → **no fold**, whatever else matches. A device carrying only a brand
   matches nothing.
-- The **same predicate folds two devices**, `label` being `name` else `model` on each side.
-  That is where the serial leg does its real work: one computer recording ten dives is ten
-  recordings and one element.
+- The **same predicate folds two devices**, `label` being `name` else `model` on each side,
+  and it folds them **among the devices left over**: two devices have no gear item between
+  them for the first leg to ask about, and a left-over device never joins an element some
+  other dive's device folded into, which would put it back behind a link its own dive does
+  not carry. That is where the serial leg does its real work: one computer recording ten
+  dives is ten recordings and one element.
 - **At most one gear item per device and one device per gear item.** On a tie, the first in
   document order wins and the rest are reported — a fold is not a merge, and silently
   picking one of three would put a serial on an element the diver never meant.
@@ -203,7 +214,8 @@ a mismatch — calling it one there would split one computer's recordings across
 The fold is not that comparison. One side is a user's own record whose `name` is REQUIRED
 (§6.12) and the other is a file reading that is routinely one member wide, so carrying the
 symmetric rule across would make a bare device match every computer the diver owns. Hence
-the third leg above: absence on the device's side is a refusal to guess, not a match.
+the `label_D`-absent leg above: absence on the device's side is a refusal to guess, not a
+match.
 
 What a folded element carries, in `equipmentPieceType`'s own sequence — `<name>`,
 `<manufacturer>`, `<model>`, `<serialnumber>`, `<notes>`, which is an `xs:sequence` and not
@@ -218,8 +230,9 @@ a free order:
 | `recordings[].device.dive_number` | the dive's `<internaldivenumber>` |
 
 **The `<name>` row stops at the device's `name` and does not fall through to its `model`**,
-which is what makes an unmatched device's element round-trip. `<name>` is mandatory on the
-element, so a device with neither a gear item nor a `name` gets an **empty** one — a valid
+which is what makes the element of a device that did not fold round-trip. `<name>` is
+mandatory on the element, so a device on an element of its own with no `name` of its own —
+there being no gear item beside it to supply one — gets an **empty** one: a valid
 `xs:string` that the reading direction takes as no name at all, so it comes back as no
 `device.name` (§6.4b forbids an empty member) and, because §6.12 makes a gear item's `name`
 REQUIRED, as no gear item either. Writing the model there instead would hand a reader back
@@ -231,13 +244,14 @@ and `<datetime>` in `informationbeforediveType`'s sequence, and it is an
 of `0` is **not written**, and is reported, the same trade `<divenumber>` already makes: a
 zero there invalidates the whole document rather than one element.
 
-**A device that matches no gear item gets an element of its own, and that element reads back
-as a gear item — where the device carries a name.** This is the one place a written file
-returns *more* than it was written from, and it is the only documented exception to
-`writing.md`'s self round trip, which is otherwise a rule about what does not come back. A
-**nameless** unmatched device is outside the exception rather than a second one: its element
-carries the empty `<name>` above, the reading direction drops a nameless piece, and nothing
-comes back that did not go out. A logbook whose dives were imported from
+**A device that does not fold gets an element of its own, and that element reads back
+as a gear item — where the device carries a name.** Two things send a device here: no gear
+item matches it, or one does and its dive does not link it — the first leg above. This is
+the one place a written file returns *more* than it was written from, and it is the only
+documented exception to `writing.md`'s self round trip, which is otherwise a rule about what
+does not come back. A **nameless** such device is outside the exception rather than a second
+one: its element carries the empty `<name>` above, the reading direction drops a nameless
+piece, and nothing comes back that did not go out. A logbook whose dives were imported from
 files but whose owner never listed the computer in their kit is the ordinary case, so the
 alternative — writing no element — would lose the device from every such file, and the
 device is why this member exists. The element is `<divecomputer id="device-<n>">`, numbered
@@ -248,14 +262,29 @@ an id built from a dive's uuid would come back as a gear item wearing that dive'
 which §5.3 forbids outright. The dive's `<equipmentused>` gains a `<link>` to it, after the
 links its `gear_uuids` produced.
 
-**A folded device reaches a dive only through its gear item's link**, which is the one place
-this arrangement loses something. The element is the gear item's, so a dive whose
-`gear_uuids` does not list that item carries no link to the computer that recorded it, and a
-reader gives that dive no device — a document may perfectly well say a recording's device was
-D while leaving the matching kit item off that dive's list. It is reported, per dive, like
-every other loss here. Linking the element anyway would be the tidier file and a worse one:
-`<equipmentused>` is what the diver wore, and a writer adding a piece to it would be
-answering a question about the dive that the document answered differently.
+**A folded device reaches a dive only through its gear item's link, which is why the fold
+has a first leg at all.** The element is the gear item's, so a dive whose `gear_uuids` does
+not list that item carries no link to the computer that recorded it — and a document may
+perfectly well say a recording's device was `D` while leaving the matching kit item off that
+dive's list. Folding there would drop the device from the file: nothing on the dive would
+point at the element holding it, and a reader would hand that dive back with no device at
+all. So it does not fold, and `D` takes the `device-<n>` element above, which needs no gear
+link. Both facts then survive — which computer recorded the dive, and which gear the diver
+recorded using — and since nothing is lost, nothing is reported.
+
+**Linking the gear item anyway** would be the tidier file and a worse one: `<equipmentused>`
+is what the diver wore, and a writer adding a piece to it would be answering a question about
+the dive that the document answered differently. Coming back in, it would also credit that
+item with a dive it was never worn on, inflating a `dive_count` the diver never recorded.
+
+**The price is a computer that appears twice**, and only a document that links one computer's
+gear item on some of its dives and not on others pays it: the linked dives read their device
+off the gear item's element and the unlinked ones off the `device-<n>` element beside it, so
+two elements describe one machine and a reader takes the second as a second kit item, under
+the exception above. That is the one document shape the *one `<divecomputer>` per computer*
+rule this section opens with does not hold for. A duplicate in a kit list is visible to the
+diver and correctable in a moment; a device that never arrived is neither, which is what
+makes this the cheaper of the two.
 
 **`device.firmware` has no slot**, `equipmentPieceType` carrying no such element, and is
 reported once per device that has one. So is a recording's **`source_files`**: §6.7 is

@@ -300,11 +300,12 @@ carries more than one recording cannot be written whole — one `<samples>` per 
 recording as dropped**, keeping its device in `<equipment>` so that what was worn is not
 lost with what it sampled. Nothing here recovers a dropped recording, and **the order does
 not survive either**: a dive's links come from its `gear_uuids`, in the diver's own order,
-with an unmatched device's link appended after them, so which computer reads back first is a
-fact about the kit list rather than about the recordings. A reader must not take the first
-link as evidence that its computer was the document's primary — there is no such evidence in
-the file. This rule exists to read somebody else's two-computer file; on output from the
-writer above it returns what that writer's report already said would come back.
+with a link appended after them for every device that took an element of its own, so which
+computer reads back first is a fact about the kit list rather than about the recordings. A
+reader must not take the first link as evidence that its computer was the document's
+primary — there is no such evidence in the file. This rule exists to read somebody else's
+two-computer file; on output from the writer above it returns what that writer's report
+already said would come back.
 
 ### Dives — `/uddf/profiledata/repetitiongroup/dive`
 
