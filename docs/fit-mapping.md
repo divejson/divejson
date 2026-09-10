@@ -88,7 +88,7 @@ keeping what had arrived would discard the start time, the duration and the dept
 convert a confidently empty dive.
 
 **The protocol version is recorded and not gated on.** It goes into
-`extensions.divejson.fit_protocol_version` — 2.0 on both files in this corpus, which
+`extensions.divejson.fit_protocol_version` — 2.0 on every file in this corpus, which
 is the closest thing FIT has to `.ssrf`'s `@version` — and nothing branches on it. What a
 reader has to agree with a writer about is the message and field numbers, and those come
 from the profile.
@@ -187,7 +187,7 @@ another thing in the chain, and reading its firmware as the computer's would put
 transmitter's version on the dive. At most eight `device_info` messages are kept; a device
 writes one every few minutes.
 
-Neither Suunto file in `fixtures/fit/` carries a `software_version`, so neither generator
+No Suunto file in `fixtures/fit/` carries a `software_version`, so none of their generators
 has a version, which is the honest answer rather than an omission to fill in.
 
 ### Device — the same two messages, read as hardware
@@ -200,7 +200,7 @@ exactly one recording (§6.4a) and that recording's device is this:
 | `file_id.manufacturer` (1) | | `brand` |
 | `file_id.product_name` (8) | | `model` — and **no `model` at all** where the file states none |
 | `device_info.serial_number` (3) at `device_index` (0) **0**, else `file_id.serial_number` (3) | | `serial` — **untested**, no file in hand carries either |
-| `device_info.software_version` (5), the one already taken for the generator | | `firmware` — **untested**, neither file carries one |
+| `device_info.software_version` (5), the one already taken for the generator | | `firmware` — **untested**, no file here carries one |
 | `session.dive_number` (156) | | `dive_number`, the device's counter |
 
 **The `device_index` 0 rule is libdivecomputer's, and it is the right one.** A dive computer
@@ -209,7 +209,7 @@ transmitter, a heart-rate strap — and only index 0 is the computer. libdivecom
 `garmin_parser.c` copies a serial, a product and a firmware from that message and no other,
 and reading a transmitter's serial as the computer's would pair two dives that were never on
 one wrist. `file_id.serial_number` is the fallback, being the file's own claim about what
-wrote it. Neither fixture here carries a `device_index` at all — the Ocean writes two
+wrote it. No fixture here carries a `device_index` at all — each Ocean writes two
 `device_info` messages with no index and no serial, the D5 writes none — so both rows above
 wait on a file that has one, exactly as the tank-telemetry rows do.
 
@@ -223,7 +223,7 @@ Suunto file's stays the bare `62` the Ocean here writes, and a Garmin file that 
 `file_id.manufacturer` instead — which is what this reader's single-string
 `source_generator.name` does one section above — is not open to a device either: §6.4b gives
 the maker a member of its own, and copying it into `model` would say `suunto` is the
-product. Both fixtures here carry a `product_name`, so both devices have a model; the
+product. Every fixture here carries a `product_name`, so every device has a model; the
 absent case waits on a file, like the two rows marked untested above.
 
 `file_id.manufacturer` decodes to the profile's own lowercase spelling (`suunto`), where the
@@ -461,7 +461,7 @@ A table rather than a cast: this is Garmin's vocabulary, and the other 43 member
 shared enum holds — have to come out as nothing rather than be forced into a type of this
 format's.
 
-**`timer` is the deliberate omission.** It is the only `event` either file in this corpus
+**`timer` is the deliberate omission.** It is the only `event` any file in this corpus
 writes, and its start/stop pair says where the dive begins and ends, which §6.4's `started_at`
 and the profile's own axis already say twice over.
 

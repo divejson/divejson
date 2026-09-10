@@ -252,8 +252,8 @@ no device either, since §6.4a forbids a recording that carries nothing.
 | `.ssrf` | DiveJSON (§6.4b) |
 | --- | --- |
 | `@model` | `model` |
-| `<extradata key="Serial">` | `serial` — **untested**, no file in hand carries an `<extradata>` |
-| `<extradata key="FW Version">` | `firmware` — **untested**, for the same reason |
+| `<extradata key="Serial">` | `serial` — `fixtures/ssrf/two-computers.ssrf` carries one |
+| `<extradata key="FW Version">` | `firmware` — off the same element, in the same pair |
 | `@date`, `@time` | the recording's own `started_at`, where the element states them |
 
 `@model` was refused until this member existed, and the reason it was refused still holds:
@@ -263,7 +263,8 @@ UDDF export of the same logbook carries no `<divecomputer>` equipment element fo
 
 `@date` and `@time` on the element are the **recording's** start where they differ from the
 dive's, which is what keeps a second computer's samples on their own axis (§6.5). Absent,
-§6.4a reads the dive's — which is every file in hand.
+§6.4a reads the dive's — which is every element in hand but the second `<divecomputer>` of
+`fixtures/ssrf/two-computers.ssrf`, a computer that went in 32 s after the one beside it.
 
 **Both `<extradata>` rows are `<extradata key= value=/>` children of the `<divecomputer>`
 itself**, which is where Subsurface writes what its download read off the hardware, and
@@ -331,7 +332,7 @@ one, so nothing about it could be checked against output Subsurface actually pro
 | `<temperature @air>` | surface air temperature; no core member. |
 | `<cylinder @description>`, `@workpressure`, `@use`, `@depth` | the cylinder's model name, its working pressure, its role and its maximum operating depth. `@use` would land on §6.3's `role`, whose value spellings no file here shows. |
 | `<dive @tags>`, `@rating` | no core member. |
-| `<settings>` | Subsurface's per-computer device records, keyed by the `@deviceid` a `<divecomputer>` carries. §6.4b now *does* have members for what they hold, so this stopped being "no core member" and became the highest-value entry in this table: a document-level table resolving a dive's computer to a model, a serial and a firmware is exactly a device, and reading it would be a second source for the §6.4b members a `<divecomputer>`'s own attributes cannot reach. It waits on a file: `<settings>` is empty in both fixtures that have the element and absent from the third, so neither the child element's spelling nor its attribute names can be checked against output Subsurface actually produces. Until then a serial and a firmware come from the `Serial` and `FW Version` `<extradata>` children, which are also untested. |
+| `<settings>` | Subsurface's per-computer device records, keyed by the `@deviceid` a `<divecomputer>` carries. §6.4b now *does* have members for what they hold, so this stopped being "no core member" and became the highest-value entry in this table: a document-level table resolving a dive's computer to a model, a serial and a firmware is exactly a device, and reading it would be a second source for the §6.4b members a `<divecomputer>`'s own attributes cannot reach. It waits on a file: `<settings>` is empty in every fixture that has the element and absent from the rest, so neither the child element's spelling nor its attribute names can be checked against output Subsurface actually produces. Until then a serial and a firmware come from the `Serial` and `FW Version` `<extradata>` children, which `fixtures/ssrf/two-computers.ssrf` does carry. |
 | the logbook's owner | the format records nothing about one, so no `diver` member is written (§6.1). Minting an identity for one would be §5.4's fabrication applied to people. |
 | `courses`, `certifications`, `gear`, `gear_sets`, `species` | `.ssrf` has no slot for any of them. |
 

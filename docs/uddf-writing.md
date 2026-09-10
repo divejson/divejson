@@ -72,7 +72,9 @@ else. A round trip through that would hand the diver back a location they never 
 
 `writing.md` has the kinds and what a `where` is. In this format `absent` is an element UDDF
 requires that the document had nothing for, and `dropped` is a member UDDF has nowhere to
-put; the paths are `dives/0`, `dives/0/cylinders/1`, `trips/0/locations/1` and `$`.
+put — or, in the two findings *Devices* below describes, a fact about the order a dive's
+recordings come back in, which the file has nowhere to carry either; the paths are
+`dives/0`, `dives/0/cylinders/1`, `trips/0/locations/1` and `$`.
 
 A member with nowhere to go is reported from the record itself and not from a list
 (`writing.md`), so **the tables below are a description of what a writer does and not the
@@ -299,6 +301,41 @@ the gear item's element and the rest off the `device-<n>` one. This is the one t
 *one `<divecomputer>` per computer* rule this section opens with does not hold for. A
 duplicate in a kit list is visible to the diver and correctable in a moment; a device that
 never arrived is neither, which is what makes this the cheaper of the two.
+
+**The links come back in the kit list's order rather than the recordings'**, and where the
+two disagree the dive loses something on the way in. A reader recovers a dive's recordings
+from its `<equipmentused>` links and gives the dive's two once-per-dive facts — its
+`<samples>` and its `<internaldivenumber>` — to the **first** `<divecomputer>` linked, there
+being nothing else in the file to give them to
+([`uddf-mapping.md`](uddf-mapping.md), which also says a reader must not read primacy into
+that order). The links themselves are the dive's `gear_uuids` in the diver's own order, with
+the `device-<n>` elements appended after them. So the sequence is a fact about the gear list
+and not about the recordings, and the two agree only by construction. Rewriting them is not
+open: `<equipmentused>` is the diver's own list and its order is a member of the document, so
+a disagreement is a loss to name rather than a file to rearrange.
+
+Two shapes, each reported against the dive:
+
+- **A `computer` gear item the dive links that no recording's device matches takes the first
+  link**, so the profile and the device counter come back on *that* computer rather than on
+  the one that recorded the dive. The ordinary case is a diver whose kit list still holds an
+  old computer, listed on a dive some other machine recorded.
+- **A dive's own computers reached in another order** — its kit list running through them
+  differently, or one of its devices folding into nothing and taking a `device-<n>` element
+  appended behind the rest — so its recordings come back reordered. §6.4a makes that a fact
+  about the document rather than a presentation detail: a recording has no uuid (§5.3), so
+  its position is the only thing that says it is the primary.
+
+**Neither has a pair**, both writer pairs putting the primary's element first, so both are
+written down here rather than left to the first writer to meet one — the same answer the link
+leg's refusal gets in [`fixtures/README.md`](../fixtures/README.md#writeuddf).
+
+**What is *gained* is not reported, which is the same rule read the other way.** A linked
+computer no recording answers to, anywhere but that first link, comes back as a recording the
+document never had — exactly as it comes back as a gear item the document never had, which is
+the documented exception above. Nothing is lost, so nothing is said. That covers the most
+ordinary two-computer logbook there is, and the hand-logged dive with no recordings at all in
+a logbook whose owner listed their computer in their kit.
 
 **`device.firmware` has no slot**, `equipmentPieceType` carrying no such element, and is
 reported once per device that has one. So is a recording's **`source_files`**: §6.7 is

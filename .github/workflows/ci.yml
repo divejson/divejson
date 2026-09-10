@@ -5,16 +5,16 @@ on:
     branches: [main]
   pull_request:
 
-# The released implementation this suite is measured against. This repository is
-# the conformance suite and carries no implementation of its own: CI installs one
-# and asks it to run the corpus. Moving to a newer release is a one-line chore
+# The one place the implementation is pinned. This repository is the conformance
+# suite and carries no implementation of its own: CI installs a released one from
+# PyPI and asks it to run the corpus. Moving to a newer release is a one-line chore
 # here, and it is a deliberate act - an unpinned install would let a release the
 # maintainer has not looked at decide whether the corpus passes. While a change to
-# what validates is in flight the install step below pins that implementation's
-# head instead; this stays on the last release, which is what the schema
-# comparison names and what that order's closing chore moves.
+# what validates is in flight the install step below pins an implementation's own
+# head instead and this stays on the last release; restoring both is the chore that
+# closes CONTRIBUTING.md's first order.
 env:
-  DIVEJSON_VERSION: "0.4.0"
+  DIVEJSON_VERSION: "0.5.0"
 
 jobs:
   # Named `conformance` since the repository's first workflow, and `trigger-site-deploy`
@@ -31,15 +31,8 @@ jobs:
       # test suite, which has moved to divejson/divejson-py along with the matrix
       # that covers it. What is left is a corpus, and a corpus does not vary by
       # interpreter.
-
-      # Mid-flight, per CONTRIBUTING.md's first order: this branch changes what
-      # validates, so no release carries its schema and the pin is the
-      # implementation's own head instead - divejson/divejson-py#12, which vendors
-      # this repository's schema/, fixtures/ and docs/ at the commit its SPEC_REF
-      # names. A 40-character commit is as fixed as a version, so this is still the
-      # deliberate pin the block at the top of this file describes.
       - name: Install the pinned implementation
-        run: pip install "git+https://github.com/divejson/divejson-py@b664a948b6d7928aa15279e1a21abe63ddf819ca"
+        run: pip install "divejson==$DIVEJSON_VERSION"
 
       # `jsonschema` arrives as a dependency of the implementation. This is the one
       # check that is about the schema as a document rather than about what it

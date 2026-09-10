@@ -296,7 +296,7 @@ its own full length is not a bound.
 **The profile's pressure channel is deliberately not bounded.** It is telemetry the device
 really recorded, and truncating it would drop surface readings the depth and temperature
 channels keep. So a converted dive's last channel value and its cylinder's `end_pressure`
-disagree, on purpose, and both fixtures encode that.
+disagree, on purpose, and every fixture with a `DiveTime` and a pressure channel encodes that.
 
 **The extremes are taken over the samples' own recorded instants, not off the profile.**
 The merged axis is not what loses them — it folds an entry into a second another channel's
