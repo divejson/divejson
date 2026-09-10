@@ -226,8 +226,9 @@ duplication.** It is the only string in this format that names the computer at a
 two members it lands in mean different things: §6.12's `name` is the diver's label for a
 thing in their kit list, and §6.4b's `name` is what the device calls itself. UDDF has one
 element for both because it has one element for the whole computer. Reading it only as the
-gear item's name would leave the corpus's only UDDF computer with a device that has no
-string naming it — `opendiving.uddf` below carries a `<name>` and no `<model>` — and reading
+gear item's name would leave a computer stated at this format's usual width with a device
+that has no string naming it — `opendiving.uddf` below carries a `<name>` and no `<model>`,
+where `shearwater-cloud.uddf`'s element states both — and reading
 it into `model` instead would put `Ocean` where the same dive's FIT export puts
 `Suunto Ocean`, conflating two members §6.4b defines separately.
 
@@ -439,10 +440,11 @@ files confirms the wall clock; a third-party reader states in its own source tha
 Shearwater's exports carry "a wall-clock reading stored as if it were a UTC epoch";
 Subsurface's import is consistent with it, copying the time part verbatim and ignoring a
 trailing `Z`; and one issue asserts the opposite with no evidence behind it. Three further
-Shearwater Cloud Desktop exports in public repositories carry the same shape. **No
-Shearwater-generated file is in this corpus**, so this rule has no pair of its own and rests
-on the files named above rather than on one this repository carries —
-`converting.md`'s rule about a claim resting on a file that is not here, said in place.
+Shearwater Cloud Desktop exports in public repositories carry the same shape. **The rule now
+has a pair**, `fixtures/uddf/shearwater-cloud.uddf` being a reduction of the Perdix 3 export
+quoted above, so what it is held to is a file this repository carries — while the evidence that
+the reading is the right one is still the record above rather than anything in the corpus,
+which is `converting.md`'s rule about a claim resting on a file that is not here.
 
 ## Three places UDDF does not hand over the answer
 

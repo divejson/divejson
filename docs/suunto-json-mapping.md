@@ -296,7 +296,7 @@ its own full length is not a bound.
 **The profile's pressure channel is deliberately not bounded.** It is telemetry the device
 really recorded, and truncating it would drop surface readings the depth and temperature
 channels keep. So a converted dive's last channel value and its cylinder's `end_pressure`
-disagree, on purpose, and both fixtures encode that.
+disagree, on purpose, and every fixture with a `DiveTime` and a pressure channel encodes that.
 
 **The extremes are taken over the samples' own recorded instants, not off the profile.**
 The merged axis is not what loses them — it folds an entry into a second another channel's
@@ -418,9 +418,11 @@ and on `0, 0` ones alike across the corpus, so treating it as one would drop rea
 and keep junk. The `0.000000` pair is already rejected by the rule in
 [`converting.md`](converting.md), which is where two of these files' origins go.
 
-The exit position this reader gives for the Ocean dive in `fixtures/suunto_json/` is the
-same position `fixtures/fit/suunto-ocean.divejson` carries for that dive — two files, two
-readers, two coordinate encodings, one answer at six decimal places.
+Every Ocean dive in `fixtures/suunto_json/` that a FIT input here also carries comes back
+with the exit position that file gives it — `suunto-ocean.divejson` against
+`fixtures/fit/suunto-ocean.divejson`, `suunto-ocean-2026.divejson` against
+`fixtures/fit/suunto-ocean-2026.divejson` — two files, two readers, two coordinate
+encodings, one answer at six decimal places on each dive.
 
 ## This format settles no ambiguity
 

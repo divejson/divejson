@@ -121,3 +121,22 @@ repositories.
   writer pairs yet, and `docs/suunto-json-mapping.md` attributed first-entry-wins to a
   sample axis that merges — contradicting itself forty lines later, and mis-stating what a
   cylinder's extremes are taken over.
+- The corpus adopts the four pairs the first implementation carried ahead of it, and CI
+  returns to a released pin — `divejson==0.5.0`, which is the chore that closes the order
+  `CONTRIBUTING.md` opens for a change to what validates. Three of the four are one dive
+  read three ways: a Suunto Ocean's own FIT recording, the app's JSON of the same
+  recording, and Subsurface's save of it beside a second computer's, whose two
+  `<divecomputer>` elements both carry samples and so become two recordings with two
+  profiles — the first element supplying the dive's own depths and temperature, the second
+  its own start 32 s later, and the `Serial` and `FW Version` `<extradata>` a device's
+  serial and firmware. The fourth is the corpus's first Shearwater Cloud Desktop export, so
+  `docs/uddf-mapping.md`'s generator rule — a `Z` read as the local wall clock it is — is
+  held to a file this repository carries rather than to files it does not.
+- `docs/uddf-writing.md` gains the two round-trip findings a UDDF writer reports and that
+  document described neither of. A dive that links a `computer` gear item no recording's
+  device matches sends its profile and its device counter back on **that** machine, because
+  a reader takes both off the first `<divecomputer>` the dive links while the links run in
+  the kit list's order with the device elements appended after; and a dive whose own
+  computers are reached in another order gets its recordings back reordered, which §6.4a
+  makes a fact about the document rather than a presentation detail. What is *gained* — a
+  linked computer no recording answers to — stays unreported, nothing being lost by it.
