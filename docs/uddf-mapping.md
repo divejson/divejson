@@ -414,8 +414,8 @@ produced — so it gains a row only against real files, and each row says which.
 time the diver read off their wrist and suffixes it `Z`, so the instant the file appears to
 state is wrong by the diver's own offset — three hours, for the Red Sea export this rule was
 written against, where a Perdix 3 stamped `15:18:10Z` for the same moment a Suunto beside it
-on the same wrist stamped `15:17:38+03:00`. So under this generator `_date_time` reads the
-`Z` as absent: the value becomes a **local date-time** (§5.2's third state, the wall clock
+on the same wrist stamped `15:17:38+03:00`. So under this generator the `Z` is read as
+absent: the value becomes a **local date-time** (§5.2's third state, the wall clock
 with the instant unknown) and the report carries a `resolved` finding — "the generator writes
 the local wall clock with a `Z` suffix; read as a wall clock with no offset (spec §5.2)". It
 is `resolved` rather than `inferred` because the digits written are the ones the source
