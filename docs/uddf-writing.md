@@ -365,10 +365,10 @@ Members with no UDDF slot anywhere: `water_type`, `cns_start`, `cns_end`, `otu_s
 `otu_end`, `entry_position`, `exit_position`, `course_uuid`, `species_uuids`,
 `created_at`, and — on the recording rather than the dive —
 `recordings[].source_files`, `recordings[].started_at` and
-**`recordings[].device.firmware`**, `equipmentPieceType` carrying no firmware element, so
-`unmapped` reports it on every export whose device has one. *Devices* above has the reasoning
-for each of the three. `source_files` was a dive member until it moved onto the recording
-(§6.4a) and the answer did not change with it.
+**`recordings[].device.firmware`**, `equipmentPieceType` carrying no firmware element, so a
+`dropped` finding reports it on every export whose device has one. *Devices* above has the
+reasoning for each of the three. `source_files` was a dive member until it moved onto the
+recording (§6.4a) and the answer did not change with it.
 
 ### Cylinders and gases
 
