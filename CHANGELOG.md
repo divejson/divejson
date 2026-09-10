@@ -7,6 +7,57 @@ repositories.
 
 ## Unreleased
 
+- **A dive carries `recordings` (§6.4a), and the dive-level `profile` and `source_file`
+  are gone.** A recording is one device's record of one dive — its device (§6.4b), its own
+  start, its source files and its profile — and a dive has a list of them, in order, the
+  first primary. Three things a logbook meets constantly had no shape before this: a diver
+  wearing two computers, whose second record every reader here dropped; one recording
+  exported twice, as an application's JSON beside the same device's binary, which arrived
+  as two dives with two identities and half the data each; and a computer worn that
+  recorded nothing, which is a fact about the dive with nowhere to sit. `recordings` is
+  each of those, and §6.4b's device — brand, model, serial, firmware, name and the
+  device's own dive counter — is what tells one apart from another. The serial reverses a
+  sentence two mapping documents used to carry, that nothing in a logbook needs one:
+  nothing did, until a logbook had to hold two records of one dive.
+
+  **This is a breaking change and it lands inside 1.0**, which the draft's own status line
+  allows — normative text, schema and fixtures may change together until the tag, and
+  nothing is tagged. `$id`, `title` and `version` are untouched at `1.0`. A document
+  written against an earlier draft has a `profile` on its dive, which the schema now
+  rejects outright; `fixtures/invalid/dive-profile-outside-recording.divejson` is that
+  shape, kept as a negative fixture so the failure is a named one. §3's beyond-schema list
+  gains a rule — a recording carries at least one of `device`, `profile` and
+  `source_files` — and its profile-series rule now reads per recording.
+
+  **A gear item carries a `serial` (§6.12), and a device's maker is `brand` on both
+  objects.** The two changes are one: a `computer` in the kit list and a recording's device
+  are the same machine described from the logbook's two sides, and until now nothing let a
+  writer say so. A serial does — equality between §6.12's and §6.4b's is what identifies
+  them as one piece of hardware, where a comparison of names and makers is a guess — so
+  §6.12 gains one, bounded at 1–64 rather than this section's usual 255 because a gear
+  serial that could not fit a device's could never equal one. It is allowed on any gear
+  type; only a computer has anything to fold with. And §6.4b's maker becomes `brand`, the
+  word §6.12 already used, because two words for one fact read as two facts — the newer and
+  smaller of the two collapses, rather than renaming every gear type's `brand` to a word
+  that suits a wetsuit no better than it suits a reel.
+  `docs/uddf-writing.md` carries the test a writer applies, and
+  `docs/uddf-mapping.md` the `<serialnumber>` that feeds it. §9's personal-data bullet names
+  both members now: a serial is a stable hardware identifier wherever it sits, and the kit
+  list carries them for gear that never recorded a dive.
+
+  Cylinders stay on the dive. Two devices label one gas supply however each pleases, and
+  the diver keeps one list; `gas_number` remains the join key from every recording's
+  pressure channels and gas switches, which is why a second computer's channels resolve
+  against the dive's cylinders rather than against a list of their own.
+
+  Every fixture carrying a profile moved with it, and `docs/converting.md` gains the table
+  saying where each of the five readers takes a device from. Two readings a reader used to
+  refuse are now carried, for the same reason each was refused: a device's own dive counter
+  and its serial identify hardware rather than a dive, which is exactly what §6.4b is for.
+  `docs/uddf-mapping.md` gains a *Generators this reader knows* table, whose one entry
+  reads a `Z` from Shearwater Cloud Desktop as the local wall clock it is rather than the
+  UTC it claims — a `resolved` finding, which widens that kind from a value whose scale was
+  ambiguous to one whose meaning was.
 - Initial draft of the DiveJSON 1.0 specification, its JSON Schema (2020-12), the
   conformance fixtures, and the `divejson validate` CLI. The draft freezes as v1.0 when
   its maintainers tag it.

@@ -157,6 +157,34 @@ itself. It is user-settable on an Ocean, so a name that is not a product name is
 owner's, carried as recorded. `Device` appears both inside `Header` and beside it in every
 file in hand; the header's copy is preferred and the outer one is the fallback.
 
+### Device — the same block, read as hardware
+
+One file is one activity, so a document converted from one has at most one recording
+(§6.4a) and its device is read from the block above:
+
+| member | | into (§6.4b) |
+| --- | --- | --- |
+| — | | `brand`, the literal `Suunto` |
+| `Device.SerialNumber` | | `serial` |
+| `Device.Info.SW` | | `firmware` |
+| `Device.Name` | | `name` |
+| `Diving.NumberInSeries` | | `dive_number`, the device's counter |
+
+**The brand is written without being read**, which is the one place this reader
+supplies a value the file does not state. It is not §5.4's fabrication: this is a
+vendor-proprietary export format, so the vendor is a property of the format rather than a
+guess about the file — the same reading that already lets `source_generator` name the device
+instead of the application. A format several manufacturers write gets no such line.
+
+`Device.Name` lands on the device's `name` rather than its `model` because it is exactly
+that — settable by the owner, and `Porvoo` on one real Ocean. This format states no product
+name anywhere, so §6.4b's `model` has no source here; the same dive's FIT export does state
+one, which is how two files of one recording come to carry different halves of one device.
+
+A file whose header names a device and holds no samples still produces a recording — a
+device-only one, carrying the device and no profile, which is a fact about the dive rather
+than an empty record (§6.4a). `fixtures/suunto_json/header-only.json` is that shape.
+
 ### The dive — `Header`, and `Header.Diving` where there is one
 
 | member | | into |
@@ -453,10 +481,15 @@ Read as a list of what was considered, not of what was missed.
   `AlgorithmBottomTime`, `AscentMode`, `Conservatism`, `DeepStopEnabled`, `DiveMode`,
   `LastDecoStopDepth`, `MiniLock`, `SafetyStopTime`** — the computer's decompression
   configuration, not the dive.
-- **`Diving.DaysInSeries`, `DesaturationTime`, `NoFlyTime`, `NumberInSeries`,
-  `PreviousDiveDepth`, `SurfaceTime`** — properties of a *series* of dives rather than of
-  this one. §6.2's `dive_number` is the diver's own numbering, and a device's counter is
-  not reliably it.
+- **`Diving.DaysInSeries`, `DesaturationTime`, `NoFlyTime`, `PreviousDiveDepth`,
+  `SurfaceTime`** — properties of a *series* of dives rather than of this one.
+  `NumberInSeries` was refused alongside them until §6.4b gave a device's counter a home;
+  it is carried now, under *Device* above. §6.2's `dive_number` is still the diver's own
+  numbering and a device's counter is still not reliably it — which is why the two are
+  different members rather than one. **Untested**: no file in hand carries a
+  `Header.Diving.NumberInSeries`. Only the D5 shapes have a `Header.Diving` at all — the
+  Ocean shape has none, per *The three header shapes* above — and the one D5 file in
+  `fixtures/suunto_json/` states no number inside it.
 - **`Diving.StartTissue` / `EndTissue`'s `Helium`, `Nitrogen`, `OLF`, `RgbmHelium` and
   `RgbmNitrogen`** — everything under those blocks but `CNS` and `OTU`. §6.2 has no member
   for a tissue model's state, and a loading figure is only meaningful beside the algorithm
@@ -465,10 +498,14 @@ Read as a list of what was considered, not of what was missed.
   not carry; `start_pressure` is the pressure at the start of the dive and the two differ.
 - **`Gases[].TransmitterID`, `TransmitterStartBatteryCharge`, `TransmitterEndBatteryCharge`**
   — a pod's serial and its battery. Neither is a property of the cylinder.
-- **`Device.SerialNumber`, `Device.Info.HW` / `BSL` / `BatteryAtStart` / `BatteryAtEnd` /
-  `BatteryDesignCapacity` / `BatteryFullCapacity`** — hardware identity and battery
-  telemetry. The firmware version is carried and the serial deliberately is not: it
-  identifies a piece of hardware and nothing in a logbook needs it.
+- **`Device.Info.HW` / `BSL` / `BatteryAtStart` / `BatteryAtEnd` /
+  `BatteryDesignCapacity` / `BatteryFullCapacity`** — a hardware revision, a bootloader
+  version and battery telemetry, none of which §6.4b models. `Device.SerialNumber` was
+  refused here too, on the grounds that it identifies a piece of hardware and nothing in a
+  logbook needs it. That is no longer true and the sentence is withdrawn: a logbook holding
+  two records of one dive needs to tell one wrist's computer from the other's, and the
+  serial is the only thing that does it reliably. It is carried under *Device* above, and
+  §9 covers what publishing a document with one in it means.
 - **`Samples[].NoDecTime`, `TimeToSurface`, `RtGradientFactors`, `AbsPressure`,
   `SeaLevelPressure`, `SurfacePressure`, `MinSurfacePressure`, `MaxSurfacePressure`,
   `DeviceInternalAbsPressure`, `DeviceInternalTemperature`, `Altitude`, `VerticalSpeed`,

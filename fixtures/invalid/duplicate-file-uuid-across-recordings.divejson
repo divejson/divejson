@@ -98,6 +98,23 @@
       ],
       "recordings": [
         {
+          "device": {
+            "brand": "Shearwater",
+            "model": "Perdix 2",
+            "serial": "D9123456",
+            "firmware": "V92",
+            "name": "Deco",
+            "dive_number": 87
+          },
+          "source_files": [
+            {
+              "uuid": "0198a6f0-1111-7020-8000-000000000020",
+              "original_filename": "perdix-2026-07-03.uddf",
+              "content_type": "application/xml",
+              "byte_size": 89285,
+              "sha256": "c1d2e3f405162738495a6b7c8d9e0f102132435465768798a9bacbdcedfe0f10"
+            }
+          ],
           "profile": {
             "duration": 5520,
             "depth": {
@@ -236,6 +253,11 @@
                 "time": 5200,
                 "type": "other",
                 "label": "Tissue ceiling cleared"
+              },
+              {
+                "time": 5605,
+                "type": "bookmark",
+                "label": "Surface marker"
               }
             ],
             "extensions": {
@@ -248,6 +270,21 @@
               }
             }
           }
+        },
+        {
+          "device": {
+            "brand": "Suunto",
+            "model": "Ocean"
+          },
+          "source_files": [
+            {
+              "uuid": "0198a6f0-1111-7020-8000-000000000020",
+              "original_filename": "perdix-2026-07-03.uddf",
+              "content_type": "application/xml",
+              "byte_size": 89285,
+              "sha256": "c1d2e3f405162738495a6b7c8d9e0f102132435465768798a9bacbdcedfe0f10"
+            }
+          ]
         }
       ],
       "created_at": "2026-07-03T18:30:00+12:45"
@@ -431,6 +468,7 @@
     {
       "uuid": "0198a6f0-1111-7080-8000-000000000080",
       "agency": "other",
+      "agency_other": "NZ Tech Diving Society",
       "name": "Normoxic Trimix Diver",
       "certification_number": "NZT-2044",
       "certified_on": "2025-03-14",
