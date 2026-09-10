@@ -178,16 +178,22 @@ reader's gear list where the diver owns one, and give one machine two `xs:ID`s. 
 below is how the two are recognised as one — and its first leg is the only thing that can
 still cost a computer a second element, for a reason set out below.
 
-**When two are one computer.** Between a gear item `G` whose `type` is `"computer"` and a
-device `D`, with every string trimmed and case-folded and `label_D` being `D.name` else
-`D.model`:
+**When two are one computer.** The devices go first: they fold with each other before any
+gear item is considered, so that one computer's every recording is a single **device
+record**. That record is what the legs below test, and testing the record rather than each
+recording's device separately is what keeps the cardinality rule at the end of the list from
+reading one computer's nine other dives as nine ties.
 
-- **The dive must link the gear item.** `D` belongs to a recording of a dive, and a folded
-  element reaches that dive only through the `<equipmentused><link>` the dive's own
-  `gear_uuids` produced — so where the dive does not list `G`, there is **no fold** for that
-  dive whatever the legs below would say, and `D` takes an element of its own. This leg asks
-  whether folding is open to `D` at all; the ones below ask which gear item a linked `D`
-  folds into.
+Between a gear item `G` whose `type` is `"computer"` and a device record `D`, with every
+string trimmed and case-folded and `label_D` being `D.name` else `D.model`:
+
+- **The dive must link the gear item**, and this leg is asked per **recording** rather than
+  per computer. A folded element reaches a dive only through the `<equipmentused><link>` the
+  dive's own `gear_uuids` produced, so a recording whose dive does not list `G` does **not**
+  fold, whatever the legs below would say, and its device takes an element of its own. Where
+  `D` covers several recordings and only some of their dives link `G`, `D` splits along that
+  line: those recordings fold and the rest do not. This leg asks whether folding is open at
+  all; the ones below ask which gear item a linked `D` folds into.
 - **Both carry a serial** — §6.12's and §6.4b's — → fold **iff** the two serials are equal.
   **Serials that differ mean different computers, and there is no fall-through to the
   label.** Without that leg, two Suunto Oceans each plausibly named `Suunto Ocean` with
@@ -197,15 +203,17 @@ device `D`, with every string trimmed and case-folded and `label_D` being `D.nam
   nothing.
 - **`label_D` absent** → **no fold**, whatever else matches. A device carrying only a brand
   matches nothing.
-- The **same predicate folds two devices**, `label` being `name` else `model` on each side,
-  and it folds them **among the devices left over**: two devices have no gear item between
-  them for the first leg to ask about, and a left-over device never joins an element some
-  other dive's device folded into, which would put it back behind a link its own dive does
-  not carry. That is where the serial leg does its real work: one computer recording ten
-  dives is ten recordings and one element.
-- **At most one gear item per device and one device per gear item.** On a tie, the first in
-  document order wins and the rest are reported — a fold is not a merge, and silently
-  picking one of three would put a serial on an element the diver never meant.
+- The **same predicate folds two devices**, `label` being `name` else `model` on each side.
+  This is the step above stated as the rule it is, and it is the one leg the link plays no
+  part in: two devices have no gear item between them, so the first leg has nothing to ask
+  of them and a computer's recordings group whatever their dives link. That is where the
+  serial leg does its real work: one computer recording ten dives is ten recordings and one
+  device record.
+- **At most one gear item per device record and one device record per gear item.** On a tie,
+  the first in document order wins and the rest are reported — a fold is not a merge, and
+  silently picking one of three would put a serial on an element the diver never meant. A
+  tie here is two *different* computers claiming one kit item, the losing one keeping an
+  element of its own.
 
 **This is deliberately not symmetric about absence, and the asymmetry is worth stating
 because the neighbouring comparison is.** Asking whether two *files* are records of one
@@ -245,8 +253,10 @@ of `0` is **not written**, and is reported, the same trade `<divenumber>` alread
 zero there invalidates the whole document rather than one element.
 
 **A device that does not fold gets an element of its own, and that element reads back
-as a gear item — where the device carries a name.** Two things send a device here: no gear
-item matches it, or one does and its dive does not link it — the first leg above. This is
+as a gear item — where the device carries a name.** Three things send a device here: no gear
+item matches it; one does and its recording's dive does not link it, which is the first leg
+above; or one does and the cardinality rule awarded that gear item to a different device
+record, the tie's loser being reported and left with an element of its own. This is
 the one place a written file returns *more* than it was written from, and it is the only
 documented exception to `writing.md`'s self round trip, which is otherwise a rule about what
 does not come back. A **nameless** such device is outside the exception rather than a second
@@ -268,23 +278,27 @@ not list that item carries no link to the computer that recorded it — and a do
 perfectly well say a recording's device was `D` while leaving the matching kit item off that
 dive's list. Folding there would drop the device from the file: nothing on the dive would
 point at the element holding it, and a reader would hand that dive back with no device at
-all. So it does not fold, and `D` takes the `device-<n>` element above, which needs no gear
-link. Both facts then survive — which computer recorded the dive, and which gear the diver
-recorded using — and since nothing is lost, nothing is reported.
+all. So that recording does not fold, and its device takes the `device-<n>` element above,
+which needs no gear link. Both facts then survive — which computer recorded the dive, and
+which gear the diver recorded using — and since nothing is lost, nothing is reported.
 
 **Linking the gear item anyway** would be the tidier file and a worse one: `<equipmentused>`
 is what the diver wore, and a writer adding a piece to it would be answering a question about
 the dive that the document answered differently. Coming back in, it would also credit that
 item with a dive it was never worn on, inflating a `dive_count` the diver never recorded.
 
-**The price is a computer that appears twice**, and only a document that links one computer's
-gear item on some of its dives and not on others pays it: the linked dives read their device
-off the gear item's element and the unlinked ones off the `device-<n>` element beside it, so
-two elements describe one machine and a reader takes the second as a second kit item, under
-the exception above. That is the one document shape the *one `<divecomputer>` per computer*
-rule this section opens with does not hold for. A duplicate in a kit list is visible to the
-diver and correctable in a moment; a device that never arrived is neither, which is what
-makes this the cheaper of the two.
+**The price is a computer that appears twice**, and a document pays it whenever a `computer`
+gear item it carries is matched by a device whose dive does not link that item. That takes in
+the ordinary shape where **no** dive links any gear at all — a logbook keeping its kit list
+at the owner's level rather than per dive — as much as the mixed one: the gear item goes into
+`<equipment>` whatever the dives say, and the recordings that could not fold into it take a
+`device-<n>` element beside it, so two elements describe one machine and a reader takes the
+second as a second kit item, under the exception above. Where some dives link the item and
+others do not, both elements are in use at once, the linked dives reading their device off
+the gear item's element and the rest off the `device-<n>` one. This is the one thing the
+*one `<divecomputer>` per computer* rule this section opens with does not hold for. A
+duplicate in a kit list is visible to the diver and correctable in a moment; a device that
+never arrived is neither, which is what makes this the cheaper of the two.
 
 **`device.firmware` has no slot**, `equipmentPieceType` carrying no such element, and is
 reported once per device that has one. So is a recording's **`source_files`**: §6.7 is
