@@ -496,8 +496,8 @@ which the `extensions.divejson.inferred` list is ever written.
 ## Deliberately not mapped
 
 - **`session.avg_temperature` / `max_temperature`** — whole-degree `sint8` summaries of the
-  *activity*, and on one file in hand the "max" is a degree below the "avg", which is not a
-  reading of anything a dive log has a member for. §6.2's `bottom_temperature` would have to
+  *activity*, and on the Ocean files here the "max" is a degree below the "avg", which is not
+  a reading of anything a dive log has a member for. §6.2's `bottom_temperature` would have to
   come from the `record` channel instead, which would make it this converter's arithmetic and
   therefore `inferred`; the temperature channel is already in the profile, where a reader can
   see all of it rather than one summary of it.

@@ -418,9 +418,11 @@ and on `0, 0` ones alike across the corpus, so treating it as one would drop rea
 and keep junk. The `0.000000` pair is already rejected by the rule in
 [`converting.md`](converting.md), which is where two of these files' origins go.
 
-The exit position this reader gives for the Ocean dive in `fixtures/suunto_json/` is the
-same position `fixtures/fit/suunto-ocean.divejson` carries for that dive — two files, two
-readers, two coordinate encodings, one answer at six decimal places.
+Every Ocean dive in `fixtures/suunto_json/` that a FIT input here also carries comes back
+with the exit position that file gives it — `suunto-ocean.divejson` against
+`fixtures/fit/suunto-ocean.divejson`, `suunto-ocean-2026.divejson` against
+`fixtures/fit/suunto-ocean-2026.divejson` — two files, two readers, two coordinate
+encodings, one answer at six decimal places on each dive.
 
 ## This format settles no ambiguity
 
