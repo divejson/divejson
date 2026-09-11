@@ -462,12 +462,30 @@ consumers and the wrong ones for a file written to be read back, where a dropped
 data loss and a moved timestamp is a reading presented as measured where it was not. See
 *Known consumer artefacts* below.
 
-`waypointType` is an `xs:sequence`, and the children written go in this order: `<depth>`,
-`<divetime>`, `<setmarker>`, `<switchmix>`, `<tankpressure>` (repeatable), `<temperature>`.
+`waypointType` is an `xs:sequence`, and the children written go in this order: `<cns>`,
+`<calculatedpo2>`, `<depth>`, `<divetime>`, `<setmarker>`, `<switchmix>`, `<tankpressure>`
+(repeatable), `<temperature>`, `<divemode>`, `<gradientfactor>`, `<nodecotime>`. That is the
+XSD's own order and not a preference — `<cns>` comes third in the type and therefore first
+in a waypoint that carries no alarm or battery reading, while `<nodecotime>` is last of all.
 
 Channel units: depth centimetres → metres, temperature tenths of °C → Kelvin, pressures
-tenths of a bar → Pascal. Each is a decimal factor, and doing the arithmetic in decimal is
-what makes a round trip through Kelvin land back on the number it started from.
+tenths of a bar → Pascal, ppO₂ hundredths of a bar → bar, CNS tenths of a percent →
+percent, `ndl` seconds → seconds, `gradient_factor` whole percent → whole percent. Each is a
+decimal factor, and doing the arithmetic in decimal is what makes a round trip through
+Kelvin land back on the number it started from.
+
+**The two gradient-factor scales go out the way this reader reads them back.**
+`uddf-mapping.md` keys the percent-or-fraction question on the generator, and this writer is
+a generator that table names, so `<gradientfactor>` is written as whole percent — the value
+§6.4 already holds — rather than converted to the documented fraction. Writing a fraction
+would produce a file this format's own reader then read as percent, which is the one
+round trip a writing document exists to prevent.
+
+**The recording's `mode` is written as `<divemode type>` on the first waypoint**, in UDDF's
+spelling: `open_circuit` → `opencircuit`, `closed_circuit` → `closedcircuit`, `semi_closed`
+→ `semiclosedcircuit`, `freedive` → `apnoe`. A **`gauge`** recording is reported `dropped`:
+`divemodeType` has four values and none of them is one, and writing the nearest is the kind
+of guess §5.4 forbids.
 
 `profile.duration` is not written anywhere: UDDF records no duration for a profile, and
 §6.4 defines the member as the span of the samples, which a reader takes off them. A
@@ -477,21 +495,45 @@ document whose `duration` is not that span is reported.
 `@duration` is `use="required"`, and a ceiling sample says how deep the obligation was and
 never how long the stop should last.
 
+`profile.tts` and `profile.surface_gradient_factor` have no UDDF element at all — there is
+no time-to-surface element in 3.2.1 and no surface gradient factor — so both are reported
+`dropped`, which is what a member outside the carried set gets.
+
+**`deco_model` is reported `dropped`, and that is a fact about UDDF.** The XSD makes
+`<decomodel>` an `xs:all` of `<buehlmann>`, `<rgbm>` and `<vpm>` with none of the three
+optional, and each of those types requires at least one `<tissue>` carrying a half-time and
+its coefficients. A DiveJSON deco model carries a family, a name and a gradient-factor pair
+and no tissue table, so there is no way to write one and stay valid against the schema this
+writer's pairs are held to. Nothing is invented to satisfy a required element — this
+document's own first rule, and §5.4's. Shearwater Cloud Desktop ships
+`<decomodel><buehlmann>` with the pair alone, which is evidence the XSD is stricter than
+practice and not a licence to match it: the XSD assertion is what holds element order right
+across this writer, and exempting one element from it would cost more than the member is
+worth. *Rejected:* writing Shearwater's shape and skipping the assertion for `<decomodel>`.
+
 Events:
 
 | DiveJSON event | UDDF |
 | --- | --- |
 | `deep_stop`, `safety_stop`, `bookmark` | `<setmarker>` carrying the type as its text |
-| `other` with a `label` | `<setmarker>` carrying the label |
+| no `type`, with a `label` | `<setmarker>` carrying the label |
+| any other `type`, with a `label` | `<setmarker>` carrying the **label**; the type is reported `dropped` |
 | `gas_switch` with a `gas_number` | `<switchmix ref>` naming that cylinder's mix |
 
-Three cases lose something, each reported:
+Four cases lose something, each reported:
 
-- **An unlabelled `other`** is dropped rather than written as the word "other", which would
-  come back as an event labelled "other" — a label the document did not have.
+- **A typed event with no label** is dropped rather than written as the word its type spells,
+  which would come back as an event labelled `ppo2_high` — a label the document did not have,
+  and the device's wording is what §6.6's `label` holds.
 - **A named type carrying a label** keeps the type and loses the label. `<setmarker>` is one
   string with no type beside it, and the three named types are the only thing a round trip
   through it has to go on.
+- **A type outside those three, carrying a label**, is the mirror of it: the label is written
+  and the type is lost. That way round because the label is the half UDDF can carry back —
+  `<setmarker>ppo2_high</setmarker>` would return as an unclassified event labelled
+  `ppo2_high`, where `<setmarker>PO2 High</setmarker>` returns as the marker the diver saw.
+  *Rejected:* dropping every such event, which would lose the whole alarm class in the one
+  direction this writer exists to make less lossy.
 - **A gas switch naming a cylinder this dive does not have** is dropped: `<switchmix ref>`
   is an `xs:IDREF` and there is nothing valid to point it at. Pointing it at another dive's
   mix would say the diver breathed a gas they did not carry.

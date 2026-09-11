@@ -639,7 +639,7 @@ standardised thing dive computers record and the place vendors differ most; §7 
 adding values to a REQUIRED member's vocabulary, so a REQUIRED `type` would freeze the list
 above at the 1.0 tag and every alarm a future computer records would be unclassified for the
 life of 1.x. There is exactly one spelling of "unclassified", and it is an absent `type`
-with a label (§5.4) — a `"other"` value beside it would be a second.
+with a label (§5.4); an `"other"` value beside that would be a second spelling of it.
 
 A reader meeting a `type` it does not know treats the member as absent (§5.6) and is left
 with a labelled marker at the right second, which is what an unclassified event is anyway.

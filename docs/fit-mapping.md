@@ -281,6 +281,31 @@ no `dive_settings` raises nothing — the message is the computer's *configurati
 than a record of the dive, unlike the session summaries above, every one of which the
 device was describing this dive when it left empty.
 
+### The deco model — `dive_settings` (258)
+
+| field | | into |
+| --- | --- | --- |
+| `dive_settings.gf_low` (5) | | `deco_model.gf_low` |
+| `dive_settings.gf_high` (6) | | `deco_model.gf_high` |
+| `dive_settings.model` (1), where it is `zhl_16c` | | `deco_model.algorithm: "buhlmann"` |
+
+Both gradient factors are already whole percent in the profile, which is §6.4c's unit, so
+nothing is scaled. They are written **both or neither** (§6.4c), so a file stating one alone
+yields neither and a note.
+
+**`model` is read only where it states a value.** `tissue_model_type` has exactly one member
+in the FIT profile, `zhl_16c`, and both FIT recordings in hand carry a gradient-factor pair
+with no `model` beside it — so both produce a `deco_model` of a pair and no family, which is
+the honest shape. Reading "there is only one value in the enum" as "the family must be
+Bühlmann" would be the converter deciding what the device ran, and a Suunto watch writing
+Garmin's format is exactly the file that would get it wrong: the same computer's app export
+names an RGBM model for the same dive.
+
+The dive's mode has no source here. `session.sub_sport` is the field that would carry it and
+no file in hand writes one, so §6.4a's `mode` is absent on a FIT dive — including a
+freediving one, which this reader carries as a dive that does not say what kind it is. The
+DM5 XML path says which, because its files state it.
+
 ### The depth from the samples is `inferred`, and is listed
 
 The third source for `max_depth` and `avg_depth` is the only one that is this converter's
@@ -454,7 +479,7 @@ fixes land after the deepest sample, so the dive has an exit position and no ent
 | --- | --- |
 | `dive_gas_switched` | `gas_switch` **untested** |
 | `user_marker` | `bookmark` **untested** |
-| `dive_alert` | `other`, labelled **untested** |
+| `dive_alert` | an event with **no `type`**, labelled **untested** |
 
 A table rather than a cast: this is Garmin's vocabulary, and the other 43 members of its
 46-member enum — `battery`, `off_course`, `power_down`, every cycling and running alert the
@@ -475,9 +500,12 @@ guessing a position would not be.
 
 For `dive_alert`, `data` renders through the profile's own `dive_alert` enum, so the label is
 the device's wording — `deco_ceiling_broken`, not a number — and an alert outside the enum
-decodes to the bare integer, which is still more than "something happened". §6.5 requires a
-label on `other`, so an event with nothing at all to say is dropped rather than failing the
-whole conversion.
+decodes to the bare integer, which is still more than "something happened". §6.6 requires a
+label on an event with no type, so an alert with nothing at all to say is dropped rather than
+failing the whole conversion. **The alert names are not mapped onto §6.6's vocabulary**,
+though several of them plainly line up with it: no FIT file in hand carries a `dive_alert` at
+all, and this corpus does not adopt a mapping no pair exercises. The Suunto app JSON reader
+has that table because its files have the alerts.
 
 **`gas_number` is asserted only where something depends on it.** §6.3 calls it a label rather
 than an array index, so the cylinders are numbered when the profile carries a pressure channel
@@ -513,11 +541,21 @@ which the `extensions.divejson.inferred` list is ever written.
   no file in hand carries a `dive_summary` at all, so nothing says whether the two ever
   disagree. libdivecomputer declares the field and ignores it, which is the answer here too
   until a file arrives that has one.
-- **`record.vertical_speed`, `distance`, `speed`, `altitude`, `cns_load`, `n2_load`, `po2`,
-  `ndl_time`, `time_to_surface`, `absolute_pressure`** — §6.5 fixes the channels a profile
-  carries, and none of these is one of them.
-- **`dive_settings`'s thirty-odd other fields** — gradient factors, PO₂ alarm thresholds,
-  backlight, safety-stop times. The computer's configuration, not the dive.
+- **`record.vertical_speed`, `distance`, `speed`, `altitude`, `n2_load`,
+  `absolute_pressure`** — §6.5 fixes the channels a profile carries, and none of these is one
+  of them.
+- **`record.ndl_time`, `time_to_surface`, `cns_load`, `po2` and `next_stop_time`, and
+  `session.sub_sport`** — §6.4 now has a channel for the first four and §6.4a a `mode` the
+  last would fill, and all six stay unmapped for a different reason: **no file in hand writes
+  any of them.** All three FIT recordings in `fixtures/fit/` carry `record` messages with
+  every one of these fields empty, and a mapping written against a profile listing rather than
+  a dive is the speculation this format's core rule exists to keep out. Each lands the day a
+  file arrives that has it. `next_stop_time` appears above under *The ceiling*, as the field
+  a reader must not mistake for a ceiling; that warning stands either way.
+- **`dive_settings`'s thirty-odd other fields** — PO₂ alarm thresholds, backlight,
+  safety-stop times, the CCR setpoint fields newer SDKs add. The computer's configuration,
+  not the dive. `gf_low` and `gf_high` left this list when §6.4c arrived; they are carried
+  under *The deco model* above.
 - **`event.timer`** — above.
 - **`otu_start`** — there is no `start_otu` anywhere in the FIT profile, so this member has no
   source at all, on any device.

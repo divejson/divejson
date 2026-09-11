@@ -26,6 +26,11 @@ DiveJSON's answers, as normative rules rather than aspirations:
   that recorded it, each with that device, its own start, its files and its profile — so a
   diver wearing two computers keeps both records, and one dive exported twice stays one
   dive.
+- **A recording carries what its computer computed**, not only what it measured: the mode
+  it ran in, the decompression model and settings it ran, and, sampled beside depth, the
+  no-decompression time, the time to surface, the ppO₂, the CNS clock and the gradient
+  factors it showed the diver. None of that is reconstructable after the dive, and every
+  other format either drops it or keeps it where only its own vendor can read it.
 - **One canonical unit system.** Metric, fixed by the spec — no per-document unit
   declarations for readers to half-implement.
 - **Offsets survive.** Times travel as single offset-aware strings, and a conforming
