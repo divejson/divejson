@@ -547,8 +547,8 @@ The sampled record of one recording of a dive (§6.4a), embedded in that recordi
 | `tts` | Series | O | Time to surface, in **seconds**; ≥ 0. The device's own figure for how long an ascent from here would take, stops included. |
 | `ppo2` | Series | O | The partial pressure of oxygen the device computed, in **hundredths of a bar**; ≥ 0. What the device calculated from the gas it believed it was breathing, which is not a cell reading. |
 | `cns` | Series | O | The CNS oxygen clock during the dive, in **tenths of a percent**; ≥ 0. Unbounded above — real computers report over 100 %. Its dive-level counterparts are §6.2's `cns_start` and `cns_end`, and neither is derived from the other. |
-| `gradient_factor` | Series | O | The gradient factor of the **leading tissue**, in **whole percent**; ≥ 0. How close that compartment is to its M-value: a device's GF99. |
-| `surface_gradient_factor` | Series | O | The gradient factor the leading tissue would have on surfacing directly from here, in **whole percent**; ≥ 0. |
+| `gradient_factor` | Series | O | The gradient factor of the **leading tissue**, in **whole percent**; ≥ 0. How close that compartment is to its M-value: a device's GF99. Unbounded above — a value over 100 is a compartment past its M-value, and real exports carry far larger ones. |
+| `surface_gradient_factor` | Series | O | The gradient factor the leading tissue would have on surfacing directly from here, in **whole percent**; ≥ 0, and unbounded above for the same reason. |
 | `events` | array of Event | O | In time order. |
 
 **The decompression channels are the device's own arithmetic, and nothing else can produce

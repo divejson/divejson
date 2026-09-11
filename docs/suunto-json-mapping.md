@@ -432,13 +432,27 @@ decision is per quantity, per format, and this format needs all five:
   on 5 531 of 7 194 samples, which is where no compartment leads, and `0` on 585, which is a
   leading tissue at ambient. `gfSurface` is never negative in any file in hand.
 
-**A gradient factor has no upper bound, and this export exercises that.** §6.4 puts a floor
-on the channel and no ceiling, which is not an oversight: GF99 is the leading tissue's
-tension measured against the gradient between ambient and its M-value, and that gradient
-closes as a diver ascends, so the ratio climbs without limit on a shallow stop. The Ocean
-writes it as it computes it — 114 samples above 100 on one dive in hand, at depths of 4.8 to
-15 m, peaking at 12 575 — and a converter carries the number rather than clamping it.
-`ocean-deco-ppo2.json` keeps one of those samples, `398` at 7.62 m.
+**`gf99` runs into four figures on a decompression ascent, and this reader does not explain
+it.** On the no-decompression dives in hand the two members behave as a GF99 and a surface
+GF must: a tissue is always further from its M-value at the surface than at depth, so `gf99`
+is the smaller of the pair on **all 803** samples of those dives that state both, with no
+exception. On the decompression dives it stops holding. Over one contiguous stretch of a
+5 to 8 m stop `gfSurface` falls from 116 to 90 without once rising, exactly as a surfacing
+figure off-gassing should, while `gf99` beside it ranges from 25 to 732 and jumps from 193 to
+732 between two adjacent samples 27 cm apart; earlier in the same ascent it reaches 12 575,
+and 114 of that dive's samples are above 100.
+
+Two things follow, and the second is the rule. **The member is still `gradient_factor`**: the
+field is named `gf99`, it is whole-numbered, it is never negative except for the `-100`
+sentinel, it agrees in magnitude with Shearwater's `<gradientfactor>` on comparable dives,
+and it meets `gfSurface` where a GF99 and a surface GF must meet. **And the number is carried
+as written.** What the large values mean is not something this document can say — Suunto
+publishes no definition of the field, and nothing in the file accounts for the size — so the
+converter writes the reading and explains nothing, which is §5.4 rather than a gap: deciding
+what the device should have written is the one thing a converter may not do, and a cap is
+that decision wearing a plausible number. §6.4 puts no ceiling on the channel for the same
+reason. `ocean-deco-ppo2.json` keeps two of those samples, `398` at 7.62 m and `192` at
+5.70 m, so a reader that clamps fails a pair rather than passing quietly.
 
 **A zero ceiling is `converting.md`'s rule, and this is the export that showed it.** It
 writes `"Ceiling": 0` on every no-deco sample where the same vendor's desktop export writes
