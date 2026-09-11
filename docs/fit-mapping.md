@@ -297,10 +297,11 @@ yields neither and a note.
 in the FIT profile, `zhl_16c`. Two of the three recordings in `fixtures/fit/` carry a
 `dive_settings` at all, and each of those states a gradient-factor pair with no `model`
 beside it — so each produces a `deco_model` of a pair and no family, which is the honest
-shape, while `suunto-d5.fit` writes no `dive_settings` and gets no `deco_model`. Reading "there is only one value in the enum" as "the family must be
-Bühlmann" would be the converter deciding what the device ran, and a Suunto watch writing
-Garmin's format is exactly the file that would get it wrong: the same computer's app export
-names an RGBM model for the same dive.
+shape, while `suunto-d5.fit` writes no `dive_settings` and gets no `deco_model`. Reading
+"there is only one value in the enum" as "the family must be Bühlmann" would be the
+converter deciding what the device ran, and a Suunto watch writing Garmin's format is
+exactly the file that would get it wrong: the same computer's app export names an RGBM
+model for the same dive.
 
 The dive's mode has no source here. `session.sub_sport` is the field that would carry it and
 no file in hand writes one, so §6.4a's `mode` is absent on a FIT dive — including a

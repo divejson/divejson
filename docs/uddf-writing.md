@@ -476,14 +476,17 @@ in a waypoint that carries no alarm or battery reading, while `<nodecotime>` is 
 
 Channel units: depth centimetres → metres, temperature tenths of °C → Kelvin, pressures
 tenths of a bar → Pascal, ppO₂ hundredths of a bar → bar, CNS tenths of a percent →
-percent, `ndl` seconds → seconds, `gradient_factor` whole percent → whole percent. Each is a
-decimal factor, and doing the arithmetic in decimal is what makes a round trip through
-Kelvin land back on the number it started from.
+percent, `ndl` seconds → seconds, `gradient_factor` whole percent → the documented fraction,
+÷ 100. Each is a decimal factor, and doing the arithmetic in decimal is what makes a round
+trip through Kelvin land back on the number it started from.
 
-**The gradient factors go out as the documented fraction**, all three of them:
-`<gradientfactorlow>`, `<gradientfactorhigh>` and the per-waypoint `<gradientfactor>` are
-written as `§6.4`'s whole percent divided by 100, so a `gradient_factor` of `67` is
-`<gradientfactor>0.67</gradientfactor>`. `uddf-mapping.md` keys the percent-or-fraction
+**The per-waypoint `<gradientfactor>` goes out as the documented fraction**: §6.4's whole
+percent divided by 100, so a `gradient_factor` of `67` is
+`<gradientfactor>0.67</gradientfactor>`. It is the **only** gradient factor this writer
+emits — `<gradientfactorlow>` and `<gradientfactorhigh>` exist in UDDF only inside
+`<decomodel><buehlmann>`, and `<decomodel>` is dropped whole for the reason below, so a
+document's `gf_low` and `gf_high` reach the file nowhere at all.
+`uddf-mapping.md` keys the percent-or-fraction
 question on the generator, and **this writer is not a generator that table names** — it
 stamps `<generator><name>divejson convert</name>`, and the table's one row is
 `Shearwater Cloud Desktop`. So a file this writer produces is read back by the *other*
