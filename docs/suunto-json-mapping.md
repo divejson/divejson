@@ -432,6 +432,14 @@ decision is per quantity, per format, and this format needs all five:
   on 5 531 of 7 194 samples, which is where no compartment leads, and `0` on 585, which is a
   leading tissue at ambient. `gfSurface` is never negative in any file in hand.
 
+**A gradient factor has no upper bound, and this export exercises that.** §6.4 puts a floor
+on the channel and no ceiling, which is not an oversight: GF99 is the leading tissue's
+tension measured against the gradient between ambient and its M-value, and that gradient
+closes as a diver ascends, so the ratio climbs without limit on a shallow stop. The Ocean
+writes it as it computes it — 114 samples above 100 on one dive in hand, at depths of 4.8 to
+15 m, peaking at 12 575 — and a converter carries the number rather than clamping it.
+`ocean-deco-ppo2.json` keeps one of those samples, `398` at 7.62 m.
+
 **A zero ceiling is `converting.md`'s rule, and this is the export that showed it.** It
 writes `"Ceiling": 0` on every no-deco sample where the same vendor's desktop export writes
 `xsi:nil` — 10 992 of the 12 643 ceiling readings across these 35 files, every one of which

@@ -285,8 +285,8 @@ device was describing this dive when it left empty.
 
 | field | | into |
 | --- | --- | --- |
-| `dive_settings.gf_low` (5) | | `deco_model.gf_low` |
-| `dive_settings.gf_high` (6) | | `deco_model.gf_high` |
+| `dive_settings.gf_low` (2) | | `deco_model.gf_low` |
+| `dive_settings.gf_high` (3) | | `deco_model.gf_high` |
 | `dive_settings.model` (1), where it is `zhl_16c` | | `deco_model.algorithm: "buhlmann"` |
 
 Both gradient factors are already whole percent in the profile, which is §6.4c's unit, so

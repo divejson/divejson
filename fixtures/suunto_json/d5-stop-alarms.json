@@ -267,12 +267,57 @@
       },
       {
         "Ceiling": 0,
+        "Depth": 18,
+        "DeviceInternalAbsPressure": 98500,
+        "NoDecTime": 0,
+        "Temperature": 295.05,
+        "TimeToSurface": 136,
+        "TimeISO8601": "2021-04-06T12:54:45.400+02:00"
+      },
+      {
+        "Ceiling": 0,
+        "Depth": 17.26,
+        "DeviceInternalAbsPressure": 98400,
+        "NoDecTime": 0,
+        "Temperature": 295.15,
+        "TimeToSurface": 132,
+        "TimeISO8601": "2021-04-06T12:54:55.400+02:00"
+      },
+      {
+        "Ceiling": 0,
+        "Depth": 16.4,
+        "DeviceInternalAbsPressure": 98400,
+        "NoDecTime": 0,
+        "Temperature": 295.15,
+        "TimeToSurface": 124,
+        "TimeISO8601": "2021-04-06T12:55:05.390+02:00"
+      },
+      {
+        "Ceiling": 0,
         "Depth": 16.11,
         "DeviceInternalAbsPressure": 98300,
         "NoDecTime": 0,
         "Temperature": 295.05,
         "TimeToSurface": 124,
         "TimeISO8601": "2021-04-06T12:55:15.400+02:00"
+      },
+      {
+        "Ceiling": 0,
+        "Depth": 16.13,
+        "DeviceInternalAbsPressure": 98400,
+        "NoDecTime": 0,
+        "Temperature": 295.05,
+        "TimeToSurface": 124,
+        "TimeISO8601": "2021-04-06T12:55:25.400+02:00"
+      },
+      {
+        "Ceiling": 0,
+        "Depth": 17.25,
+        "DeviceInternalAbsPressure": 98400,
+        "NoDecTime": 0,
+        "Temperature": 295.05,
+        "TimeToSurface": 128,
+        "TimeISO8601": "2021-04-06T12:55:35.400+02:00"
       },
       {
         "Events": [
@@ -284,6 +329,15 @@
           }
         ],
         "TimeISO8601": "2021-04-06T12:55:45.460+02:00"
+      },
+      {
+        "Ceiling": 3,
+        "Depth": 19.3,
+        "DeviceInternalAbsPressure": 98500,
+        "NoDecTime": null,
+        "Temperature": 295.05,
+        "TimeToSurface": 188,
+        "TimeISO8601": "2021-04-06T12:55:55.410+02:00"
       },
       {
         "Events": [

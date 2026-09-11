@@ -247,6 +247,91 @@
         "TimeISO8601": "2025-06-03T12:31:22.740+02:00"
       },
       {
+        "Depth": 42.61,
+        "Temperature": 296.85,
+        "DeviceInternalAbsPressure": 97500,
+        "TimeToSurface": 256,
+        "NoDecTime": 0,
+        "Ceiling": 0,
+        "GasTime": 3499,
+        "Ventilation": 0.000163,
+        "Cylinders": [
+          {
+            "GasNumber": 1,
+            "Pressure": 17709000
+          }
+        ],
+        "TimeISO8601": "2025-06-03T12:34:25.630+02:00"
+      },
+      {
+        "Depth": 43.24,
+        "Temperature": 296.85,
+        "DeviceInternalAbsPressure": 97600,
+        "TimeToSurface": 260,
+        "NoDecTime": 0,
+        "Ceiling": 0,
+        "GasTime": 3500,
+        "Ventilation": 0.00016,
+        "Cylinders": [
+          {
+            "GasNumber": 1,
+            "Pressure": 17653000
+          }
+        ],
+        "TimeISO8601": "2025-06-03T12:34:35.640+02:00"
+      },
+      {
+        "Depth": 43.95,
+        "Temperature": 296.75,
+        "DeviceInternalAbsPressure": 97600,
+        "TimeToSurface": 264,
+        "NoDecTime": 0,
+        "Ceiling": 0,
+        "GasTime": 3510,
+        "Ventilation": 0.000158,
+        "Cylinders": [
+          {
+            "GasNumber": 1,
+            "Pressure": 17568000
+          }
+        ],
+        "TimeISO8601": "2025-06-03T12:34:45.640+02:00"
+      },
+      {
+        "Depth": 44.16,
+        "Temperature": 296.75,
+        "DeviceInternalAbsPressure": 97600,
+        "TimeToSurface": 268,
+        "NoDecTime": 0,
+        "Ceiling": 0,
+        "GasTime": 3507,
+        "Ventilation": 0.000157,
+        "Cylinders": [
+          {
+            "GasNumber": 1,
+            "Pressure": 17476000
+          }
+        ],
+        "TimeISO8601": "2025-06-03T12:34:55.640+02:00"
+      },
+      {
+        "Depth": 44.52,
+        "Temperature": 296.75,
+        "DeviceInternalAbsPressure": 97600,
+        "TimeToSurface": 268,
+        "NoDecTime": 0,
+        "Ceiling": 0,
+        "GasTime": 3480,
+        "Ventilation": 0.000156,
+        "Cylinders": [
+          {
+            "GasNumber": 1,
+            "Pressure": 17479000
+          }
+        ],
+        "TimeISO8601": "2025-06-03T12:35:05.650+02:00"
+      },
+      {
         "Events": [
           {
             "Notify": {
@@ -256,6 +341,23 @@
           }
         ],
         "TimeISO8601": "2025-06-03T12:35:06.910+02:00"
+      },
+      {
+        "Depth": 44.79,
+        "Temperature": 296.65,
+        "DeviceInternalAbsPressure": 97700,
+        "TimeToSurface": 272,
+        "NoDecTime": null,
+        "Ceiling": 3,
+        "GasTime": 3434,
+        "Ventilation": 0.000157,
+        "Cylinders": [
+          {
+            "GasNumber": 1,
+            "Pressure": 17462000
+          }
+        ],
+        "TimeISO8601": "2025-06-03T12:35:15.650+02:00"
       },
       {
         "Depth": 44.3,
