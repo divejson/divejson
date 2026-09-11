@@ -84,6 +84,8 @@ the schema and this list:
 6. The member-order rule for `format` and `version` (§4) — a property of the document's
    text, which the reference validator checks on the parsed member order (JSON parsing
    preserves it).
+7. `gf_low ≤ gf_high` on a recording's deco model (§6.4c). The schema pairs the two and
+   bounds each; which of them is the larger is arithmetic between members, like rule 2's.
 
 Requirements addressed to writer and reader *behaviour* — nothing invented (§5.4),
 unknown-member and unknown-value tolerance (§5.6), offset preservation (§5.2) — are not
@@ -137,21 +139,29 @@ suffixes. A writer whose internal storage is imperial MUST convert; how an appli
 | --- | --- | --- |
 | depth, altitude, visibility, distance | meters | number |
 | temperature | degrees Celsius | number |
-| pressure (cylinder, surface) | bar | number |
+| pressure (cylinder, surface, partial) | bar | number |
 | weight | kilograms | number |
 | volume (cylinder water capacity) | liters | number |
 | gas fractions (`oxygen`, `helium`) | percent of the mix | number |
 | duration, elapsed time | seconds | integer |
 | CNS | percent | number |
 | OTU | OTU (dimensionless) | number |
+| gradient factor | percent | number |
 | coordinates | decimal degrees, WGS 84 | number |
 
 **Profile channels are integer-scaled** (§6.5): depth and ceiling samples are
 **centimeters**, temperature samples are **tenths of a degree Celsius**, and pressure
-samples are **tenths of a bar**. The scales are part of the format, chosen so that
-sampled channels round-trip without floating-point noise while exceeding the precision of
-real dive computers. Values everywhere *outside* profile channels are plain numbers in
-the base units above.
+samples are **tenths of a bar**. The decompression readouts a computer shows the diver
+(§6.4) carry their own scales: `ndl` and `tts` samples are **seconds**, the format's
+duration unit; `ppo2` samples are **hundredths of a bar**, because tenths cannot tell 1.30
+from 1.32 and real exports state a ppO₂ to two decimals; `cns` samples are **tenths of a
+percent**, finer than the dive-level `cns_start` and `cns_end` need to be because a
+computer's own export can be — one records `0.069` where another rounds the same reading to
+`7`; and `gradient_factor` and `surface_gradient_factor` samples are **whole percent**,
+which is what every device that reports them reports. The scales are part of the format,
+chosen so that sampled channels round-trip without floating-point noise while exceeding the
+precision of real dive computers. Values everywhere *outside* profile channels are plain
+numbers in the base units above.
 
 ### 5.2 Dates and times
 
@@ -418,6 +428,8 @@ before Profile, because a recording is what a profile now sits inside.
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
 | `device` | Device | O | §6.4b — what recorded it. |
+| `mode` | string | O | One of `"open_circuit"`, `"closed_circuit"`, `"semi_closed"`, `"gauge"`, `"freedive"` — the mode **this device ran in**. Absent means not recorded, and a reader MUST NOT assume open circuit (§5.4), however a source format's own documentation glosses an absence. |
+| `deco_model` | Deco Model | O | §6.4c — the decompression model this device ran, and the settings it ran it with. |
 | `started_at` | date-time | O | The device's own start (§5.2). **Absent means the dive's `started_at`**; a writer that knows a different one MUST write it — a second computer starts when its diver's wrist goes under, not when the first one's did. A recording's profile `times` are elapsed from this instant. |
 | `source_files` | array of Stored File | O | §6.7 — the original dive-computer files this recording was read from, in the order they were attached. |
 | `profile` | Profile | O | §6.4. |
@@ -426,7 +438,18 @@ A recording MUST carry at least one of `device`, `profile` and `source_files` �
 requirement the schema does not express. An object carrying none of the three describes
 nothing, while a computer worn that recorded no samples *is* a fact about the dive and
 travels as a device-only recording: a source that names a device and records no samples
-yields one recording carrying that device and nothing else.
+yields one recording carrying that device and nothing else. `mode` and `deco_model` do not
+satisfy that rule and are not on its list: a mode with no device, no samples and no file
+behind it is a setting nothing recorded a dive with.
+
+**`mode` and `deco_model` are the device's, not the dive's**, for the reason the recording
+exists at all. A mode is how one computer was configured, and a dive routinely has two
+answers: a backup run in gauge mode beside a primary on open circuit is ordinary practice,
+and the dive was not a gauge dive. So is a deco model — two computers running different
+gradient factors on one dive give the diver two ceilings and two no-deco clocks, which is
+exactly why divers wear two. A dive-level `mode` would be the diver's own statement of what
+kind of dive it was, which is a different member and one nothing in this version writes;
+until something does, §5.5's extensions mechanism is where it belongs.
 
 **`recordings` is ordered, and the first entry is primary**: the one a reader shows by
 default, and the one whose file a consumer that can hold only one takes. Order rather
@@ -476,6 +499,39 @@ stable identifier for a piece of hardware and therefore personal data, which §9
 its own terms for both members; a writer publishing documents rather than handing them to
 their owner should know it is in them.
 
+### 6.4c Deco Model
+
+The decompression model one device ran on one dive, and the settings it ran it with.
+Embedded in the recording (§6.4a); no uuid. Lettered for the same reason §6.4a and §6.4b
+are: it is read here, before Profile, because the model is the thing the profile's
+decompression channels are readouts of.
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `algorithm` | string | O | One of `"buhlmann"`, `"rgbm"` — the **family** the model belongs to, not the product. An OPTIONAL member, so this vocabulary grows in minor versions (§7) as files that name another family arrive. |
+| `name` | string | O | 1–64. The device's own name for its model, as the source spelled it — `"Suunto Fused RGBM 2"`, `"ZHL-16C"`. Free text on purpose: vendors name and version their models as they please, and a closed vocabulary of product names would be wrong within a firmware release. |
+| `gf_low` | integer | O | Whole percent, 0–100. The Bühlmann gradient factor the device surfaced the first stop on. |
+| `gf_high` | integer | O | Whole percent, 0–100. The gradient factor at the surface. `gf_low` and `gf_high` are written **both or neither** — one alone names no setting — and `gf_low` MUST be ≤ `gf_high` (§3). |
+| `conservatism` | integer | O | The device's own conservatism setting, on **the device's own scale** — Suunto's P−2 to P2, VPM-B's +0 to +5. Negative values are real, and the number means nothing without the model and the device that set it, which `name` and the recording's `device` say. |
+
+A deco model with no members is not written: the object exists to carry what the source
+recorded about the model, and an empty one says nothing a missing `deco_model` does not
+(§5.4, and §6.4b's rule for an empty `device`).
+
+**`algorithm` is a family and `name` is a product**, and the two are separate members
+because sources state them separately: one file names `<buehlmann>` as an element and never
+spells a product, another writes `"Suunto Fused RGBM 2"` as a string and never names a
+family. A reader that wants to know whether a ceiling came out of a dissolved-gas model asks
+`algorithm`; a reader showing the diver what their computer said shows `name`. Neither is
+derived from the other — deriving a family from a product string would be a reader guessing
+at vendors' naming (§5.4), and deriving a name from a family would invent one.
+
+**There is no tissue table here**, and that is deliberate rather than an omission: a
+compartment loading means something only inside the algorithm that computed it — a Suunto
+RGBM compartment is not a ZHL-16C one — so a reader could display such an array and never
+compute from it. Tissue state rides `extensions` (§5.5) until an implementation that can
+consume it earns it a place.
+
 ### 6.4 Profile
 
 The sampled record of one recording of a dive (§6.4a), embedded in that recording.
@@ -487,7 +543,36 @@ The sampled record of one recording of a dive (§6.4a), embedded in that recordi
 | `ceiling` | Series | O | Decompression ceiling, in **centimeters**. Present only while a ceiling existed: a gap in `times` means "no deco obligation", not a sensor dropout — and readers MUST NOT interpolate across a ceiling gap, which would fabricate an obligation that was not there. |
 | `temperature` | Series | O | Samples in **tenths of a degree Celsius**. |
 | `pressures` | array of Pressure Series | O | One entry per cylinder **this recording's device** monitored; samples in **tenths of a bar**. Two recordings of one dive each carry their own entries, and both join to the dive's `cylinders` by `gas_number` (§6.3, §6.4a). |
+| `ndl` | Series | O | Remaining no-decompression time, in **seconds**; ≥ 0. |
+| `tts` | Series | O | Time to surface, in **seconds**; ≥ 0. The device's own figure for how long an ascent from here would take, stops included. |
+| `ppo2` | Series | O | The partial pressure of oxygen the device computed, in **hundredths of a bar**; ≥ 0. What the device calculated from the gas it believed it was breathing, which is not a cell reading. |
+| `cns` | Series | O | The CNS oxygen clock during the dive, in **tenths of a percent**; ≥ 0. Unbounded above — real computers report over 100 %. Its dive-level counterparts are §6.2's `cns_start` and `cns_end`, and neither is derived from the other. |
+| `gradient_factor` | Series | O | The gradient factor of the **leading tissue**, in **whole percent**; ≥ 0. How close that compartment is to its M-value: a device's GF99. |
+| `surface_gradient_factor` | Series | O | The gradient factor the leading tissue would have on surfacing directly from here, in **whole percent**; ≥ 0. |
 | `events` | array of Event | O | In time order. |
+
+**The decompression channels are the device's own arithmetic, and nothing else can produce
+them.** They depend on the model the device ran, on its settings and on the diver's
+exposure history, none of which a logged dive carries — the same argument §6.2 makes for the
+oxygen-clock members and §6.4 makes for `ceiling`. A reader that computes any of them from
+depth and a gas fraction has derived a value and MUST say so (§5.7); it MUST NOT write one
+into these members.
+
+Each of them is **present only where the device reported one**, and §6.5's gap rule applies
+unchanged: a second the device said nothing for is a second missing from that channel's
+`times`, never a null in its `values` and never a zero standing in for a missing reading
+(§5.4). A zero in any of them is a reading — which is why none of them may carry a negative
+one, the negative being what several devices write to mean "no figure". `ndl` and `ceiling`
+MAY carry a sample at the same time: a device that has gone into decompression reports a
+no-decompression time of zero beside the ceiling it now owes, and both are what the diver
+was shown.
+
+**Deferred**, and named here so a reader knows they were considered rather than missed: the
+depth and time of the **next decompression stop**, a rebreather **setpoint**, the readings
+of individual **O₂ cells**, **heart rate**, **compass bearing**, and **remaining bottom
+time**. Each is a quantity real computers record and no file this version was written
+against carries, and §1's rule is that core is what implementations actually store. They
+arrive in a minor version when one does (§7), which costs a reader nothing (§5.6).
 
 **An event may fall after the last sample, and readers MUST preserve it where it is.**
 `duration` spans the samples, so an event `time` greater than `duration` is conforming and
@@ -527,9 +612,40 @@ A point event on one recording's profile timeline (§6.4a).
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
 | `time` | integer | R | Elapsed seconds from the start of the recording this profile belongs to — its `started_at` where it has one, and the dive's otherwise (§6.4a, §6.5); ≥ 0. |
-| `type` | string | R | One of `"gas_switch"`, `"deep_stop"`, `"safety_stop"`, `"bookmark"`, `"other"`. |
+| `type` | string | O | What happened, from the vocabulary below. **Absent means unclassified** — the device recorded something at this second and nothing in this vocabulary says what — and then `label` is REQUIRED. |
 | `gas_number` | integer | O | On a `gas_switch`: what was switched to, in the device's own labeling (§6.3). Absent when the device recorded a switch without saying to what. |
-| `label` | string | O | The device's own wording. On `type: "other"` it is REQUIRED and MUST NOT be null — an unclassified event with no label carries no information at all. |
+| `label` | string | O | The device's own wording, carried verbatim. REQUIRED when `type` is absent and MUST NOT be empty there — an event that is neither classified nor labelled carries no information at all. Written beside a `type` whenever the device had wording of its own: the type says what class of thing happened and the label says what the diver was shown. |
+
+The vocabulary of `type`:
+
+| value | what the device is saying |
+| --- | --- |
+| `gas_switch` | the breathing gas changed, to `gas_number` where the device said which |
+| `deep_stop` | a deep stop |
+| `safety_stop` | a safety stop |
+| `bookmark` | the diver marked this moment themselves |
+| `ascent_rate` | the ascent was faster than the device allows |
+| `safety_stop_mandatory` | the device made a safety stop compulsory rather than advisory |
+| `safety_stop_violation` | a safety or deep stop the device required was left early or not made |
+| `deep_stop_violation` | a deep stop the device required was left early or not made |
+| `ceiling_violation` | the diver went shallower than the decompression ceiling |
+| `ndl_reached` | the no-decompression time ran out and the dive became a decompression dive |
+| `ppo2_high` | the partial pressure of oxygen passed the device's limit |
+| `pressure_low` | the cylinder pressure passed the device's warning threshold |
+| `depth_alarm` | the depth passed a limit the diver or the device set |
+
+**`type` is OPTIONAL, and that is what lets this vocabulary grow.** Events are the least
+standardised thing dive computers record and the place vendors differ most; §7 forbids
+adding values to a REQUIRED member's vocabulary, so a REQUIRED `type` would freeze the list
+above at the 1.0 tag and every alarm a future computer records would be unclassified for the
+life of 1.x. There is exactly one spelling of "unclassified", and it is an absent `type`
+with a label (§5.4) — a `"other"` value beside it would be a second.
+
+A reader meeting a `type` it does not know treats the member as absent (§5.6) and is left
+with a labelled marker at the right second, which is what an unclassified event is anyway.
+§7 requires a writer to emit a `label` alongside any value defined after 1.0, so that
+fallback always has wording to fall back to. A reader MUST NOT copy an unrecognised `type`
+into `label`: inventing the device's wording is §5.4's fabrication.
 
 ### 6.7 Stored File
 
@@ -743,6 +859,15 @@ A document declares the specification version it conforms to in its `version` me
   vocabularies grow only through their existing `"other"` values, or at a major version.
   Under these rules everything a conforming `1.n` reader does with a `1.(n+1)` document
   remains correct.
+- **An event `type` value defined after 1.0 travels with a `label`** (§6.6): a writer
+  emitting such a value MUST also emit the event's `label` wherever the source recorded
+  wording for it. The general rule above already makes the value safe to add — `type` is
+  OPTIONAL, so a 1.0 reader treats one it does not know as absent (§5.6) — and this one
+  makes it useful: the reader that just lost the classification still has the device's own
+  words at the right second rather than a bare time. Where the source classified an event
+  and recorded no wording at all, the writer has nothing to put there and a 1.0 reader is
+  left an event it can only place in time; that is the residue of this rule, not a licence
+  to invent wording (§5.4).
 - **A reader accepts any document whose major version it implements**, whatever the
   minor. A reader MUST reject, or clearly flag as unsupported, a document whose major
   version it does not implement.
