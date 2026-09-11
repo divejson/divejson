@@ -44,6 +44,12 @@ them; what each covers is in [`fixtures/README.md`](../fixtures/README.md#writeu
 document it was written from, on every member [`uddf-mapping.md`](uddf-mapping.md)'s element
 map carries. This document is the description of what does not come back.
 
+**It is the only thing that checks a scale both directions agree on.** `divejson conform`
+compares a written file with a committed one and never reads it back, so a writer and a
+reader that disagree about whether `<gradientfactor>` is percent or a fraction produce two
+green corpora and a value a hundred times wrong — see *the gradient factors* below. Every
+member this writer scales owes that test in an implementation's own suite, not a fixture.
+
 **`extensions` is the exclusion this direction adds** to the two the corpus already ignores
 (`writing.md`), and UDDF is where it is visible: `<generator>` and `/uddf/@version` describe
 the file in front of a reader, which after a write is the one this writer produced, so the
@@ -474,18 +480,30 @@ percent, `ndl` seconds → seconds, `gradient_factor` whole percent → whole pe
 decimal factor, and doing the arithmetic in decimal is what makes a round trip through
 Kelvin land back on the number it started from.
 
-**The two gradient-factor scales go out the way this reader reads them back.**
-`uddf-mapping.md` keys the percent-or-fraction question on the generator, and this writer is
-a generator that table names, so `<gradientfactor>` is written as whole percent — the value
-§6.4 already holds — rather than converted to the documented fraction. Writing a fraction
-would produce a file this format's own reader then read as percent, which is the one
-round trip a writing document exists to prevent.
+**The gradient factors go out as the documented fraction**, all three of them:
+`<gradientfactorlow>`, `<gradientfactorhigh>` and the per-waypoint `<gradientfactor>` are
+written as `§6.4`'s whole percent divided by 100, so a `gradient_factor` of `67` is
+`<gradientfactor>0.67</gradientfactor>`. `uddf-mapping.md` keys the percent-or-fraction
+question on the generator, and **this writer is not a generator that table names** — it
+stamps `<generator><name>divejson convert</name>`, and the table's one row is
+`Shearwater Cloud Desktop`. So a file this writer produces is read back by the *other*
+branch of that rule, the fraction one, and a written `0.67` comes back as `67`. Writing
+whole percent instead would come back as `6700`: the round trip a writing document exists
+to prevent, and one no conformance pair would catch, since the corpus never reads a written
+file back (`CONTRIBUTING.md`, *the checks the corpus cannot make*).
+
+*Rejected:* adding this writer to the generator table so it could write whole percent. The
+table exists to record what a **third party's** files need read differently; a writer that
+has to be in it to be read correctly by its own reader is a writer producing files nobody
+else can read correctly, which is the opposite of the point.
 
 **The recording's `mode` is written as `<divemode type>` on the first waypoint**, in UDDF's
 spelling: `open_circuit` → `opencircuit`, `closed_circuit` → `closedcircuit`, `semi_closed`
-→ `semiclosedcircuit`, `freedive` → `apnoe`. A **`gauge`** recording is reported `dropped`:
-`divemodeType` has four values and none of them is one, and writing the nearest is the kind
-of guess §5.4 forbids.
+→ `semiclosedcircuit`, `freedive` → **`apnoe`**. `divemodeType` spells a freedive twice,
+`apnoe` and the `apnea` added beside it in 2017; `apnoe` is written because it is the older
+of the two and every 3.2.x reader knows it, while `uddf-mapping.md` reads both. A **`gauge`**
+recording is reported `dropped`: `divemodeType`'s five values do not include one, and
+writing the nearest is the kind of guess §5.4 forbids.
 
 `profile.duration` is not written anywhere: UDDF records no duration for a profile, and
 §6.4 defines the member as the span of the samples, which a reader takes off them. A

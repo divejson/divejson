@@ -405,7 +405,26 @@ inventing 402 readings.
   `label`, which §6.6 makes the spelling of an unclassified event. `<setmarker>` is a bare
   string with no type beside it, so this is the only thing a round trip through UDDF has to
   go on.
-- **`<divemode>` states the recording's mode, and only a change of value is an event.** The
+- **`<divemode>` states the recording's mode.** `divemodeType` enumerates five values and
+  DiveJSON's `mode` five, and they are not the same five:
+
+  | `<divemode @type>` | `mode` |
+  | --- | --- |
+  | `opencircuit` | `open_circuit` |
+  | `closedcircuit` | `closed_circuit` |
+  | `semiclosedcircuit` | `semi_closed` |
+  | `apnoe` | `freedive` |
+  | `apnea` | `freedive` |
+
+  **Two spellings of one mode**, because UDDF has two: `apnoe` is the original and `apnea`
+  was added beside it in 2017 as the English word, both are current in 3.2.x, and a reader
+  that knew only one would drop every freedive from whichever half of the installed base
+  wrote the other. **`gauge` is the value UDDF does not have** — §6.4a's fifth mode has no
+  counterpart here at all, which is a fact about UDDF rather than about this reader, and
+  `uddf-writing.md` is where it costs something. A `@type` outside the table, or a
+  `<divemode>` with no `@type`, leaves the recording's `mode` absent and is reported: §6.4a
+  forbids assuming open circuit, and the element is not schema-valid without one anyway.
+- **Only a change of value is an event.** The
   first waypoint that carries one gives the recording its `mode`; a later waypoint stating a
   *different* value is reported `dropped`, because the only place §6.6 could carry a switch
   is an event and an event with no type needs a label the file does not supply — writing one

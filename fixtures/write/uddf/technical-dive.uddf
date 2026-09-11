@@ -162,7 +162,7 @@
             <calculatedpo2>0.51</calculatedpo2>
             <depth>18.3</depth>
             <divetime>120</divetime>
-            <gradientfactor>8</gradientfactor>
+            <gradientfactor>0.08</gradientfactor>
             <nodecotime>1200</nodecotime>
           </waypoint>
           <waypoint>
@@ -170,7 +170,7 @@
             <calculatedpo2>1.28</calculatedpo2>
             <depth>61</depth>
             <divetime>600</divetime>
-            <gradientfactor>22</gradientfactor>
+            <gradientfactor>0.22</gradientfactor>
             <nodecotime>0</nodecotime>
           </waypoint>
           <waypoint>
@@ -179,7 +179,7 @@
             <depth>62.3</depth>
             <divetime>1500</divetime>
             <temperature>280.55</temperature>
-            <gradientfactor>31</gradientfactor>
+            <gradientfactor>0.31</gradientfactor>
             <nodecotime>0</nodecotime>
           </waypoint>
           <waypoint>
@@ -189,7 +189,7 @@
             <divetime>2400</divetime>
             <tankpressure ref="mix-1">14000000</tankpressure>
             <tankpressure ref="mix-2">15000000</tankpressure>
-            <gradientfactor>38</gradientfactor>
+            <gradientfactor>0.38</gradientfactor>
             <nodecotime>0</nodecotime>
           </waypoint>
           <waypoint>
@@ -202,7 +202,7 @@
             <depth>21</depth>
             <divetime>3000</divetime>
             <tankpressure ref="mix-4">20000000</tankpressure>
-            <gradientfactor>64</gradientfactor>
+            <gradientfactor>0.64</gradientfactor>
             <nodecotime>0</nodecotime>
           </waypoint>
           <waypoint>
@@ -214,7 +214,7 @@
             <calculatedpo2>1.1</calculatedpo2>
             <depth>12</depth>
             <divetime>3600</divetime>
-            <gradientfactor>68</gradientfactor>
+            <gradientfactor>0.68</gradientfactor>
             <nodecotime>0</nodecotime>
           </waypoint>
           <waypoint>
@@ -224,7 +224,7 @@
             <divetime>4200</divetime>
             <tankpressure ref="mix-4">16000000</tankpressure>
             <tankpressure ref="mix-5">19500000</tankpressure>
-            <gradientfactor>69</gradientfactor>
+            <gradientfactor>0.69</gradientfactor>
             <nodecotime>0</nodecotime>
           </waypoint>
           <waypoint>
@@ -236,7 +236,7 @@
             <calculatedpo2>1.6</calculatedpo2>
             <depth>6</depth>
             <divetime>4800</divetime>
-            <gradientfactor>67</gradientfactor>
+            <gradientfactor>0.67</gradientfactor>
             <nodecotime>0</nodecotime>
           </waypoint>
           <waypoint>
@@ -256,7 +256,7 @@
             <tankpressure ref="mix-2">9500000</tankpressure>
             <tankpressure ref="mix-5">0</tankpressure>
             <temperature>288.95</temperature>
-            <gradientfactor>55</gradientfactor>
+            <gradientfactor>0.55</gradientfactor>
             <nodecotime>1800</nodecotime>
           </waypoint>
           <waypoint>
@@ -264,7 +264,7 @@
             <calculatedpo2>1</calculatedpo2>
             <depth>0</depth>
             <divetime>5520</divetime>
-            <gradientfactor>41</gradientfactor>
+            <gradientfactor>0.41</gradientfactor>
             <nodecotime>5940</nodecotime>
           </waypoint>
           <waypoint>
