@@ -142,11 +142,11 @@ not recognize. The full policy is §7 of the spec.
 ## Implementations
 
 DiveJSON is the native export and import format of **OpenDiving**, a self-hostable dive
-log and the format's reference writer; it ships with OpenDiving, and the application
-repositories open at the project's public launch. The format is deliberately not tied to
-it, and this repository is where that independence is kept: the spec, the schema and the
-fixtures here are the complete definition, and an implementation is something that passes
-them.
+log and the format's reference writer; it ships with OpenDiving, which is installed from
+[opendiving/opendiving](https://github.com/opendiving/opendiving) and whose application
+repositories are linked from there. The format is deliberately not tied to it, and this
+repository is where that independence is kept: the spec, the schema and the fixtures here
+are the complete definition, and an implementation is something that passes them.
 
 [divejson/divejson-py](https://github.com/divejson/divejson-py) is the first — a validator,
 converters and the `conform` runner, on PyPI as
