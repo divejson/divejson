@@ -7,6 +7,47 @@ repositories.
 
 ## Unreleased
 
+- **A recording carries its mode and its deco model (§6.4a, §6.4c), and a profile carries
+  the decompression readouts (§6.4).** What a dive computer *computes* is a class of data
+  the format had no room for, and none of it survives the dive: the recording gains `mode`
+  — `open_circuit`, `closed_circuit`, `semi_closed`, `gauge` or `freedive` — and
+  `deco_model`, a new object holding the algorithm family, the device's own name for the
+  model, a Bühlmann gradient-factor pair and the device's conservatism setting; the profile
+  gains six channels, `ndl` and `tts` in seconds, `ppo2` in hundredths of a bar, `cns` in
+  tenths of a percent, and `gradient_factor` and `surface_gradient_factor` in whole percent.
+  Both sit on the recording rather than on the dive, because two computers on one dive run
+  two models and show two clocks, which is why divers wear two. §5.1 gains the scales, §3
+  gains the `gf_low ≤ gf_high` rule the schema cannot express, and the schema gains a series
+  definition whose values are floored at zero — every one of the six is a quantity with no
+  negative reading, so a source's negative is its absent-marker rather than a value.
+
+  **A freedive is a dive now.** `converting.md`'s *not a scuba dive* rule covered two things
+  under one sentence — a record that is no dive at all, which is still skipped, and a
+  freedive, which was dropped whole for want of a member saying what kind of dive it was.
+  There is a member. `fixtures/suunto_xml/freedive.xml` converted to a conforming logbook
+  with no dives in it and now converts to the dive it always was.
+
+- **An event's `type` is OPTIONAL, and `other` is gone (§6.6).** This is the breaking half.
+  §7 forbids adding values to a REQUIRED member's vocabulary, so a REQUIRED `type` would
+  freeze the event vocabulary at the 1.0 tag and every alarm a computer records — a ceiling
+  violation, a fast ascent, a ppO₂ alarm — would be `other` with a label for the life of
+  1.x. Absent `type` now means unclassified and makes `label` REQUIRED, which is exactly
+  what `other` meant, so `other` goes rather than stand as a second spelling of it (§5.4).
+  The vocabulary is seeded from what real alarms name: `ascent_rate`,
+  `safety_stop_mandatory`, `safety_stop_violation`, `deep_stop_violation`,
+  `ceiling_violation`, `ndl_reached`, `ppo2_high`, `pressure_low` and `depth_alarm`, beside
+  the existing `gas_switch`, `deep_stop`, `safety_stop` and `bookmark`. §7 gains a rule that
+  a value defined after 1.0 travels with a `label`, so a 1.0 reader meeting one treats the
+  type as absent (§5.6) and still has a labelled marker at the right second.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the one
+  below: the draft's status line lets normative text, schema and fixtures change together
+  until the tag, and nothing is tagged. A document written against an earlier draft may
+  carry `"type": "other"`, which the schema now rejects; the same event with its `label` and
+  no `type` is the conforming spelling. `fixtures/invalid/event-other-without-label.divejson`
+  retires — `other` is no longer a type it can fail on — and two files replace it:
+  `event-without-type-or-label.divejson` and `deco-model-gf-order.divejson`.
+
 - **A dive carries `recordings` (§6.4a), and the dive-level `profile` and `source_file`
   are gone.** A recording is one device's record of one dive — its device (§6.4b), its own
   start, its source files and its profile — and a dive has a list of them, in order, the
