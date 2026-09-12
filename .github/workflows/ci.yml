@@ -14,7 +14,7 @@ on:
 # head instead and this stays on the last release; restoring both is the chore that
 # closes CONTRIBUTING.md's first order.
 env:
-  DIVEJSON_VERSION: "0.5.0"
+  DIVEJSON_VERSION: "0.6.0"
 
 jobs:
   # Named `conformance` since the repository's first workflow, and `trigger-site-deploy`
@@ -31,20 +31,8 @@ jobs:
       # test suite, which has moved to divejson/divejson-py along with the matrix
       # that covers it. What is left is a corpus, and a corpus does not vary by
       # interpreter.
-
-      # Mid-flight, per CONTRIBUTING.md's first order: this branch changes what
-      # validates, so no release carries its schema and the pin is the
-      # implementation's own head instead - divejson/divejson-py#15, which vendors
-      # this repository's schema/, fixtures/ and docs/ at the commit its SPEC_REF
-      # names. A 40-character commit is as fixed as a version, so this is still the
-      # deliberate pin the block at the top of this file describes.
-      #
-      # DIVEJSON_VERSION stays on the last release and nothing installs it while this
-      # line names a commit - it is only the version the step below prints, which
-      # mid-flight labels this commit. The chore that closes the order moves the two
-      # back together.
       - name: Install the pinned implementation
-        run: pip install "git+https://github.com/divejson/divejson-py@0e9e2489387d1cacda0f178e7535c716727766bc"
+        run: pip install "divejson==$DIVEJSON_VERSION"
 
       # `jsonschema` arrives as a dependency of the implementation. This is the one
       # check that is about the schema as a document rather than about what it
