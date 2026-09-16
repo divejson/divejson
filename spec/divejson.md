@@ -196,6 +196,14 @@ facts, not instants.
 (`created_at`, `archived_at`, `exported_at`, a dive's `started_at`); members holding
 dates end `_on` (`starts_on`, `serviced_on`, `certified_on`). There are no exceptions.
 
+**A member is never prefixed with the name of the object that carries it**: a dive's
+number is `number` and a certification's is `number`, neither restating the object it
+already sits on. A prefix that names something *else* stays, and says what — `trip_uuid`
+on a dive points at a trip, `gear_uuids` on a gear set at gear items, `gas_number` on a
+cylinder labels a gas, `dive_count` on a gear item counts dives, and `dive_number` on a
+device counts that device's (§6.4b) — as does one qualifying the member itself, like
+`original_filename`. There are no exceptions.
+
 ### 5.3 Identity and cross-references
 
 Every record in a top-level collection carries a `uuid` member: an [RFC 9562] UUID in its
@@ -353,7 +361,7 @@ member overwrite the destination account's own identity or settings.
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | |
-| `dive_number` | integer | O | The diver's own numbering. Unbounded; duplicates are legal (renumbering histories are messy and this format records, not adjudicates). |
+| `number` | integer | O | The diver's own numbering. Unbounded; duplicates are legal (renumbering histories are messy and this format records, not adjudicates). |
 | `started_at` | date-time | R | Local wall clock, with its UTC offset when the source recorded one (§5.2). |
 | `duration` | integer | O | Seconds; > 0. The dive's own duration as logged, which MAY differ from any recording's profile span. |
 | `notes` | string | O | ≤ 10000. |
@@ -478,7 +486,7 @@ two can describe the same physical object without being the same record.
 | `serial` | string | O | 1–64. The device's own serial, opaque — never parsed for meaning. |
 | `firmware` | string | O | 1–32. The version the device was running. |
 | `name` | string | O | 1–64. What the device calls itself, as its owner set it. |
-| `dive_number` | integer | O | ≥ 0. **The device's own counter** — how many dives this piece of hardware has recorded. It is not the diver's numbering, which is §6.2's `dive_number`: a counter starts at 1 on a new or factory-reset device and starts again on the next one. |
+| `dive_number` | integer | O | ≥ 0. The device's own counter — how many dives this piece of hardware has recorded. A counter starts at 1 on a new or factory-reset device and starts again on the next one, so it is not the diver's numbering, which is §6.2's `number`. |
 
 **None of these strings may be empty**, which the schema's own lower bounds enforce — an
 absent value is absence (§5.4), and a device that records nothing at all about itself is not
@@ -810,7 +818,7 @@ One performed maintenance event.
 | `agency` | string | R | One of `"padi"`, `"ssi"`, `"naui"`, `"sdi"`, `"tdi"`, `"cmas"`, `"raid"`, `"bsac"`, `"gue"`, `"iantd"`, `"psai"`, `"dan"`, `"efr"`, `"andi"`, `"snsi"`, `"acuc"`, `"pss"`, `"ida"`, `"other"`. This vocabulary is REQUIRED-member frozen after 1.0 (§7), which is why it was seeded wide; national CMAS federations are `"cmas"`. |
 | `agency_other` | string | O | ≤ 64. REQUIRED when `agency` is `"other"`; MUST be absent otherwise. |
 | `name` | string | R | 1–255. The certification's name, free text on purpose — agency catalogs are unbounded. |
-| `certification_number` | string | O | ≤ 64. |
+| `number` | string | O | ≤ 64. |
 | `certified_on` | date | O | |
 | `expires_on` | date | O | |
 | `instructor_name` | string | O | ≤ 255. |
@@ -973,7 +981,7 @@ short profile, its site, and the diver:
   "dives": [
     {
       "uuid": "019fec36-b9ec-71c6-a03e-64f59b8b92b1",
-      "dive_number": 42,
+      "number": 42,
       "started_at": "2026-04-17T11:49:23+02:00",
       "duration": 2460,
       "max_depth": 18.4,
