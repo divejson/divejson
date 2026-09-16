@@ -843,8 +843,8 @@ one course.
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | |
 | `name` | string | R | 1–255. |
-| `agency` | string | R | The same vocabulary as §6.16's `agency`, shared deliberately — a course and the cards it issued can never name the same agency two ways. The same freeze rule applies (§7). |
-| `agency_other` | string | O | ≤ 64. REQUIRED when `agency` is `"other"`; MUST be absent otherwise — §6.16's pairing rule. |
+| `agency` | string | O | The same vocabulary as §6.16's `agency`, shared deliberately — a course and the cards it issued can never name the same agency two ways. That sharing freezes this vocabulary after 1.0 exactly as §6.16's is frozen, and §7's licence to add values to an OPTIONAL member's vocabulary does not reach it: a value defined here and not there would be the second way. Absent means the course names no agency — a course a private instructor taught has none — and readers MUST NOT substitute one (§5.4). |
+| `agency_other` | string | O | ≤ 64. REQUIRED when `agency` is `"other"`; MUST be absent otherwise — §6.16's pairing rule, where "otherwise" covers an absent `agency` as much as any other value. |
 | `status` | string | O | One of `"planned"`, `"in_progress"`, `"completed"`, `"incomplete"`, `"provisional"`, `"not_passed"` — a booked course exists before its first dive, a referral leaves one open for months, and some agencies issue provisional passes. Absent means not recorded; readers MUST NOT assume `"completed"` (§5.4). |
 | `starts_on` | date | O | |
 | `ends_on` | date | O | MUST be ≥ `starts_on` when both are present. Each date is independently optional — a planned course has no dates yet, a referral course spans months with fuzzy edges, and a course with only one known date is a real state. |

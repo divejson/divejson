@@ -7,6 +7,24 @@ repositories.
 
 ## Unreleased
 
+- **A course's `agency` is OPTIONAL (§6.17).** A course a private instructor taught has no
+  agency, and a REQUIRED member left a writer inventing one — the failure §5.4 exists to
+  forbid, and §5.4's own test says a course is interpretable from its name. §6.16's
+  certification `agency` stays REQUIRED: a card is the artefact an agency issued, so a
+  certification naming none is not a poorer record but a different claim. §6.17 now states
+  the vocabulary freeze in its own words, because §7 grants new enum values in OPTIONAL
+  members and an inherited licence would let a course's agencies drift from the
+  certification's — the one thing sharing that vocabulary exists to prevent.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below: the draft's status line lets normative text, schema and fixtures change together
+  until the tag, and nothing is tagged. `$id`, `title` and `version` are untouched at `1.0`.
+  It breaks readers rather than documents — every document that validated still does, while
+  a reader written against an earlier draft may take a course's `agency` for granted and now
+  meets one without it. `agency_other` without an `agency` stays invalid, which the pairing
+  conditional already gave for free and `fixtures/invalid/course-agency-other-without-agency.divejson`
+  now holds it to.
+
 - **A dive's number is `number`, a certification's is `number` (§6.2, §6.16), and §5.2
   states the rule those two were the only members breaking: a member is never prefixed with
   the name of the object that carries it.** The prefix is a flat-table habit nested JSON
