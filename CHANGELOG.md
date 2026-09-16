@@ -7,6 +7,26 @@ repositories.
 
 ## Unreleased
 
+- **A dive's number is `number`, a certification's is `number` (§6.2, §6.16), and §5.2
+  states the rule those two were the only members breaking: a member is never prefixed with
+  the name of the object that carries it.** The prefix is a flat-table habit nested JSON
+  does not need, and on the dive it collided with a different fact: §6.4b's `dive_number` is
+  a device's own count of the dives it recorded, not the diver's numbering, and every
+  sentence about either had to name a section to say which one it meant. The names tell them
+  apart now, so those sentences say it in the member. The device keeps `dive_number` — it is
+  prefixed with *another* object's name, which the rule permits, and it is the only
+  `dive_number` left in the format.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below: the draft's status line lets normative text, schema and fixtures change together
+  until the tag, and nothing is tagged. `$id`, `title` and `version` are untouched at `1.0`.
+  A document written against an earlier draft carries `dive_number` on its dives and
+  `certification_number` on its certifications, both undefined members now: the schema
+  rejects each, every definition being `additionalProperties: false`, and a reader that
+  meets one ignores it (§5.6). That failure is the one
+  `fixtures/invalid/undefined-member.divejson` already names, so no invalid fixture is added
+  and none retires.
+
 - **A recording carries its mode and its deco model (§6.4a, §6.4c), and a profile carries
   the decompression readouts (§6.4).** What a dive computer *computes* is a class of data
   the format had no room for, and none of it survives the dive: the recording gains `mode`
