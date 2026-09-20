@@ -69,7 +69,7 @@ DiveJSON's answers, as normative rules rather than aspirations:
 | --- | --- |
 | [`spec/divejson.md`](spec/divejson.md) | The specification — the normative document. |
 | [`schema/1.0/divejson.schema.json`](schema/1.0/divejson.schema.json) | The normative JSON Schema (draft 2020-12), one directory per minor version. |
-| [`fixtures/`](fixtures/) | Conformance fixtures: valid documents, invalid ones covering each rule the schema alone cannot express, source-format inputs paired with the documents a converter must produce from them, and under `write/` the pairs that run the other way — a document, and the file a writer must produce from it. |
+| [`fixtures/`](fixtures/) | Conformance fixtures: valid documents, invalid ones the schema rejects and invalid ones that take the rules it cannot express, source-format inputs paired with the documents a converter must produce from them, and under `write/` the pairs that run the other way — a document, and the file a writer must produce from it. |
 | [`docs/`](docs/) | Non-normative notes, one general document per direction: [`converting.md`](docs/converting.md) is the policy for reading a source format into DiveJSON, [`writing.md`](docs/writing.md) the policy for writing DiveJSON back out into one. Beside them, a document per format per direction — [`uddf-mapping.md`](docs/uddf-mapping.md), [`ssrf-mapping.md`](docs/ssrf-mapping.md), [`fit-mapping.md`](docs/fit-mapping.md), [`suunto-json-mapping.md`](docs/suunto-json-mapping.md) and [`suunto-xml-mapping.md`](docs/suunto-xml-mapping.md) coming in, [`uddf-writing.md`](docs/uddf-writing.md) going out. |
 
 ## Validating a document
