@@ -73,7 +73,8 @@ the schema and this list:
 1. Identifier uniqueness and referential closure (§5.3).
 2. Cross-member arithmetic: `oxygen + helium ≤ 100` and `end_pressure ≤ start_pressure`
    on a cylinder (§6.3); `avg_depth ≤ max_depth` on a dive (§6.2); `ends_on ≥ starts_on`
-   on a trip (§6.8) and on a course (§6.17); `south ≤ north` on a bounding box (§6.9).
+   on a trip part (§6.9a) and on a course (§6.17); `south ≤ north` on a bounding box
+   (§6.9).
 3. Profile series integrity, in every recording (§6.4a): equal `times`/`values` lengths
    and strictly increasing `times` (§6.5), and `profile.duration` covering the latest
    sample (§6.4).
@@ -230,9 +231,9 @@ site or animal species in two different logbooks will carry two unrelated uuids.
 record has an external identity that does mean the same thing everywhere — a species'
 WoRMS AphiaID (§6.11) — that identity, not the uuid, is the interchange key.
 
-Embedded objects (cylinders, recordings, profile, trip locations, positions) have no
-independent identity; stored-file records (§6.7) do carry a `uuid` because files are
-addressable objects in the source logbook.
+Embedded objects (cylinders, recordings, profile, trip parts, trip locations, positions)
+have no independent identity; stored-file records (§6.7) do carry a `uuid` because files
+are addressable objects in the source logbook.
 
 ### 5.4 Absent members, null, and "nothing invented"
 
@@ -680,19 +681,49 @@ parsers and each record describes its own bytes.
 
 ### 6.8 Trip
 
+A trip is a **sequence of parts** (§6.9a), each a stretch of it with its own dates and its
+own place: a liveaboard week and then a hotel week are two parts, and so are three towns
+down a coast. The trip records no dates of its own — its span is the earliest `starts_on`
+among its parts and the latest `ends_on`, and a trip whose parts carry none has no span at
+all, which is a record rather than a defect. It carries no list of its dives either: the
+link lives on the dive (`dives[].trip_uuid`) and a reader rebuilds the grouping by walking
+them.
+
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | |
 | `name` | string | R | 1–255. |
-| `locations` | array of Trip Location | O | In the diver's own order. |
-| `starts_on` | date | R | |
-| `ends_on` | date | O | MUST be ≥ `starts_on`. Absent when no end is recorded — an ongoing trip, or one logged with only its start. |
+| `parts` | array of Trip Part (§6.9a) | O | In the diver's own order, which is not necessarily date order (§6.9a). Absent or empty is a trip whose stretches were never recorded, and it has no span. |
 | `notes` | string | O | ≤ 10000. |
 | `created_at` | date-time | O | §5.7. |
 
+### 6.9a Trip Part
+
+One stretch of a trip: a date range, a place, or both. Embedded value object; no uuid.
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `starts_on` | date | O | |
+| `ends_on` | date | O | MUST be ≥ `starts_on` when both are present. Each date is independently optional, as on a course (§6.17): a part logged with only its start is a real state, and so is a place the diver named and never dated. |
+| `location` | Trip Location (§6.9) | O | Where this stretch of the trip was. Absent for a transit day, or for a stretch no geocoder resolved and the diver never named. |
+
+A part carries **no name of its own**: `location.name` is the place's name, and a part with
+no location is identified by its dates, or by its position in the array when it has
+neither. Every member being absent is conforming — an empty object is a stretch of a trip
+the source recorded nothing about, which §5.4 spells as absence rather than as a
+fabricated date.
+
+**Parts keep the diver's own order**, which is recorded data: writers MUST preserve it and
+readers MUST NOT re-sort it. It is not date order, and cannot be — an undated part has no
+place in one. A part carries no ordinal member, because the array's order is the order.
+
+**Parts MAY overlap and need not be contiguous.** Leaving one place and arriving at the
+next on the same day is two parts sharing a date, and a gap between two of them is a real
+thing to record; neither is a defect and no rule here forbids either.
+
 ### 6.9 Trip Location
 
-A named place a trip went. Embedded value object; no uuid.
+A named place a part of a trip went. Embedded value object; no uuid.
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |

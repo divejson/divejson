@@ -7,6 +7,39 @@ repositories.
 
 ## Unreleased
 
+- **A trip is a sequence of parts (§6.8, §6.9a), and it carries no dates of its own.** A
+  trip was one date range beside an ordered list of undated places, which models a week in
+  one place and nothing else: the two shapes divers actually log — a liveaboard week and
+  then a hotel week, a drive down a coast stopping in three towns — both collapsed into one
+  span with a list of names next to it, and the file could not say which dives happened
+  where. §6.9a's **Trip Part** is the stretch that carries its own `starts_on`, its own
+  `ends_on` and its own `location`; §6.8's `locations` becomes `parts`, `starts_on` and
+  `ends_on` come off the trip, and a trip's span is the earliest `starts_on` among its parts
+  and the latest `ends_on`. §6.9's Trip Location is unchanged and is what a part's
+  `location` holds. §3's `ends_on ≥ starts_on` rule moves from the trip to the part, and
+  §5.3's list of objects with no independent identity gains the part.
+
+  **A trip may now have no dates at all.** Each of a part's dates is independently optional,
+  as a course's are, so a trip whose parts carry none has no span — and that is why
+  `starts_on` is dropped rather than moved down still REQUIRED. A place the diver recorded
+  and never dated is a record, and a transit day is a part with dates and no place.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below: the draft's status line lets normative text, schema and fixtures change together
+  until the tag, and nothing is tagged. `$id`, `title` and `version` are untouched at `1.0`.
+  It breaks documents as well as readers — `trips[].locations`, `trips[].starts_on` and
+  `trips[].ends_on` are undefined members now, and every definition being
+  `additionalProperties: false`, the schema rejects each. `fixtures/invalid/trip-dates-reversed.divejson`
+  puts its reversed range on a part and the three `bbox-*` files hang their box off
+  `parts[].location`, so no invalid fixture is added and none retires.
+
+  **UDDF is where the gap was loudest, and it closes.** `<trippart>` was already a stretch
+  with its own dates and its own place, so `docs/uddf-mapping.md` stops folding a file's
+  per-part dates into one span and `docs/uddf-writing.md` stops putting a trip's whole span
+  on the first part it emits. `fixtures/write/uddf/technical-dive.uddf` is the pair that
+  shows it: three `<trippart>`s where there were two, and each of the three shapes §6.9a
+  allows.
+
 - **A course's `agency` is OPTIONAL (§6.17).** A course a private instructor taught has no
   agency, and a REQUIRED member left a writer inventing one — the failure §5.4 exists to
   forbid, and §5.4's own test says a course is interpretable from its name. §6.16's
