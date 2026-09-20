@@ -37,9 +37,14 @@ what makes a fixture dropped into this tree impossible to ignore.
 
 ## invalid/
 
-One defect per file. Every rule the schema alone cannot express (spec §3) has a fixture
-here; several schema-level defects are included so the validator's schema pass and the
-format's structural guarantees (Position objects, the null ban) are exercised too.
+One defect per file, and two kinds of defect. Every rule the schema alone cannot express
+(spec §3) has a fixture here, and so do defects the schema rejects by itself: those are
+what catch a schema loosened until it stops rejecting something it should, and they are
+why the schema pass and the format's structural guarantees (Position objects, the null
+ban) are exercised by this directory rather than only by `valid/`. Which kind any one file
+is, the schema pass answers — the table below gives the rule, not the pass, and
+[CONTRIBUTING.md](../CONTRIBUTING.md) carries the command that sorts the directory in one
+run.
 
 **Three of §3's rules now read *per recording*, and each keeps its defect off the first
 one** — `recording-without-content` puts the empty recording second, `non-increasing-samples`

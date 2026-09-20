@@ -53,8 +53,30 @@ in this tree. It is also what makes a schema change here **red on the pinned rel
 rather than quietly unchecked, which is the first of the two orders below.
 
 Changes to normative text, the JSON Schema, and the fixtures travel together: a pull
-request that changes what a conforming document looks like must update all three, and
-`fixtures/invalid/` must keep one file per rule the schema alone cannot express.
+request that changes what a conforming document looks like must update all three.
+
+`fixtures/invalid/` holds two kinds of file and needs both: the rejections the schema
+makes on its own, which are what catch a schema loosened until it stops rejecting
+something it should, and at least one file per rule §3 lists as living outside the schema,
+which is the floor that list implies. Which kind a file is, is a measurement rather than a
+declaration — the schema pass alone, with no implementation installed, sorts the whole
+directory:
+
+```bash
+pip install jsonschema
+python - <<'EOF'
+import json, pathlib
+from jsonschema import Draft202012Validator
+schema = json.loads(pathlib.Path("schema/1.0/divejson.schema.json").read_text())
+v = Draft202012Validator(schema)
+for p in sorted(pathlib.Path("fixtures/invalid").glob("*.divejson")):
+    print("schema" if not v.is_valid(json.loads(p.read_text())) else "rules ", p.name)
+EOF
+```
+
+A rule added to §3's list owes a file here; so does a tightening of the schema. Which of
+the two labels a new file prints is the command's answer rather than its author's, and no
+file is removed for printing `schema`.
 
 ## How a change lands: two repositories, two orders
 
