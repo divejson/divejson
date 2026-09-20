@@ -377,10 +377,16 @@ the trip. A part's `location.name` is the `<name>`, its `location.display_name` 
 
 **A trip with no parts still needs one `<trippart>`** — `tripType` requires at least one —
 and gets a nameless, dateless one, an empty `<name>` being a valid `xs:string` that reads
-back as no part rather than as an empty one. A part with no `location` gets the same empty
-`<name>` beside its own `<dateoftrip>`, and reads back as the dated placeless part it was —
-so a part carrying **neither** a location nor a date is the one shape that does not survive
-the self round trip, being indistinguishable on the way back from the floor above.
+back as no part rather than as an empty one. Nothing is reported for it: the document held
+no part, and no part is what comes back.
+
+**A part with no `location` gets that same empty `<name>`, and it is reported `absent`**,
+`simpleNamedType` making `<name>` mandatory where the part has nothing for it. The finding
+says what a reader will take the placeholder as, and that turns on the part's dates: one
+that has them comes back as the dated placeless part it was, and one carrying **neither** a
+location nor a date does not come back at all, being indistinguishable from the floor above.
+That second case is the one shape of part the self round trip loses, and naming it in the
+report is what `writing.md` asks of a loss.
 
 The trip's **note** goes on the first `<trippart>` and nowhere else, since a reader joins
 every part's notes: writing it on each would hand back a note repeated once per part. A
