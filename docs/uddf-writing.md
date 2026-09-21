@@ -1,6 +1,6 @@
 # Writing DiveJSON as UDDF
 
-**Non-normative.** The specification is [`spec/divejson.md`](../spec/divejson.md); nothing
+**Non-normative.** The specification is [`spec/divejson.md`](https://github.com/divejson/divejson/blob/main/spec/divejson.md); nothing
 here changes what a conforming document is. [`uddf-mapping.md`](uddf-mapping.md) is the
 other direction — every element a reader takes into DiveJSON — and this document is what a
 writer does with a DiveJSON document that has to become a UDDF file: which member lands in
