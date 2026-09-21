@@ -74,7 +74,7 @@ the schema and this list:
 2. Cross-member arithmetic: `oxygen + helium ≤ 100` and `end_pressure ≤ start_pressure`
    on a cylinder (§6.3); `avg_depth ≤ max_depth` on a dive (§6.2); `ends_on ≥ starts_on`
    on a trip part (§6.9a) and on a course (§6.17); `south ≤ north` on a bounding box
-   (§6.9).
+   (§6.9), on either host a location has — a trip part (§6.9a) and a dive site (§6.10).
 3. Profile series integrity, in every recording (§6.4a): equal `times`/`values` lengths
    and strictly increasing `times` (§6.5), and `profile.duration` covering the latest
    sample (§6.4).
@@ -231,7 +231,7 @@ site or animal species in two different logbooks will carry two unrelated uuids.
 record has an external identity that does mean the same thing everywhere — a species'
 WoRMS AphiaID (§6.11) — that identity, not the uuid, is the interchange key.
 
-Embedded objects (cylinders, recordings, profile, trip parts, trip locations, positions)
+Embedded objects (cylinders, recordings, profile, trip parts, locations, positions)
 have no independent identity; stored-file records (§6.7) do carry a `uuid` because files
 are addressable objects in the source logbook.
 
@@ -705,7 +705,7 @@ One stretch of a trip: a date range, a place, or both. Embedded value object; no
 | --- | --- | --- | --- |
 | `starts_on` | date | O | |
 | `ends_on` | date | O | MUST be ≥ `starts_on` when both are present. Each date is independently optional, as on a course (§6.17): a part logged with only its start is a real state, and so is a place the diver named and never dated. |
-| `location` | Trip Location (§6.9) | O | Where this stretch of the trip was. Absent for a transit day, or for a stretch no geocoder resolved and the diver never named. |
+| `location` | Location (§6.9) | O | Where this stretch of the trip was. Absent for a transit day, or for a stretch no geocoder resolved and the diver never named. |
 
 A part carries **no name of its own**: `location.name` is the place's name, and a part with
 no location is identified by its dates, or by its position in the array when it has
@@ -721,15 +721,17 @@ place in one. A part carries no ordinal member, because the array's order is the
 next on the same day is two parts sharing a date, and a gap between two of them is a real
 thing to record; neither is a defect and no rule here forbids either.
 
-### 6.9 Trip Location
+### 6.9 Location
 
-A named place a part of a trip went. Embedded value object; no uuid.
+A named place. Embedded value object; no uuid. A part of a trip (§6.9a) and a dive site
+(§6.10) each carry one, and it is the same object on both: a place a geocoder resolved,
+or one the diver simply named.
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `name` | string | R | 1–255. |
-| `display_name` | string | O | ≤ 512. A fuller geocoded form of the name. |
-| `position` | Position | O | §6's Position object. |
+| `name` | string | R | 1–255. The place as a person writes it — the name alone ("Moalboal"), or the name and its country ("Dahab, Egypt"). |
+| `full_name` | string | O | ≤ 512. The fullest written form the source held for the place, typically the name extended outward to the country ("Dahab, South Sinai Governorate, Egypt"). |
+| `position` | Position | O | §6's Position object — where the *place* is. |
 | `bbox` | Bounding Box | O | The geocoded extent of the named place — the rectangle a geocoder returned for it, so a reader can frame a map around the whole area without re-geocoding. Requires `position`. |
 
 A **Bounding Box** is an object with four REQUIRED number members — `south` and `north`
@@ -738,16 +740,28 @@ exceed `east`, which means the box crosses the antimeridian. A location with a b
 `name` and nothing else is fully conforming — a place the diver named but no geocoder
 resolved.
 
+**Nothing binds `full_name` to `name`.** It is usually the longer and is not required to
+contain the other — a lookup asked about a local name often answers with the district
+around it, so `"Sipadan Island Park"` may carry `"Sabah, Malaysia"`. Neither §3's list nor
+anything here constrains the pair.
+
 ### 6.10 Dive Site
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | |
 | `name` | string | R | 1–255. |
-| `location` | string | O | ≤ 255. Free-text locality ("Las Galletas, Tenerife"). |
-| `position` | Position | O | §6's Position object. |
+| `location` | Location (§6.9) | O | The locality the site is in ("Las Galletas, Tenerife"). Absent where the source recorded none, which is the common case. |
+| `position` | Position | O | §6's Position object — where the *site* is. |
 | `notes` | string | O | ≤ 10000. |
 | `created_at` | date-time | O | §5.7. |
+
+**A dive site carries two positions and they are different facts.** `position` is the
+site: the pin a diver dropped, the entry point, the wreck. `location.position` is the
+locality the place resolved to and `location.bbox` its extent, which is an area rather
+than a point and exists so a reader can frame a map on the locality without geocoding it
+again. Writers MUST NOT fill either position from the other, and readers MUST NOT take
+`location.position` for the site's own coordinates.
 
 ### 6.11 Species
 
@@ -943,7 +957,8 @@ one. Beyond generic JSON concerns:
 
 - **A DiveJSON document is a personal dossier.** By design it is a *complete* logbook:
   precise timestamped positions (dive-site coordinates, per-dive entry/exit satellite
-  fixes, trip bounding boxes) that together form a movement history; the diver's name,
+  fixes, and the locality centres and bounding boxes a trip part and a dive site each
+  carry) that together form a movement history; the diver's name,
   handle, and email address; certification numbers, instructor names, and training
   centers, which function as identity documents; the serial numbers of the dive computers
   on their wrist (§6.4b) **and of the kit they own** (§6.12), which are stable hardware
@@ -1038,7 +1053,12 @@ short profile, its site, and the diver:
     {
       "uuid": "019fec36-b8b8-7cc9-a4b9-ede85f907c94",
       "name": "House Reef",
-      "location": "Dahab, Egypt",
+      "location": {
+        "name": "Dahab, Egypt",
+        "full_name": "Dahab, South Sinai Governorate, Egypt",
+        "position": { "latitude": 28.5091, "longitude": 34.5136 },
+        "bbox": { "south": 28.44, "north": 28.6, "west": 34.45, "east": 34.6 }
+      },
       "position": { "latitude": 28.567251, "longitude": 34.533257 }
     }
   ]
