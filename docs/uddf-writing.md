@@ -523,7 +523,8 @@ stamps `<generator><name>divejson convert</name>`, and the table's one row is
 branch of that rule, the fraction one, and a written `0.67` comes back as `67`. Writing
 whole percent instead would come back as `6700`: the round trip a writing document exists
 to prevent, and one no conformance pair would catch, since the corpus never reads a written
-file back (`CONTRIBUTING.md`, *the checks the corpus cannot make*).
+file back ([divejson/divejson's CONTRIBUTING.md](https://github.com/divejson/divejson/blob/main/CONTRIBUTING.md#adding-an-adapter),
+*the checks the corpus cannot make*).
 
 *Rejected:* adding this writer to the generator table so it could write whole percent. The
 table exists to record what a **third party's** files need read differently; a writer that

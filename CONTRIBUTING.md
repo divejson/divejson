@@ -88,14 +88,16 @@ there. **An implementation never edits a file this repository owns.** It may car
 this repository does not have yet — that is how a new reader or writer lands self-contained,
 with the pairs it produces and the document that explains them.
 
-Because those three trees are read from both repositories, a link out of one of them is
-written for both. A link **between** the vendored trees stays relative — `fixtures/` and
+Because those three trees are read from both repositories, a reference out of one of
+them is written for both, whether it is a link or a bare mention in prose. A link
+**between** the vendored trees stays relative — `fixtures/` and
 `docs/` sit beside each other over there too, so `../docs/writing.md` resolves either
 side. A link to anything else here — `spec/`, `CONTRIBUTING.md`, `README.md` — is
 **absolute**, to `https://github.com/divejson/divejson/blob/main/…`, because the relative
 form resolves against the implementation's own root: `spec/` does not exist there, and
 `CONTRIBUTING.md` and `README.md` do, as different documents that answer a reader's
-question wrongly rather than visibly failing.
+question wrongly rather than visibly failing. A bare `` `CONTRIBUTING.md` `` in a sentence
+fails the same way with nothing to click, so name the repository there too.
 
 So a change goes one of two ways, and which one it is depends on whether it touches a file
 that already exists here.
