@@ -7,6 +7,41 @@ repositories.
 
 ## Unreleased
 
+- **A dive site's `location` is the object a trip part's already was (§6.9, §6.10).** The
+  format said where things are in two ways: a trip part carried a structured place with a
+  position and a geocoded extent, while a dive site carried a free-text locality. Both
+  members were spelled `location`, both were filled from the same lookup, and one of them
+  kept a composed label and threw away everything else the lookup returned. §6.9's **Trip
+  Location** is now **Location** and both hosts reference it, so a reader that can frame a
+  map on a trip's place can frame one on a site's. §3's `south ≤ north` rule names both
+  hosts, §5.3's list of objects with no independent identity says "locations", and §6.10
+  gains the prose that keeps a site's two positions apart: `position` is the site's own
+  pin, `location.position` is the locality's centre, and neither may be filled from the
+  other. `docs/uddf-mapping.md`'s two place tables now read into one object, and
+  `docs/uddf-writing.md` records what a site's locality costs on the way out — its
+  `<geography><location>` holds the name, so the full name, the centre and the box are
+  reported dropped where a part loses only its box.
+
+  **The two text members are `name` and `full_name`**, where they were `name` and
+  `display_name`. `name` is the place as a person writes it — `"Moalboal"` typed,
+  `"Dahab, Egypt"` looked up — and `full_name` is the fullest written form the source held
+  for it. The old member is removed rather than re-pointed: it meant the fuller form, which
+  is what `full_name` now holds, and it is named after the one word geocoders disagree
+  about — Nominatim's `display_name` is the long string where Google Places' `displayName`
+  is the short one. Nothing binds the two to each other, and §6.9 says so as an observation
+  rather than as a rule: `full_name` is usually the longer and is not required to contain
+  `name`.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below: the draft's status line lets normative text, schema and fixtures change together
+  until the tag, and nothing is tagged. `$id`, `title` and `version` are untouched at `1.0`.
+  It breaks documents as well as readers — a `sites[].location` string is no longer of the
+  declared type, and `display_name` is an undefined member that every definition being
+  `additionalProperties: false` rejects outside `extensions`. An exporter that has not moved
+  fails loudly rather than filing a postal chain where readers expect a place name.
+  `fixtures/invalid/` gains `site-bbox-south-exceeds-north.divejson`: the box rule has two
+  hosts now, and a validator that walks only trips passes the trip-hosted file perfectly.
+
 - **A trip is a sequence of parts (§6.8, §6.9a), and it carries no dates of its own.** A
   trip was one date range beside an ordered list of undated places, which models a week in
   one place and nothing else: the two shapes divers actually log — a liveaboard week and
@@ -15,9 +50,9 @@ repositories.
   where. §6.9a's **Trip Part** is the stretch that carries its own `starts_on`, its own
   `ends_on` and its own `location`; §6.8's `locations` becomes `parts`, `starts_on` and
   `ends_on` come off the trip, and a trip's span is the earliest `starts_on` among its parts
-  and the latest `ends_on`. §6.9's Trip Location is unchanged and is what a part's
-  `location` holds. §3's `ends_on ≥ starts_on` rule moves from the trip to the part, and
-  §5.3's list of objects with no independent identity gains the part.
+  and the latest `ends_on`. §6.9's Location is what a part's `location` holds. §3's
+  `ends_on ≥ starts_on` rule moves from the trip to the part, and §5.3's list of objects
+  with no independent identity gains the part.
 
   **A trip may now have no dates at all.** Each of a part's dates is independently optional,
   as a course's are, so a trip whose parts carry none has no span — and that is why
