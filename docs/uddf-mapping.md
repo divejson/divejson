@@ -1,6 +1,6 @@
 # Reading UDDF into DiveJSON
 
-**Non-normative.** The specification is [`spec/divejson.md`](../spec/divejson.md); nothing
+**Non-normative.** The specification is [`spec/divejson.md`](https://github.com/divejson/divejson/blob/main/spec/divejson.md); nothing
 here changes what a conforming document is.
 
 **The rules that hold for every source format are in
@@ -634,7 +634,7 @@ writes all three that way.
 | `<informationafterdive><rating>`, `<current>`, `<problems>` | no core member. |
 | `<site><ecology>` | site-level flora and fauna, where §6.11's species are per-dive sightings. |
 | `<trippart><relateddives>` | the reverse of `<tripmembership>`; no writer in the corpus emits it. |
-| `<trippart @type>` | `boat`, `hotel`, `individual` or `organized` — the liveaboard-then-hotel distinction §6.9a's part exists to record, and the one member a part might plausibly gain next. There is nowhere to read it into: a core field arrives when an implementation stores it (`CONTRIBUTING.md`), and none does. A reader that wants it has `extensions`. |
+| `<trippart @type>` | `boat`, `hotel`, `individual` or `organized` — the liveaboard-then-hotel distinction §6.9a's part exists to record, and the one member a part might plausibly gain next. There is nowhere to read it into: a core field arrives when an implementation stores it ([divejson/divejson's CONTRIBUTING.md](https://github.com/divejson/divejson/blob/main/CONTRIBUTING.md#proposing-additions-to-the-data-model)), and none does. A reader that wants it has `extensions`. |
 | `<mix><n2>`, `<ar>`, `<h2>` | §6.3 models the remainder as nitrogen and does not model argon or trace gases. |
 | `courses`, `certifications`, `gear_sets`, `gear service` | UDDF has no slot for any of them. |
 

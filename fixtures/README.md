@@ -3,7 +3,7 @@
 `divejson validate` must pass every document in `valid/` and reject every document in
 `invalid/`. CI enforces exactly that, so a change to the spec or schema that alters what
 conforms shows up here as a failing fixture — update the three together
-([CONTRIBUTING.md](../CONTRIBUTING.md)).
+([divejson/divejson's CONTRIBUTING.md](https://github.com/divejson/divejson/blob/main/CONTRIBUTING.md)).
 
 Beside those two sit the **pair** corpora, which are for *converters* rather than
 validators: each input is paired with the document a correct reader produces from it.
@@ -12,8 +12,8 @@ pairs under `write/` run the other way — a document, and the file a correct wr
 from it — and `write/uddf/` is the first of those.
 
 An implementation walks all of it with one command — `divejson conform fixtures/ --strict`
-([CONTRIBUTING.md](../CONTRIBUTING.md)) — and the directory layout is that command's
-contract:
+([divejson/divejson's CONTRIBUTING.md](https://github.com/divejson/divejson/blob/main/CONTRIBUTING.md)) —
+and the directory layout is that command's contract:
 
 | path | what |
 | --- | --- |
@@ -43,8 +43,8 @@ what catch a schema loosened until it stops rejecting something it should, and t
 why the schema pass and the format's structural guarantees (Position objects, the null
 ban) are exercised by this directory rather than only by `valid/`. Which kind any one file
 is, the schema pass answers — the table below gives the rule, not the pass, and
-[CONTRIBUTING.md](../CONTRIBUTING.md) carries the command that sorts the directory in one
-run.
+[divejson/divejson's CONTRIBUTING.md](https://github.com/divejson/divejson/blob/main/CONTRIBUTING.md)
+carries the command that sorts the directory in one run.
 
 **Three of §3's rules now read *per recording*, and each keeps its defect off the first
 one** — `recording-without-content` puts the empty recording second, `non-increasing-samples`
