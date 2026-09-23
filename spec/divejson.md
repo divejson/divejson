@@ -375,9 +375,9 @@ have no core members; the reference implementation carries its own under its pro
 key, e.g. `"extensions": {"opendiving": {"units": "metric", "gear_service_emails":
 true}}`. Readers importing a logbook into an existing account MUST NOT let any diver
 member overwrite the destination account's own identity or settings — its name, handle,
-email and preferences. `phone`, `born_on`, `emergency_contacts` and `insurances` are
-neither: they are the importing diver's to confirm, since nothing in a document tells a
-restore of the diver's own logbook from somebody else's, and an emergency contact taken
+email and preferences — and SHOULD NOT apply `phone`, `born_on`, `emergency_contacts` or
+`insurances` to it without the importing diver confirming them. Nothing in a document tells
+a restore of the diver's own logbook from somebody else's, and an emergency contact taken
 unseen from another person's would be the wrong person to call.
 
 ### 6.2 Dive

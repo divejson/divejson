@@ -15,8 +15,9 @@ repositories.
   order they are to be called. An **Emergency Contact** requires a `name` and an
   **Insurance** a `provider`, so a phone with nobody beside it, or a number with no insurer,
   never travels. §6.1's rule that a document never overwrites an account's identity or
-  settings now names what those are and leaves the four new members to the importing diver
-  to confirm, and §9's dossier gains them, an emergency contact being another person's data.
+  settings now names what those are, and a reader SHOULD NOT apply the four new members
+  without the importing diver confirming them; §9's dossier gains them, an emergency
+  contact being another person's data.
 
   **The members are additive and the bounds are a tightening**: `name` ≤ 255, `username` ≤
   64 and `email` ≤ 255, the person-facing strings the schema had left unbounded. A minor
