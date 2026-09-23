@@ -7,6 +7,34 @@ repositories.
 
 ## Unreleased
 
+- **A diver carries a phone, a date of birth, emergency contacts and insurances, and the
+  Diver's own strings are bounded (§6.1, §9).** The four are what a dive desk asks a diver
+  for, and they shipped under the `opendiving` producer key before arriving here, the path
+  §5.5 describes into the core. `phone` is one free-text number and `born_on` a date;
+  `emergency_contacts` and `insurances` are arrays of two new objects, the contacts in the
+  order they are to be called. An **Emergency Contact** requires a `name` and an
+  **Insurance** a `provider`, so a phone with nobody beside it, or a number with no insurer,
+  never travels. §6.1's rule that a document never overwrites an account's identity or
+  settings now names what those are, and a reader SHOULD NOT apply the four new members
+  without the importing diver confirming them; §9's dossier gains them, an emergency
+  contact being another person's data.
+
+  **The members are additive and the bounds are a tightening**: `name` ≤ 255, `username` ≤
+  64 and `email` ≤ 255, the person-facing strings the schema had left unbounded. A minor
+  version could not tighten a constraint (§7); the untagged draft can, so this lands inside
+  1.0 with `$id`, `title` and `version` untouched. `fixtures/invalid/` gains
+  `diver-name-too-long`, `diver-username-too-long` and `diver-email-too-long` for the
+  tightening, and `emergency-contact-without-name` and `insurance-without-provider` for the
+  two new REQUIRED members.
+
+  **UDDF has a home for three of the four.** `docs/uddf-mapping.md` and
+  `docs/uddf-writing.md` map `born_on` to `<birthdate>`, `phone` to `<contact><phone>` and
+  each insurance to a `<diveinsurances><insurance>`, a date written as a `<datetime>` at
+  midnight, and report `emergency_contacts` and an insurance's `number`, which have none. An
+  owner that records any of them and no name is a diver in both directions:
+  `owner-profile-only` is that pair each way, and the `opendiving` and `technical-dive`
+  pairs carry the rest.
+
 - **A dive site's `location` is the object a trip part's already was (§6.9, §6.10).** The
   format said where things are in two ways: a trip part carried a structured place with a
   position and a geocoded extent, while a dive site carried a free-text locality. Both
