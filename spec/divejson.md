@@ -231,9 +231,10 @@ site or animal species in two different logbooks will carry two unrelated uuids.
 record has an external identity that does mean the same thing everywhere — a species'
 WoRMS AphiaID (§6.11) — that identity, not the uuid, is the interchange key.
 
-Embedded objects (cylinders, recordings, profile, trip parts, locations, positions)
-have no independent identity; stored-file records (§6.7) do carry a `uuid` because files
-are addressable objects in the source logbook.
+Embedded objects (cylinders, recordings, profile, trip parts, locations, positions, a
+diver's emergency contacts and insurances) have no independent identity; stored-file
+records (§6.7) do carry a `uuid` because files are addressable objects in the source
+logbook.
 
 ### 5.4 Absent members, null, and "nothing invented"
 
@@ -346,16 +347,38 @@ importers.
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
 | `uuid` | uuid | O | The diver's identity within this document (§5.3) — stable across the same source's exports. |
-| `name` | string | O | Display name. |
-| `username` | string | O | The diver's handle in the source application. |
-| `email` | string | O | Contact address. |
+| `name` | string | O | ≤ 255. Display name. |
+| `username` | string | O | ≤ 64. The diver's handle in the source application. |
+| `email` | string | O | ≤ 255. Contact address. |
+| `phone` | string | O | ≤ 32. The diver's phone number, as written — free text, not E.164, since a number a person writes down carries spaces, a trunk prefix or an extension that a normalized form would lose. One number, the way `email` is one address. |
+| `born_on` | date | O | The diver's date of birth. |
+| `emergency_contacts` | array of Emergency Contact | O | The people to call if something happens to the diver, **in the order they are to be called**: the first is called first. Writers MUST preserve that order and readers MUST NOT re-sort it. |
+| `insurances` | array of Insurance | O | The diver's dive insurance, one element per policy, in the source's own order. |
 | `created_at` | date-time | O | When the account or logbook was created. |
+
+An **Emergency Contact** is an embedded object, with no uuid, carrying a REQUIRED `name`
+(string, 1–255) — the person to call — and two OPTIONAL members: `phone` (string, ≤ 32,
+written as the diver's own is) and `relationship` (string, ≤ 64, free text: "partner",
+"sister", "dive buddy"). A contact is a person, so it carries a name or is not recorded at
+all: a number with nobody named beside it leaves whoever dials it not knowing whom to ask
+for.
+
+An **Insurance** is an embedded object, with no uuid, carrying a REQUIRED `provider`
+(string, 1–255) — the insurer, as the diver names it — and two OPTIONAL members: `number`
+(string, ≤ 64), the identifier the insurer knows the diver by, whatever the insurer calls
+it (a policy number, a member number), and `expires_on` (date), the last day of cover. A
+number with no insurer beside it identifies nothing, which is why `provider` is the member
+an insurance cannot omit.
 
 Application preferences (display units, notification settings) are not logbook data and
 have no core members; the reference implementation carries its own under its producer
 key, e.g. `"extensions": {"opendiving": {"units": "metric", "gear_service_emails":
 true}}`. Readers importing a logbook into an existing account MUST NOT let any diver
-member overwrite the destination account's own identity or settings.
+member overwrite the destination account's own identity or settings — its name, handle,
+email and preferences. `phone`, `born_on`, `emergency_contacts` and `insurances` are
+neither: they are the importing diver's to confirm, since nothing in a document tells a
+restore of the diver's own logbook from somebody else's, and an emergency contact taken
+unseen from another person's would be the wrong person to call.
 
 ### 6.2 Dive
 
@@ -958,16 +981,18 @@ one. Beyond generic JSON concerns:
 - **A DiveJSON document is a personal dossier.** By design it is a *complete* logbook:
   precise timestamped positions (dive-site coordinates, per-dive entry/exit satellite
   fixes, and the locality centres and bounding boxes a trip part and a dive site each
-  carry) that together form a movement history; the diver's name,
-  handle, and email address; certification numbers, instructor names, and training
-  centers, which function as identity documents; the serial numbers of the dive computers
-  on their wrist (§6.4b) **and of the kit they own** (§6.12), which are stable hardware
-  identifiers that link two documents to one diver even when every other member differs —
-  and the kit list carries them for gear that never recorded a dive, so a document with no
-  `recordings` at all can still hold one; and free-text notes of up to 10,000
-  characters on six record types. Software handling documents SHOULD treat them with the
-  care of a personal data export: serve them only to their owner, over authenticated
-  channels, without shared caching.
+  carry) that together form a movement history; the diver's name, handle, email address,
+  phone number and date of birth, and their dive insurance; an emergency contact's name
+  and phone number, which are **another person's** data, carried without that person
+  having exported anything; certification numbers, instructor names, and training centers,
+  which function as identity documents; the serial numbers of the dive computers on their
+  wrist (§6.4b) **and of the kit they own** (§6.12), which are stable hardware identifiers
+  that link two documents to one diver even when every other member differs — and the kit
+  list carries them for gear that never recorded a dive, so a document with no
+  `recordings` at all can still hold one; and free-text notes of up to 10,000 characters
+  on six record types. Software handling documents SHOULD treat them with the care of a
+  personal data export: serve them only to their owner, over authenticated channels,
+  without shared caching.
 - **Archives raise the stakes** (Appendix A): they add the referenced binaries, which can
   include scans of certification cards — ID-like personal documents — and, among
   producer-added members, even a profile photo (the reference implementation ships the
