@@ -54,7 +54,10 @@ repositories.
   primary recording with the valid corpus, so each keeps its one defect;
   `dive-profile-outside-recording` has no recording to take them and drops them.
   `valid/two-computers` carries a readout set on each of its recordings, and they differ, and
-  `valid/technical-dive` a `salinity` of `en13319` on a dive in salt water.
+  `valid/technical-dive` a `salinity` of `en13319` on a dive in salt water. A recording of
+  readouts alone is in both corpora: `valid/technical-dive`'s third dive carries a `cns_end`
+  and nothing else, and `ssrf/trip-grouping`'s third dive gains an `@cns` and an `@otu` that
+  arrive on a recording of their own.
 
 - **A dive's start may be a date (§5.2, §6.2, §6.4a).** `started_at` was a REQUIRED
   date-time, so a source that recorded the day and not the time — a bare UDDF `<datetime>`,

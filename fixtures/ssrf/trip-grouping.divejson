@@ -63,7 +63,13 @@
       "started_at": "2026-07-11T09:45:00",
       "duration": 3480,
       "max_depth": 14.9,
-      "avg_depth": 9.1
+      "avg_depth": 9.1,
+      "recordings": [
+        {
+          "cns_end": 6.0,
+          "otu_end": 9.0
+        }
+      ]
     }
   ],
   "sites": [

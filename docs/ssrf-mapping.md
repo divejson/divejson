@@ -212,8 +212,9 @@ and cost the whole logbook.
 records no starting pair, so `cns_start` and `otu_start` have no source here. They sit on the
 `<dive>` rather than on a `<divecomputer>`, so they go where `converting.md` sends a
 dive-level readout: onto the primary recording, reported `resolved` where the dive has more
-than one, and onto a recording of their own where no `<divecomputer>` yields one. No pair
-here carries either figure on a two-computer dive.
+than one, and onto a recording of their own where no `<divecomputer>` yields one —
+`fixtures/ssrf/trip-grouping.ssrf`'s third dive is that case. No pair here carries either
+figure on a two-computer dive.
 
 Zero is read two different ways, which is `converting.md`'s zero rule meeting two members
 with different constraints. A `<depth @max>` or `@mean` of `0.0 m` is **not recorded** —
