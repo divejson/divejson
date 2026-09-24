@@ -7,6 +7,135 @@ repositories.
 
 ## Unreleased
 
+- **A profile's axis is milliseconds (§5.1, §6.4, §6.5, §6.6).** On a whole-second axis a
+  converter kept the first of two readings of one channel that rounded to the same second
+  and dropped the other, and threw away every sub-second offset its source stated — while
+  the Suunto app stamps samples to the millisecond, a freediving computer logs up to four a
+  second, and a freedive is a dive. A Series' `times`, a profile's `duration` and an event's
+  `time` are now elapsed milliseconds. §5.1 gives the axis a row of its own and keeps seconds
+  for a dive's `duration`; `ndl` and `tts` stay seconds, being readings rather than the axis
+  they sit on. `docs/converting.md`'s rounding and collision rules hold at the new grain,
+  each mapping document states its source's factor, and `docs/uddf-writing.md` writes a
+  millisecond that is not a whole second as a fractional `<divetime>`, so a document whose
+  samples fall on whole seconds writes no fraction at all.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below: the draft's status line lets normative text, schema and fixtures change together
+  until the tag, and nothing is tagged. `$id`, `title` and `version` are untouched at `1.0`.
+  It breaks documents **silently**. The members keep their names and the schema is
+  unchanged, every one of them a non-negative integer before and after, so a document
+  written in seconds — any export or conversion made before this change — validates and
+  reads a thousand times short. A reader that knows which writer produced a document may read
+  that writer's earlier output by that knowledge, which is the reader's business rather than
+  §5.6's. Every fixture carrying a profile moved with the unit; `suunto_json/suunto-ocean`
+  gains the offsets its file states, and `uddf/legacy-writer` keeps a reading at `30.4 s`
+  that it lost to the one at `30 s`. No fixture is added or retired.
+
+- **A recording carries its device's readouts and its salinity setting (§3, §6.2, §6.4a).**
+  `surface_pressure`, `cns_start`, `cns_end`, `otu_start` and `otu_end` sat on the dive, where
+  a dive worn on two computers has two answers to each and the format could hold one — the
+  argument §6.4a already made for `mode`. And the dive's `water_type` offered `en13319`,
+  which is a computer's calibration rather than a kind of water, and could say nothing of a
+  second computer set differently. The five move to §6.4a with their constraints unchanged,
+  and §3's rule 4 counts a readout among what makes a recording, since a CNS figure a diver
+  copied off their computer is a record nothing else can produce. The recording gains
+  `salinity` — `fresh`, `en13319` or `salt` — and `water_type` keeps `salt`, `fresh` and
+  `brackish`; a reader derives neither from the other. `mode`, `deco_model` and `salinity`
+  still do not make a recording, and a water density in kg/m³ is deliberately not here: it
+  is a different member from a named setting, and arrives in a minor version when a reader
+  maps one. `docs/converting.md` gains the rule for a readout a source states on the dive —
+  the primary recording takes it, reported `resolved` where there are two.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below. It breaks documents: a readout on a dive is an undefined member now, and
+  `"water_type": "en13319"` fails the enum. `fixtures/invalid/` gains
+  `dive-readout-outside-recording`, the retired shape. Every other `invalid/` document moved
+  its readouts onto its primary recording with the valid corpus, so each keeps its one
+  defect; `dive-profile-outside-recording` has no recording to take them and drops them.
+  `valid/two-computers` carries a readout set on each of its recordings, and they differ, and
+  `valid/technical-dive` a `salinity` of `en13319` on a dive in salt water.
+
+- **A dive's start may be a date (§5.2, §6.2, §6.4a).** `started_at` was a REQUIRED
+  date-time, so a source that recorded the day and not the time — a bare UDDF `<datetime>`,
+  Subsurface's `2002-06-18T`, a `.ssrf` dive with no `@time` — left a converter midnight,
+  which is §5.4's fabrication and reads back as a dive that began at midnight. A dive's
+  `started_at` may now be a full-date: readers MUST NOT place such a dive at any time of day
+  or show a clock for it, and MUST preserve it as a date. A recording's `started_at` stays a
+  date-time, and a recording that states none on such a dive has an axis whose origin is the
+  day. §5.2's naming rule names `started_at` as the one member holding either kind.
+  `docs/uddf-writing.md` writes the bare date, which UDDF's documentation spells and its XSD
+  refuses, and says why.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below. It breaks readers rather than documents: every document that validated still does,
+  while a reader written against an earlier draft may parse a dive's start as a date-time
+  and meet one that is not. `valid/technical-dive` gains a dive logged with its day alone. No
+  `invalid/` file is added: a malformed start fails the schema's patterns, the rejection
+  `trailing-newline-datetime` already pins for a date-time.
+
+- **`notes` has no length limit (§6, §9).** Seven record types capped a note at 10 000
+  characters, a figure with no ground in the format — the free text a converter reads from
+  every other format is unbounded — so a converter truncated a longer note and reported the
+  rest dropped, and a cap cannot rise in a minor version once readers size storage to it.
+  `$defs/notes` loses its `maxLength`, the seven rows say nothing about length, and §9 says
+  notes of any length on **seven** record types, where it said six. The other bounded
+  strings keep their bounds: each is a name, a number, a label or an identifier, short by
+  what it is, where a note is prose. Those that were unbounded stay so.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below. It breaks readers rather than documents: a reader that sized its storage at 10 000
+  meets a longer note. No fixture is added or retired.
+
+- **§6.16's agency vocabulary is widened, for the last time (§6.16, §6.17).** It is a
+  REQUIRED vocabulary and freezes at the tag (§7), and the seed missed agencies with real
+  card holders — a freediving agency among them — each of which would have been `"other"` for
+  the life of 1.x. It gains `ndl`, `utd`, `saa`, `scotsac`, `iac`, `protec`, `pdic`, `nase`,
+  `sei`, `ymca`, `erdi`, `aida`, `molchanovs`, `pfi`, `apnea_academy`, `fii`, `nss_cds`,
+  `nacd`, `idea` and `diwa`, each an agency that issues or issued cards; `pdic` and `ymca`
+  issue none now and name cards a logbook still holds. §6.17's course shares the list. The
+  "seeded wide" sentence stays and now says this is the last widening: after the tag an
+  agency not on it is `"other"`.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below. It breaks readers rather than documents: a reader written against an earlier draft
+  treats a value it does not know as absent (§5.6), which a REQUIRED member cannot survive.
+  `valid/technical-dive` carries an `aida` card.
+
+- **A cylinder's `po2_limit` is `ppo2_limit` (§6.3).** The planned ceiling, the profile's
+  `ppo2` channel and the `ppo2_high` event are one quantity, and the ceiling alone spelled it
+  another way. The member is renamed in the schema, in the five mapping rows that write it
+  and in every fixture that carries it; `docs/uddf-writing.md` names only `<maximumpo2>`.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below. It breaks documents: `po2_limit` is an undefined member, which the schema rejects
+  and `fixtures/invalid/undefined-member.divejson` already names, so no invalid fixture is
+  added.
+
+- **The order of `format` and `version` is a SHOULD (§3, §4).** Writers had to emit
+  `format` first and `version` second, and a document whose members came in another order
+  failed validation — while the reader §5.5 asks to preserve extensions it did not
+  understand is a generic re-serialisation, and in two mainstream ecosystems the default one
+  sorts keys: Go's `encoding/json` sorts a map's, and Rust's `serde_json` keeps a sorted map
+  unless its `preserve_order` feature is on. Nothing dispatches on the first bytes of a JSON
+  file. §4 says SHOULD, and §3's list loses the rule, so its rule 7 is rule 6.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below. It breaks readers rather than documents: every document that validated still does.
+  `fixtures/invalid/version-not-second.divejson` and `version-before-format.divejson`
+  retire, since an `invalid/` file must fail and nothing fails either now.
+
+- **The `divejson` producer key is reserved (§3, §5.5).** A converter following
+  `docs/converting.md` writes its source's provenance and its `inferred` list under
+  `extensions.divejson`, while §5.5 reserved nothing, so a 1.0 producer could lawfully have
+  taken the key and a later reservation would have broken it. It is reserved now, and a
+  writer that does not follow that document MUST NOT use it. It is a writer-behaviour rule of
+  §5.4's kind, and §3 lists it with them: a document carrying the key is conforming when such
+  a converter wrote it, so nothing in a document shows a violation, and no fixture and no
+  validator rule accompany it.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below. It breaks no document; a writer that put its own members under the key moves them.
+
 - **A diver carries a portrait, and a member holding a Stored File ends `_file` (§5.2, §6.1,
   §6.7, §9).** `portrait_file` is one optional Stored File on the Diver: a photograph that
   identifies the diver to another person, the picture as the diver supplied it, whole, since
