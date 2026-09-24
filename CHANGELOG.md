@@ -49,9 +49,10 @@ repositories.
   **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
   below. It breaks documents: a readout on a dive is an undefined member now, and
   `"water_type": "en13319"` fails the enum. `fixtures/invalid/` gains
-  `dive-readout-outside-recording`, the retired shape. Every other `invalid/` document moved
-  its readouts onto its primary recording with the valid corpus, so each keeps its one
-  defect; `dive-profile-outside-recording` has no recording to take them and drops them.
+  `dive-readout-outside-recording`, the retired shape, and `water-type-en13319`, the value
+  the enum no longer holds. Every other `invalid/` document moved its readouts onto its
+  primary recording with the valid corpus, so each keeps its one defect;
+  `dive-profile-outside-recording` has no recording to take them and drops them.
   `valid/two-computers` carries a readout set on each of its recordings, and they differ, and
   `valid/technical-dive` a `salinity` of `en13319` on a dive in salt water.
 
@@ -93,8 +94,8 @@ repositories.
   `sei`, `ymca`, `erdi`, `aida`, `molchanovs`, `pfi`, `apnea_academy`, `fii`, `nss_cds`,
   `nacd`, `idea` and `diwa`, each an agency that issues or issued cards; `pdic` and `ymca`
   issue none now and name cards a logbook still holds. §6.17's course shares the list. The
-  "seeded wide" sentence stays and now says this is the last widening: after the tag an
-  agency not on it is `"other"`.
+  "seeded wide" sentence stays and now says the vocabulary takes no further values: after
+  the tag an agency not on it is `"other"`.
 
   **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
   below. It breaks readers rather than documents: a reader written against an earlier draft

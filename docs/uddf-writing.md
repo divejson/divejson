@@ -705,7 +705,7 @@ makes of it. Recording them here saves the next reader the round trip; they are 
 of `uddf-mapping.md`'s section of the same name.
 
 - **Subsurface discards every depth-less waypoint on import.** A file written here puts a
-  reading on its own second, so a temperature or pressure sampled between two depth samples
+  reading on its own instant, so a temperature or pressure sampled between two depth samples
   is a depth-less waypoint and Subsurface will not keep it. The depth channel arrives whole.
 - **divelogs.de reads a missing depth as zero**, so the same waypoints arrive as a profile
   that saws between the real depth and the surface.
