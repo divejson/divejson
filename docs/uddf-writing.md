@@ -645,6 +645,7 @@ once per record that carries it, and none of them has anywhere in UDDF to go:
 | `diver.username` | `<owner id>` is an XML id and not a handle |
 | `diver.emergency_contacts` | UDDF has no element for one, and `<owner>` describes the logbook's owner and nobody else |
 | `diver.insurances[].number` | `insuranceType` holds a `name`, `aliasname`, `issuedate`, `validdate` and `notes`, with nothing for the identifier the insurer knows the diver by. `<notes>` would read back as a remark, and `<personal><membership memberid>` as a membership, which a reader cannot tell from a club's |
+| `diver.portrait_file` | `<owner>` has no image element. A `<notes><link>` to a `<mediadata><image>` names a file by path, whose bytes a UDDF file does not carry, and reads back as a linked picture with no role — `uddf-mapping.md`'s *Diver* section says why no linked image is read as a portrait |
 | a recording's `source_files`, `started_at` and its device's `firmware`, and every recording after the first | UDDF gives a dive one `<samples>`, and `equipmentPieceType` no firmware element — *Devices* above has each answer and why the device of a dropped recording is kept even so |
 | `trips[].parts[].location.bbox` | `geographyType` carries a point, not a box |
 | `sites[].location.full_name`, `position` and `bbox` | a site's `<name>` is its own, so the locality gets only `<geography><location>` and that slot holds `location.name`; `<geography>`'s coordinates are the site's pin, and the box has nowhere either — *Sites and trips* above has the asymmetry with a part |
