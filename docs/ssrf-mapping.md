@@ -283,7 +283,7 @@ This format carries no device name and no device counter: `@diveid` is a per-div
 than a counter, and there is nowhere at all for a name — nothing in a `.ssrf` records what
 the diver called their computer.
 
-## This format settles no ambiguity
+## What this format leaves open
 
 `converting.md` defines a `resolved` finding for a value the source recorded whose scale,
 units or *meaning* are genuinely in doubt. **This reader emits one, and it is not about a
@@ -292,8 +292,8 @@ the file does not say whose figures they are. Past that the absence is a propert
 format rather than an omission. There is no scale to settle: every measurement states
 its unit, so there is no fraction-or-percent and no litres-or-cubic-metres for a magnitude
 test to reach. Where UDDF's `<o2>0.32</o2>` and `<o2>34</o2>` are both schema-valid and mean
-the same gas, `.ssrf` writes `o2='32.0%'` and there is nothing left to decide. And there is
-no meaning to settle either, so this document carries no generator table: one application
+the same gas, `.ssrf` writes `o2='32.0%'` and there is nothing left to decide. And no
+writer's meaning needs settling either, so this document carries no generator table: one application
 writes this format, its `<divelog @program>` says so on every file, and a table keyed on the
 writer needs two writers to tell apart.
 

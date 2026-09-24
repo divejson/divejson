@@ -48,7 +48,7 @@ carries the command that sorts the directory in one run.
 
 **Three of §3's rules now read *per recording*, and each keeps its defect off the first
 one** — `recording-without-content` puts the empty recording second, `non-increasing-samples`
-puts the bad channel in a second recording behind a device-only first, and
+puts the bad channel in a second recording behind a first that carries no profile, and
 `duplicate-file-uuid-across-recordings` spans two. A validator that walked only the primary
 recording would accept all three, which is exactly the implementation §6.4a's ordering rule
 invites and the only thing that catches it is a fixture that puts the defect where such a
