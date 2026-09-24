@@ -195,7 +195,9 @@ facts, not instants.
 
 **Member naming follows the value kind**: members holding date-times end `_at`
 (`created_at`, `archived_at`, `exported_at`, a dive's `started_at`); members holding
-dates end `_on` (`starts_on`, `serviced_on`, `certified_on`). There are no exceptions.
+dates end `_on` (`starts_on`, `serviced_on`, `certified_on`); members holding a Stored File
+(§6.7) end `_file` (`front_file`, `portrait_file`) and arrays of them `_files`
+(`source_files`). There are no exceptions.
 
 **A member is never prefixed with the name of the object that carries it**: a dive's
 number is `number` and a certification's is `number`, neither restating the object it
@@ -354,6 +356,7 @@ importers.
 | `born_on` | date | O | The diver's date of birth. |
 | `emergency_contacts` | array of Emergency Contact | O | The people to call if something happens to the diver, **in the order they are to be called**: the first is called first. Writers MUST preserve that order and readers MUST NOT re-sort it. |
 | `insurances` | array of Insurance | O | The diver's dive insurance, one element per policy, in the source's own order. |
+| `portrait_file` | Stored File | O | §6.7 — a photograph that identifies the diver to another person: head and shoulders, the face visible. It is the picture as the diver supplied it, whole, and each reader crops it to its own frame; the format says nothing about proportions. One file rather than an array, which would let a document claim two portraits of one person. |
 | `created_at` | date-time | O | When the account or logbook was created. |
 
 An **Emergency Contact** is an embedded object, with no uuid, carrying a REQUIRED `name`
@@ -375,10 +378,11 @@ have no core members; the reference implementation carries its own under its pro
 key, e.g. `"extensions": {"opendiving": {"units": "metric", "gear_service_emails":
 true}}`. Readers importing a logbook into an existing account MUST NOT let any diver
 member overwrite the destination account's own identity or settings — its name, handle,
-email and preferences — and SHOULD NOT apply `phone`, `born_on`, `emergency_contacts` or
-`insurances` to it without the importing diver confirming them. Nothing in a document tells
-a restore of the diver's own logbook from somebody else's, and an emergency contact taken
-unseen from another person's would be the wrong person to call.
+email and preferences — and SHOULD NOT apply `phone`, `born_on`, `emergency_contacts`,
+`insurances` or `portrait_file` to it without the importing diver confirming them. Nothing in
+a document tells a restore of the diver's own logbook from somebody else's: an emergency
+contact taken unseen from another person's would be the wrong person to call, and a portrait
+would put another person's face beside the diver's name.
 
 ### 6.2 Dive
 
@@ -682,9 +686,9 @@ into `label`: inventing the device's wording is §5.4's fabrication.
 ### 6.7 Stored File
 
 Metadata for a binary the source logbook stores — one of a recording's original
-dive-computer files (§6.4a), or a scan of a certification card. The bytes themselves are
-not in the document; inside an archive (Appendix A) they travel as members of the
-container.
+dive-computer files (§6.4a), a scan of a certification card, or the diver's portrait
+(§6.1). The bytes themselves are not in the document; inside an archive (Appendix A) they
+travel as members of the container.
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
@@ -994,9 +998,9 @@ one. Beyond generic JSON concerns:
   personal data export: serve them only to their owner, over authenticated channels,
   without shared caching.
 - **Archives raise the stakes** (Appendix A): they add the referenced binaries, which can
-  include scans of certification cards — ID-like personal documents — and, among
-  producer-added members, even a profile photo (the reference implementation ships the
-  diver's avatar in its archives). Extraction of third-party archives MUST treat member paths as untrusted (reject
+  include scans of certification cards and the diver's portrait (§6.1) — ID-like personal
+  documents — and, among producer-added members, even a profile photo (the reference
+  implementation ships the diver's avatar in its archives). Extraction of third-party archives MUST treat member paths as untrusted (reject
   absolute paths and `..` traversal), and SHOULD verify each extracted file against its
   `sha256` before use.
 - **Numeric and size limits.** Documents can be large — a sampled profile per recording

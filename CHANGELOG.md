@@ -7,6 +7,22 @@ repositories.
 
 ## Unreleased
 
+- **A diver carries a portrait, and a member holding a Stored File ends `_file` (§5.2, §6.1,
+  §6.7, §9).** `portrait_file` is one optional Stored File on the Diver: a photograph that
+  identifies the diver to another person, the picture as the diver supplied it, whole, since
+  each reader crops it to its own frame. §6.1's rule on what an import applies only once the
+  importing diver confirms it names the portrait beside the four check-in facts, §6.7 and
+  §9's archives bullet list it beside card scans, and §5.2 states the naming every Stored
+  File member already follows — `_file`, and `_files` for an array — with no exceptions. The
+  member is additive, so it lands inside 1.0 with `$id`, `title` and `version` untouched.
+  `technical-dive` carries one on both sides of its UDDF write pair, and `fixtures/invalid/`
+  gains `duplicate-file-uuid-portrait`, a portrait sharing a card side's uuid, which §5.3
+  forbids and the schema cannot see.
+
+  **UDDF has no home for it** in either direction: `<owner>` has no image, and the images a
+  `<notes><link>` reaches carry no role, so `docs/uddf-mapping.md` reads none of them as a
+  portrait and `docs/uddf-writing.md` reports the member dropped.
+
 - **A diver carries a phone, a date of birth, emergency contacts and insurances, and the
   Diver's own strings are bounded (§6.1, §9).** The four are what a dive desk asks a diver
   for, and they shipped under the `opendiving` producer key before arriving here, the path
