@@ -161,8 +161,8 @@ its examples. It is `<dateoftrip>`'s answer (*Sites and trips* below) and it inv
 the member is a date, so a reader takes the date back off the front and the midnight never
 reaches a document.
 
-An insurance's `number` and the diver's `emergency_contacts` have no element, and each is
-reported — *What is never written* has why.
+An insurance's `number` and the diver's `emergency_contacts` and `portrait_file` have no
+element, and each is reported — *What is never written* has why.
 
 **Differs from the reference writer**: `diver.email` is written to
 `<contact><email>`. The reference writer deliberately omits it — a UDDF file is the thing a
