@@ -78,19 +78,18 @@ the schema and this list:
 3. Profile series integrity, in every recording (§6.4a): equal `times`/`values` lengths
    and strictly increasing `times` (§6.5), and `profile.duration` covering the latest
    sample (§6.4).
-4. A recording carries at least one of `device`, `profile` and `source_files` (§6.4a).
+4. A recording carries at least one of `device`, `profile`, `source_files` and a readout —
+   `surface_pressure`, `cns_start`, `cns_end`, `otu_start`, `otu_end` (§6.4a).
 5. The offset requirement on `exported_at` (§5.2) — every other date-time may be a
    local time, and the schema's `format` annotations are not required to be enforced by
    validators.
-6. The member-order rule for `format` and `version` (§4) — a property of the document's
-   text, which the reference validator checks on the parsed member order (JSON parsing
-   preserves it).
-7. `gf_low ≤ gf_high` on a recording's deco model (§6.4c). The schema pairs the two and
+6. `gf_low ≤ gf_high` on a recording's deco model (§6.4c). The schema pairs the two and
    bounds each; which of them is the larger is arithmetic between members, like rule 2's.
 
 Requirements addressed to writer and reader *behaviour* — nothing invented (§5.4),
-unknown-member and unknown-value tolerance (§5.6), offset preservation (§5.2) — are not
-checkable against a document at all and bind implementations directly.
+unknown-member and unknown-value tolerance (§5.6), offset preservation (§5.2), the reserved
+producer key (§5.5) — are not checkable against a document at all and bind implementations
+directly.
 
 The schema for minor version `1.n` describes exactly the members that version defines,
 and rejects undefined members outside `extensions` objects. Validating a document against
@@ -103,8 +102,8 @@ A DiveJSON document is a single JSON object:
 
 | member | type | presence | meaning |
 | --- | --- | --- | --- |
-| `format` | string | REQUIRED | The literal `"divejson"`. Writers MUST emit it as the first member, so readers can dispatch before parsing further. |
-| `version` | string | REQUIRED | The spec version the document conforms to, as `"major.minor"` — for this specification, `"1.0"`. Writers MUST emit it second. |
+| `format` | string | REQUIRED | The literal `"divejson"`. Writers SHOULD emit it as the first member, so a reader may dispatch before parsing further. |
+| `version` | string | REQUIRED | The spec version the document conforms to, as `"major.minor"` — for this specification, `"1.0"`. Writers SHOULD emit it second. |
 | `exported_at` | string, date-time (§5.2) | REQUIRED | When the document was produced. Always offset-aware: the writer is producing this value now and knows its own offset. |
 | `generator` | Generator object | RECOMMENDED | What produced the document. |
 | `diver` | Diver object (§6.1) | RECOMMENDED | Whose logbook this is. Omitted only when the source records nothing about its owner (§6.1). |
@@ -119,6 +118,11 @@ A DiveJSON document is a single JSON object:
 | `gear_service_records` | array of Service Record (§6.15) | OPTIONAL | |
 | `certifications` | array of Certification (§6.16) | OPTIONAL | |
 | `extensions` | object (§5.5) | OPTIONAL | |
+
+The order of `format` and `version` is a SHOULD and not a requirement on the document: a
+generic re-serialisation — the kind §5.5 asks to preserve extensions it did not understand —
+commonly sorts an object's members, and a document it produced is as conforming as the one
+it read.
 
 An absent collection is equivalent to an empty one. Writers SHOULD order `dives`
 chronologically; readers MUST NOT depend on collection ordering.
@@ -144,7 +148,8 @@ suffixes. A writer whose internal storage is imperial MUST convert; how an appli
 | weight | kilograms | number |
 | volume (cylinder water capacity) | liters | number |
 | gas fractions (`oxygen`, `helium`) | percent of the mix | number |
-| duration, elapsed time | seconds | integer |
+| a dive's `duration` | seconds | integer |
+| elapsed time on a profile axis — a Series' `times`, a profile's `duration`, an event's `time` | milliseconds | integer |
 | CNS | percent | number |
 | OTU | OTU (dimensionless) | number |
 | gradient factor | percent | number |
@@ -153,10 +158,11 @@ suffixes. A writer whose internal storage is imperial MUST convert; how an appli
 **Profile channels are integer-scaled** (§6.5): depth and ceiling samples are
 **centimeters**, temperature samples are **tenths of a degree Celsius**, and pressure
 samples are **tenths of a bar**. The decompression readouts a computer shows the diver
-(§6.4) carry their own scales: `ndl` and `tts` samples are **seconds**, the format's
-duration unit; `ppo2` samples are **hundredths of a bar**, because tenths cannot tell 1.30
-from 1.32 and real exports state a ppO₂ to two decimals; `cns` samples are **tenths of a
-percent**, finer than the dive-level `cns_start` and `cns_end` need to be because a
+(§6.4) carry their own scales: `ndl` and `tts` samples are **seconds**, the grain a device
+counts them down in — a reading, where the axis they are sampled on is milliseconds; `ppo2`
+samples are **hundredths of a bar**, because tenths cannot tell 1.30 from 1.32 and real
+exports state a ppO₂ to two decimals; `cns` samples are **tenths of a
+percent**, finer than a recording's `cns_start` and `cns_end` need to be because a
 computer's own export can be — one records `0.069` where another rounds the same reading to
 `7`; and `gradient_factor` and `surface_gradient_factor` samples are **whole percent**,
 which is what every device that reports them reports. The scales are part of the format,
@@ -193,11 +199,20 @@ A **date** value is an RFC 3339 full-date string, `"YYYY-MM-DD"`, with no time a
 offset. Dates in a logbook (trip dates, service dates, certification dates) are calendar
 facts, not instants.
 
+**A dive's start may be a date alone** (§6.2): the day was recorded and the time of day
+was not. It exists for the local date-time's reason — a source that never recorded a time of
+day, a paper log transcribed or an export that kept only the date, leaves a converter no
+honest third option: midnight is a fabricated time (§5.4), and dropping the dive is the loss
+this format exists to end. Readers MUST NOT place such a dive at midnight or at any other
+time of day, MUST NOT display a clock for it, and MUST preserve it as a date. No other
+date-time member takes a date.
+
 **Member naming follows the value kind**: members holding date-times end `_at`
 (`created_at`, `archived_at`, `exported_at`, a dive's `started_at`); members holding
 dates end `_on` (`starts_on`, `serviced_on`, `certified_on`); members holding a Stored File
 (§6.7) end `_file` (`front_file`, `portrait_file`) and arrays of them `_files`
-(`source_files`). There are no exceptions.
+(`source_files`). There are no exceptions: a dive's `started_at` is the one member that may
+hold either kind, and it ends `_at` because the date-time is the kind it usually holds.
 
 **A member is never prefixed with the name of the object that carries it**: a dive's
 number is `number` and a certification's is `number`, neither restating the object it
@@ -279,6 +294,10 @@ are **producer keys** and whose values are any JSON value (an object is RECOMMEN
 - A producer key MUST match `^[a-z0-9][a-z0-9._-]*$`. Use a reverse-DNS name for a domain
   you control (`com.example.divekit`) or an established product name (`opendiving`, the
   reference implementation's key). Choose one key and keep it stable.
+- The key `divejson` is reserved for converters that follow
+  [`docs/converting.md`](../docs/converting.md): such a converter writes what a source said
+  about itself, and the list of the members it inferred, under it, and that document defines
+  both. A writer that does not follow it MUST NOT use the key.
 - A writer MUST NOT emit members this specification does not define anywhere *except*
   inside `extensions`. This is what keeps the core vocabulary meaningful: a member
   outside `extensions` is either spec-defined or a conformance error, never a guess.
@@ -390,21 +409,16 @@ would put another person's face beside the diver's name.
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | |
 | `number` | integer | O | The diver's own numbering. Unbounded; duplicates are legal (renumbering histories are messy and this format records, not adjudicates). |
-| `started_at` | date-time | R | Local wall clock, with its UTC offset when the source recorded one (§5.2). |
+| `started_at` | date-time or date | R | Local wall clock, with its UTC offset when the source recorded one (§5.2) — or the date alone, where the source recorded the day and not the time of day (§5.2). |
 | `duration` | integer | O | Seconds; > 0. The dive's own duration as logged, which MAY differ from any recording's profile span. |
-| `notes` | string | O | ≤ 10000. |
+| `notes` | string | O | |
 | `max_depth` | number | O | Meters; > 0. |
 | `avg_depth` | number | O | Meters; > 0, and MUST be ≤ `max_depth` when both are present. |
 | `bottom_temperature` | number | O | °C; unbounded (ice divers and volcanic vents exist). |
 | `visibility` | number | O | Meters; ≥ 0. A number, not an integer — half-meter visibility is a real low-vis fact. |
 | `weight` | number | O | Kilograms of ballast; ≥ 0. `0` is a recorded "no lead", distinct from absent. |
-| `water_type` | string | O | One of `"salt"`, `"fresh"`, `"brackish"`, `"en13319"` (the EN 13319 calibration convention dive computers use). No "other": an unlistable water type is simply not recorded. |
+| `water_type` | string | O | One of `"salt"`, `"fresh"`, `"brackish"` — the water the dive was in. No "other": an unlistable water type is simply not recorded. The density a computer was set to is a setting of that computer, the recording's `salinity` (§6.4a). |
 | `altitude` | integer | O | Meters above sea level of the site at dive time; −450 to 6500 (Dead Sea to the highest reported altitude dives). |
-| `cns_start` | number | O | CNS %, ≥ 0, at dive start. No upper bound — real computers report over 100. |
-| `cns_end` | number | O | CNS %, ≥ 0, at dive end. |
-| `otu_start` | number | O | OTU accumulated at dive start; ≥ 0. |
-| `otu_end` | number | O | OTU accumulated at dive end; ≥ 0. |
-| `surface_pressure` | number | O | Bar; 0.4–1.2 (ambient pressure at the 6500 m altitude ceiling is ≈ 0.44 bar). Ambient surface pressure the computer used. |
 | `entry_position` | Position | O | Where the diver entered the water. |
 | `exit_position` | Position | O | Where the diver surfaced. |
 | `trip_uuid` | uuid | O | → `trips`. |
@@ -417,12 +431,13 @@ would put another person's face beside the diver's name.
 | `created_at` | date-time | O | §5.7. |
 
 What stays on the dive is the **diver's logbook entry**: `duration`, `max_depth`,
-`avg_depth`, `bottom_temperature`, the oxygen-clock members, `surface_pressure`, the
-positions and `cylinders` are the dive as its owner logs it, and a hand-entered dive
-carries them with no recording at all. A writer that seeds them from a device's record is
-not emitting a derived member (§5.7): the dive's figure is the logbook's, a recording's
-samples are the device's, and the two legitimately diverge — a diver corrects the first
-and never the second.
+`avg_depth`, `bottom_temperature`, the positions and `cylinders` are the dive as its owner
+logs it, and a hand-entered dive carries them with no recording at all. A writer that seeds
+them from a device's record is not emitting a derived member (§5.7): the dive's figure is
+the logbook's, a recording's samples are the device's, and the two legitimately diverge — a
+diver corrects the first and never the second. The oxygen clocks and the surface pressure
+are not on that list: they are a device's own arithmetic, and each recording carries its
+device's (§6.4a).
 
 ### 6.3 Cylinder
 
@@ -441,7 +456,7 @@ per §5.4 — nothing invented, nothing required.
 | `end_pressure` | number | O | Bar; ≥ 0 and ≤ 350. `0` is legal here (an out-of-gas ascent is a recorded fact). |
 | `oxygen` | number | O | Percent; 0–100. **Absent means not recorded, not 21** — readers MUST NOT assume air (§5.4). |
 | `helium` | number | O | Percent; 0–100. |
-| `po2_limit` | number | O | Bar; 0.4–2.0. The planned pO₂ ceiling for this gas. |
+| `ppo2_limit` | number | O | Bar; 0.4–2.0. The planned ppO₂ ceiling for this gas — the quantity a profile's `ppo2` channel samples (§6.4), under the same name. |
 | `gas_number` | integer | O | ≥ 0. The dive computer's own label for this gas, scoped to this dive — **a label, not an array index**; some devices number from 0, some from 1. It is the join key from every recording's `profile.pressures[].gas_number` and `gas_switch` events (§6.4a). |
 | `role` | string | O | One of `"bottom"`, `"deco"`, `"diluent"`, `"oxygen"`. |
 | `usage` | string | O | One of `"parallel"` (breathed alongside others, e.g. sidemount pairs), `"staged"` (carried for a later phase). |
@@ -466,26 +481,46 @@ before Profile, because a recording is what a profile now sits inside.
 | `device` | Device | O | §6.4b — what recorded it. |
 | `mode` | string | O | One of `"open_circuit"`, `"closed_circuit"`, `"semi_closed"`, `"gauge"`, `"freedive"` — the mode **this device ran in**. Absent means not recorded, and a reader MUST NOT assume open circuit (§5.4), however a source format's own documentation glosses an absence. |
 | `deco_model` | Deco Model | O | §6.4c — the decompression model this device ran, and the settings it ran it with. |
-| `started_at` | date-time | O | The device's own start (§5.2). **Absent means the dive's `started_at`**; a writer that knows a different one MUST write it — a second computer starts when its diver's wrist goes under, not when the first one's did. A recording's profile `times` are elapsed from this instant. |
+| `salinity` | string | O | One of `"fresh"`, `"en13319"`, `"salt"` — the water density **this device** was set to, which it divides the pressure it measures by to show a depth; `en13319` is the EN 13319 convention, between the other two. An OPTIONAL member, so this vocabulary grows in minor versions (§7). |
+| `started_at` | date-time | O | The device's own start (§5.2). **Absent means the dive's `started_at`**; a writer that knows a different one MUST write it — a second computer starts when its diver's wrist goes under, not when the first one's did. A recording's profile `times` are elapsed from this instant. Where the dive's `started_at` is a date (§5.2), a recording that states none has an axis whose origin is that day: the axis is elapsed and needs no instant, and a recording that knows its instant writes it. |
+| `surface_pressure` | number | O | Bar; 0.4–1.2 (ambient pressure at §6.2's 6500 m altitude ceiling is ≈ 0.44 bar). The ambient surface pressure this device used. |
+| `cns_start` | number | O | CNS %, ≥ 0, at dive start, as this device computed it. No upper bound — real computers report over 100. |
+| `cns_end` | number | O | CNS %, ≥ 0, at dive end. |
+| `otu_start` | number | O | OTU accumulated at dive start; ≥ 0. |
+| `otu_end` | number | O | OTU accumulated at dive end; ≥ 0. |
 | `source_files` | array of Stored File | O | §6.7 — the original dive-computer files this recording was read from, in the order they were attached. |
 | `profile` | Profile | O | §6.4. |
 
-A recording MUST carry at least one of `device`, `profile` and `source_files` — a §3
-requirement the schema does not express. An object carrying none of the three describes
+`surface_pressure`, `cns_start`, `cns_end`, `otu_start` and `otu_end` are the recording's
+**readouts**: figures the device computed and showed, which depend on its algorithm and on
+the diver's exposure history, and which nothing in a logged dive reconstructs.
+
+A recording MUST carry at least one of `device`, `profile`, `source_files` and a readout —
+a §3 requirement the schema does not express. An object carrying none of them describes
 nothing, while a computer worn that recorded no samples *is* a fact about the dive and
 travels as a device-only recording: a source that names a device and records no samples
-yields one recording carrying that device and nothing else. `mode` and `deco_model` do not
-satisfy that rule and are not on its list: a mode with no device, no samples and no file
-behind it is a setting nothing recorded a dive with.
+yields one recording carrying that device and nothing else. A readout is such a fact too,
+being a record of the dive that nothing else can produce, so a recording carrying nothing
+but a `cns_end` is one — the CNS figure a diver copied off their computer into a hand-kept
+log. `mode`, `deco_model` and `salinity` do not satisfy that rule and are not on its list:
+a setting with no device, no samples, no file and no readout behind it is a setting nothing
+recorded a dive with.
 
-**`mode` and `deco_model` are the device's, not the dive's**, for the reason the recording
-exists at all. A mode is how one computer was configured, and a dive routinely has two
-answers: a backup run in gauge mode beside a primary on open circuit is ordinary practice,
-and the dive was not a gauge dive. So is a deco model — two computers running different
-gradient factors on one dive give the diver two ceilings and two no-deco clocks, which is
-exactly why divers wear two. A dive-level `mode` would be the diver's own statement of what
-kind of dive it was, which is a different member and one nothing in this version writes;
-until something does, §5.5's extensions mechanism is where it belongs.
+**`mode`, `deco_model`, `salinity` and the readouts are the device's, not the dive's**, for
+the reason the recording exists at all. A mode is how one computer was configured, and a
+dive routinely has two answers: a backup run in gauge mode beside a primary on open circuit
+is ordinary practice, and the dive was not a gauge dive. So is a deco model — two computers
+running different gradient factors on one dive give the diver two ceilings and two no-deco
+clocks, which is exactly why divers wear two — and so are the oxygen clocks and the surface
+pressure they computed. A dive-level `mode` would be the diver's own statement of what kind
+of dive it was, which is a different member and one nothing in this version writes; until
+something does, §5.5's extensions mechanism is where it belongs.
+
+**`salinity` is a calibration and not a kind of water.** Two computers on one dive may be
+set differently, and a diver in fresh water may have left theirs on `salt`; the dive's
+`water_type` (§6.2) says what the water was. A reader MUST NOT derive the dive's
+`water_type` from a recording's `salinity`, nor a `salinity` from the dive's `water_type`
+(§5.4).
 
 **`recordings` is ordered, and the first entry is primary**: the one a reader shows by
 default, and the one whose file a consumer that can hold only one takes. Order rather
@@ -574,7 +609,7 @@ The sampled record of one recording of a dive (§6.4a), embedded in that recordi
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `duration` | integer | R | Seconds spanned by the profile's **samples**; ≥ 0, and MUST be ≥ the largest `times` entry in any channel. An event `time` MAY fall outside it — see below. MAY differ from the dive's logged `duration`, and from another recording's span — a gap after the last sample is real: a computer that stops *sampling* at the surface can keep *timing* the dive. |
+| `duration` | integer | R | Milliseconds spanned by the profile's **samples**; ≥ 0, and MUST be ≥ the largest `times` entry in any channel. An event `time` MAY fall outside it — see below. MAY differ from the dive's logged `duration`, and from another recording's span — a gap after the last sample is real: a computer that stops *sampling* at the surface can keep *timing* the dive. |
 | `depth` | Series | O | Samples in **centimeters** (§5.1). |
 | `ceiling` | Series | O | Decompression ceiling, in **centimeters**. Present only while a ceiling existed: a gap in `times` means "no deco obligation", not a sensor dropout — and readers MUST NOT interpolate across a ceiling gap, which would fabricate an obligation that was not there. |
 | `temperature` | Series | O | Samples in **tenths of a degree Celsius**. |
@@ -582,20 +617,20 @@ The sampled record of one recording of a dive (§6.4a), embedded in that recordi
 | `ndl` | Series | O | Remaining no-decompression time, in **seconds**; ≥ 0. |
 | `tts` | Series | O | Time to surface, in **seconds**; ≥ 0. The device's own figure for how long an ascent from here would take, stops included. |
 | `ppo2` | Series | O | The partial pressure of oxygen the device computed, in **hundredths of a bar**; ≥ 0. What the device calculated from the gas it believed it was breathing, which is not a cell reading. |
-| `cns` | Series | O | The CNS oxygen clock during the dive, in **tenths of a percent**; ≥ 0. Unbounded above — real computers report over 100 %. Its dive-level counterparts are §6.2's `cns_start` and `cns_end`, and neither is derived from the other. |
+| `cns` | Series | O | The CNS oxygen clock during the dive, in **tenths of a percent**; ≥ 0. Unbounded above — real computers report over 100 %. Its counterparts are the recording's `cns_start` and `cns_end` (§6.4a), and neither is derived from the other. |
 | `gradient_factor` | Series | O | The gradient factor of the **leading tissue**, in **whole percent**; ≥ 0. How close that compartment is to its M-value: a device's GF99. Unbounded above — a value over 100 is a compartment past its M-value, and real exports carry far larger ones. |
 | `surface_gradient_factor` | Series | O | The gradient factor the leading tissue would have on surfacing directly from here, in **whole percent**; ≥ 0, and unbounded above for the same reason. |
 | `events` | array of Event | O | In time order. |
 
 **The decompression channels are the device's own arithmetic, and nothing else can produce
 them.** They depend on the model the device ran, on its settings and on the diver's
-exposure history, none of which a logged dive carries — the same argument §6.2 makes for the
-oxygen-clock members and §6.4 makes for `ceiling`. A reader that computes any of them from
+exposure history, none of which a logged dive carries — the same argument §6.4a makes for the
+readouts and §6.4 makes for `ceiling`. A reader that computes any of them from
 depth and a gas fraction has derived a value and MUST say so (§5.7); it MUST NOT write one
 into these members.
 
 Each of them is **present only where the device reported one**, and §6.5's gap rule applies
-unchanged: a second the device said nothing for is a second missing from that channel's
+unchanged: an instant the device said nothing for is an instant missing from that channel's
 `times`, never a null in its `values` and never a zero standing in for a missing reading
 (§5.4). A zero in any of them is a reading — which is why none of them may carry a negative
 one, the negative being what several devices write to mean "no figure". `ndl` and `ceiling`
@@ -626,11 +661,15 @@ this format's first principle applied to its bulkiest data.
 ### 6.5 Series and Pressure Series
 
 A **Series** is `{"times": [...], "values": [...]}`: two parallel integer arrays.
-`times` holds elapsed seconds from the start of the **recording** the series belongs to —
-its `started_at` where it has one, and the dive's otherwise (§6.4a) — ≥ 0 and **strictly
-increasing**; `values` holds the readings in the channel's scale. The arrays MUST be the
-same length and MUST NOT contain nulls — a sensor dropout is a gap in `times`, never a
-null in `values`. Sampling MAY be irregular; readers MUST NOT assume a fixed interval.
+`times` holds elapsed **milliseconds** from the start of the **recording** the series
+belongs to — its `started_at` where it has one, and the dive's otherwise (§6.4a) — ≥ 0 and
+**strictly increasing**; `values` holds the readings in the channel's scale. The axis is
+finer than a second because devices are: a freediving computer can log four samples a
+second, and a source that stamps each sensor's readings separately stamps them to the
+millisecond, so a whole-second axis would make a reader drop one of two readings that were
+never the same instant. The arrays MUST be the same length and MUST NOT contain nulls — a
+sensor dropout is a gap in `times`, never a null in `values`. Sampling MAY be irregular;
+readers MUST NOT assume a fixed interval.
 Two recordings of one dive keep their own axes: a reader placing both on one timeline
 works from each recording's own start and MUST NOT assume they share an origin.
 
@@ -647,8 +686,8 @@ A point event on one recording's profile timeline (§6.4a).
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `time` | integer | R | Elapsed seconds from the start of the recording this profile belongs to — its `started_at` where it has one, and the dive's otherwise (§6.4a, §6.5); ≥ 0. |
-| `type` | string | O | What happened, from the vocabulary below. **Absent means unclassified** — the device recorded something at this second and nothing in this vocabulary says what — and then `label` is REQUIRED. |
+| `time` | integer | R | Elapsed milliseconds from the start of the recording this profile belongs to — its `started_at` where it has one, and the dive's otherwise (§6.4a, §6.5); ≥ 0. |
+| `type` | string | O | What happened, from the vocabulary below. **Absent means unclassified** — the device recorded something at this instant and nothing in this vocabulary says what — and then `label` is REQUIRED. |
 | `gas_number` | integer | O | On a `gas_switch`: what was switched to, in the device's own labeling (§6.3). Absent when the device recorded a switch without saying to what. |
 | `label` | string | O | The device's own wording, carried verbatim. REQUIRED when `type` is absent and MUST NOT be empty there — an event that is neither classified nor labelled carries no information at all. Written beside a `type` whenever the device had wording of its own: the type says what class of thing happened and the label says what the diver was shown. |
 
@@ -678,7 +717,7 @@ life of 1.x. There is exactly one spelling of "unclassified", and it is an absen
 with a label (§5.4); an `"other"` value beside that would be a second spelling of it.
 
 A reader meeting a `type` it does not know treats the member as absent (§5.6) and is left
-with a labelled marker at the right second, which is what an unclassified event is anyway.
+with a labelled marker at the right instant, which is what an unclassified event is anyway.
 §7 requires a writer to emit a `label` alongside any value defined after 1.0, so that
 fallback always has wording to fall back to. A reader MUST NOT copy an unrecognised `type`
 into `label`: inventing the device's wording is §5.4's fabrication.
@@ -721,7 +760,7 @@ them.
 | `uuid` | uuid | R | |
 | `name` | string | R | 1–255. |
 | `parts` | array of Trip Part (§6.9a) | O | In the diver's own order, which is not necessarily date order (§6.9a). Absent or empty is a trip whose stretches were never recorded, and it has no span. |
-| `notes` | string | O | ≤ 10000. |
+| `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
 ### 6.9a Trip Part
@@ -780,7 +819,7 @@ anything here constrains the pair.
 | `name` | string | R | 1–255. |
 | `location` | Location (§6.9) | O | The locality the site is in ("Las Galletas, Tenerife"). Absent where the source recorded none, which is the common case. |
 | `position` | Position | O | §6's Position object — where the *site* is. |
-| `notes` | string | O | ≤ 10000. |
+| `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
 **A dive site carries two positions and they are different facts.** `position` is the
@@ -826,7 +865,7 @@ create catalog entries from the snapshot.
 | `brand` | string | O | ≤ 255. |
 | `serial` | string | O | 1–64 and non-empty; a writer trims it before writing, on §6.4b's terms. The maker's serial for this piece, opaque — never parsed for meaning. **Shorter than every other string in this section on purpose**: §6.4b bounds a device's `serial` at 1–64, and a gear serial that could not fit there could never equal one. Allowed on any gear type, though a `"computer"` is where it does its work — it is what identifies the piece of kit as the hardware a recording's device (§6.4b) describes, rather than leaving a writer to guess from a name and a maker. It is a stable hardware identifier and therefore personal data; §9 says so. |
 | `type` | string | O | One of `"mask"`, `"snorkel"`, `"fins"`, `"wetsuit"`, `"drysuit"`, `"vest"`, `"hood"`, `"gloves"`, `"boots"`, `"bcd"`, `"regulator"`, `"computer"`, `"cylinder"`, `"light"`, `"smb"`, `"mirror"`, `"whistle"`, `"reel"`, `"knife"`, `"line_cutter"`, `"shears"`, `"compass"`, `"camera"`, `"other"`. An OPTIONAL member, so this vocabulary can grow in minor versions (§7) — an air horn rides `"other"` until it earns a value. |
-| `notes` | string | O | ≤ 10000. |
+| `notes` | string | O | |
 | `rented` | boolean | O | |
 | `archived` | boolean | O | Retired from active use. |
 | `archived_at` | date-time | O | |
@@ -879,7 +918,7 @@ One performed maintenance event.
 | `dive_count_at_service` | integer | O | ≥ 0. **Snapshot** (§5.7). |
 | `label` | string | O | ≤ 120. |
 | `performed_by` | string | O | ≤ 255. |
-| `notes` | string | O | ≤ 10000. |
+| `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
 ### 6.16 Certification
@@ -887,7 +926,7 @@ One performed maintenance event.
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | |
-| `agency` | string | R | One of `"padi"`, `"ssi"`, `"naui"`, `"sdi"`, `"tdi"`, `"cmas"`, `"raid"`, `"bsac"`, `"gue"`, `"iantd"`, `"psai"`, `"dan"`, `"efr"`, `"andi"`, `"snsi"`, `"acuc"`, `"pss"`, `"ida"`, `"other"`. This vocabulary is REQUIRED-member frozen after 1.0 (§7), which is why it was seeded wide; national CMAS federations are `"cmas"`. |
+| `agency` | string | R | One of `"padi"`, `"ssi"`, `"naui"`, `"sdi"`, `"tdi"`, `"cmas"`, `"raid"`, `"bsac"`, `"gue"`, `"iantd"`, `"psai"`, `"dan"`, `"efr"`, `"andi"`, `"snsi"`, `"acuc"`, `"pss"`, `"ida"`, `"ndl"`, `"utd"`, `"saa"`, `"scotsac"`, `"iac"`, `"protec"`, `"pdic"`, `"nase"`, `"sei"`, `"ymca"`, `"erdi"`, `"aida"`, `"molchanovs"`, `"pfi"`, `"apnea_academy"`, `"fii"`, `"nss_cds"`, `"nacd"`, `"idea"`, `"diwa"`, `"other"`. This vocabulary is REQUIRED-member frozen after 1.0 (§7), which is why it was seeded wide and why it takes no further values: after the tag an agency not on it is `"other"`. Each value is an agency that issues or issued cards — `"pdic"` and `"ymca"` issue none now, and a logbook still holds theirs, the way an old NASDS card is `"ssi"`'s. National CMAS federations are `"cmas"`. |
 | `agency_other` | string | O | ≤ 64. REQUIRED when `agency` is `"other"`; MUST be absent otherwise. |
 | `name` | string | R | 1–255. The certification's name, free text on purpose — agency catalogs are unbounded. |
 | `number` | string | O | ≤ 64. |
@@ -897,7 +936,7 @@ One performed maintenance event.
 | `instructor_number` | string | O | ≤ 64. |
 | `training_center` | string | O | ≤ 255. |
 | `course_uuid` | uuid | O | → `courses` (§6.17). The course this card came out of. One course can issue several certifications; a certification names at most one course. |
-| `notes` | string | O | ≤ 10000. |
+| `notes` | string | O | |
 | `front_file` | Stored File | O | §6.7 — the scan of the card's front. A card has one front and one back, so the members say so; an array with a side discriminator would let a document claim two fronts. |
 | `back_file` | Stored File | O | §6.7. |
 | `created_at` | date-time | O | §5.7. |
@@ -923,7 +962,7 @@ one course.
 | `instructor_name` | string | O | ≤ 255. |
 | `instructor_number` | string | O | ≤ 64. |
 | `training_center` | string | O | ≤ 255. The same trio as §6.16's, duplicated deliberately rather than normalized away: imported history arrives certification-first, with no course to hang the fields on, so a certification stands alone. |
-| `notes` | string | O | ≤ 10000. |
+| `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
 ## 7. Versioning
@@ -944,7 +983,7 @@ A document declares the specification version it conforms to in its `version` me
   wording for it. The general rule above already makes the value safe to add — `type` is
   OPTIONAL, so a 1.0 reader treats one it does not know as absent (§5.6) — and this one
   makes it useful: the reader that just lost the classification still has the device's own
-  words at the right second rather than a bare time. Where the source classified an event
+  words at the right instant rather than a bare time. Where the source classified an event
   and recorded no wording at all, the writer has nothing to put there and a 1.0 reader is
   left an event it can only place in time; that is the residue of this rule, not a licence
   to invent wording (§5.4).
@@ -993,8 +1032,8 @@ one. Beyond generic JSON concerns:
   wrist (§6.4b) **and of the kit they own** (§6.12), which are stable hardware identifiers
   that link two documents to one diver even when every other member differs — and the kit
   list carries them for gear that never recorded a dive, so a document with no
-  `recordings` at all can still hold one; and free-text notes of up to 10,000 characters
-  on six record types. Software handling documents SHOULD treat them with the care of a
+  `recordings` at all can still hold one; and free-text notes, of any length, on seven
+  record types. Software handling documents SHOULD treat them with the care of a
   personal data export: serve them only to their owner, over authenticated channels,
   without shared caching.
 - **Archives raise the stakes** (Appendix A): they add the referenced binaries, which can
@@ -1005,9 +1044,9 @@ one. Beyond generic JSON concerns:
   `sha256` before use.
 - **Numeric and size limits.** Documents can be large — a sampled profile per recording
   and a dive may have several, thousands of dives; instructors' and divemasters' logbooks
-  run five figures. Readers SHOULD bound memory (streaming or spooled parsing, input
-  size caps) and MUST NOT let unexpected magnitudes in numeric members index or allocate
-  unchecked.
+  run five figures — and `notes` has no length limit. Readers SHOULD bound memory
+  (streaming or spooled parsing, input size caps) and MUST NOT let unexpected magnitudes in
+  numeric members index or allocate unchecked.
 - **Re-rendering text.** Free-text members are arbitrary user content. Software
   re-rendering them into HTML must escape them; software exporting them into spreadsheet
   formats should neutralize formula-leading characters (`=`, `+`, `-`, `@`) — a document
@@ -1069,10 +1108,10 @@ short profile, its site, and the diver:
         {
           "device": { "brand": "Suunto", "model": "Ocean" },
           "profile": {
-            "duration": 2460,
-            "depth": { "times": [0, 60, 120, 2400], "values": [0, 950, 1840, 310] },
-            "temperature": { "times": [0, 1200], "values": [261, 224] },
-            "events": [{ "time": 2100, "type": "safety_stop" }]
+            "duration": 2460000,
+            "depth": { "times": [0, 60000, 120000, 2400000], "values": [0, 950, 1840, 310] },
+            "temperature": { "times": [0, 1200000], "values": [261, 224] },
+            "events": [{ "time": 2100000, "type": "safety_stop" }]
           }
         }
       ]

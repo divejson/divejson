@@ -55,7 +55,7 @@ DiveJSON's answers, as normative rules rather than aspirations:
       "recordings": [
         {
           "device": { "brand": "Suunto", "model": "Ocean" },
-          "profile": { "duration": 2460, "depth": { "times": [0, 60, 120], "values": [0, 950, 1840] } }
+          "profile": { "duration": 2460000, "depth": { "times": [0, 60000, 120000], "values": [0, 950, 1840] } }
         }
       ]
     }
