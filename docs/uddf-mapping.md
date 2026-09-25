@@ -305,11 +305,12 @@ matched on its `<name>`, trimmed and case-insensitively, against every center re
 to that center rather than making another. Where the center lacks a member the shape states,
 it takes it; where both state one and they differ, the center's stands and the shape's is
 reported. Two parts at "Grandma's house" are one center, and a base that is also where the
-diver slept is one center with both roles. A shape that matches nothing is a center of its
-own: an `<accomodation>` under its `@id`, like any record, and an `<operator>`, which
-carries none (`operatorType` extends `simpleNamedType`), under the positional identity
-`converting.md` gives a record without one, its position being its `<trippart>`'s among
-every `<trippart>` in the file, counted from 0.
+diver slept is one center with both roles; two different places of one name are one center
+too, a file giving a reader nothing else to tell them apart by. A shape that matches nothing
+is a center of its own: an `<accomodation>` under its `@id`, like any record, and an
+`<operator>`, which carries none (`operatorType` extends `simpleNamedType`), under the
+positional identity `converting.md` gives a record without one, its position being its
+`<trippart>`'s among every `<trippart>` in the file, counted from 0.
 
 **The operator is the center, and the vessel is not read.** Its name, address, contact and
 notes are the center's, with `roles: ["liveaboard"]`; the `<vessel>` — its name, and

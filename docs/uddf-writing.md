@@ -495,13 +495,22 @@ one center. The part's `type` is `boat` where the center's roles include `liveab
 too rather than as UDDF's `<operator>` with a `<vessel>`: the vessel is mandatory beside the
 operator, and §6.18 has no boat to put in it.
 
+**A part whose center shares its name with another center gets no copy.** A reader has
+nothing but the name to fold a copy by, so where two centers in the document have one name —
+trimmed and case-insensitively, a chain's two branches — a copy of either comes back as
+whichever the reader meets first, and hands that one the other's address besides. Such a
+part is written with no `<accomodation>` and no `type`, and its `accommodation_uuid` is
+reported `dropped`: a part that comes back without its accommodation is a loss the report names,
+where one pointing at the other branch is a wrong answer nothing would.
+
 **A name-only `<divebase>` that no dive or part links does not come back.** A center with
 nothing to write but its name — no address, contact or notes, its roles and `created_at`
 having no slot — goes out as exactly the shape [`uddf-mapping.md`](uddf-mapping.md) skips as
 a placeholder, so where nothing links it, it is reported `dropped`. The ordinary case is a
 school only a course or a card names, those records having no slot at all. Everything else
 comes back: every center a dive or a part references and every shop, with its name,
-contact, address and notes, and its roles as its slots imply them.
+contact, address and notes, and its roles as its slots imply them — and every part's
+accommodation but the ones the rule above reports.
 
 ### Dives
 
