@@ -13,7 +13,8 @@ of record is <https://github.com/divejson/divejson>. This document is licensed
 A dive log is a diver's property, and it outlives any single application. DiveJSON is a
 JSON document format for moving a complete logbook between applications without loss:
 dives with full sampled profiles, gas mixtures, trips, training courses, dive sites,
-marine-life sightings, gear and its service history, and certifications.
+marine-life sightings, gear and its service history, certifications, and the dive centers,
+shops and places to stay behind them.
 
 The format exists because the field lacks a working interchange format. UDDF, the nominal
 incumbent, is XML, frozen since 2018, and — measurably, in round-trip testing between
@@ -117,6 +118,7 @@ A DiveJSON document is a single JSON object:
 | `gear_service_schedules` | array of Service Schedule (§6.14) | OPTIONAL | |
 | `gear_service_records` | array of Service Record (§6.15) | OPTIONAL | |
 | `certifications` | array of Certification (§6.16) | OPTIONAL | |
+| `centers` | array of Center (§6.18) | OPTIONAL | |
 | `extensions` | object (§5.5) | OPTIONAL | |
 
 The order of `format` and `version` is a SHOULD and not a requirement on the document: a
@@ -234,7 +236,10 @@ Stored-file records (§6.7) and the diver (§6.1) carry uuids too.
   `*_uuids`. Every referenced uuid MUST resolve to a record in the corresponding
   collection of the **same document** — a DiveJSON document is self-contained. A writer
   that cannot include a referenced record MUST omit the reference, never emit a dangling
-  one.
+  one. The corresponding collection is the one a member's name names, except where the
+  name says what the record is *to* its host rather than which collection it is in: such a
+  member resolves where its definition says — a trip part's `accommodation_uuid` in
+  `centers` (§6.9a).
 - A reference-list member (`site_uuids`, `gear_uuids`, `species_uuids`,
   `gear_uuids` on a gear set) MUST NOT contain the same uuid twice.
 - Reference-list order is meaningful and writers MUST preserve the source order: a dive's
@@ -248,10 +253,12 @@ site or animal species in two different logbooks will carry two unrelated uuids.
 record has an external identity that does mean the same thing everywhere — a species'
 WoRMS AphiaID (§6.11) — that identity, not the uuid, is the interchange key.
 
-Embedded objects (cylinders, recordings, profile, trip parts, locations, positions, a
-diver's emergency contacts and insurances) have no independent identity; stored-file
-records (§6.7) do carry a `uuid` because files are addressable objects in the source
-logbook.
+Embedded objects (cylinders, recordings, profile, trip parts, locations, addresses,
+positions, a diver's emergency contacts and insurances) have no independent identity;
+stored-file records (§6.7) do carry a `uuid` because files are addressable objects in the
+source logbook. An embedded object may still **reference** a record: a trip part names the
+center the diver stayed at (§6.9a), under the same resolution rule as a record's own
+references, and stays a value with no identity of its own.
 
 ### 5.4 Absent members, null, and "nothing invented"
 
@@ -321,6 +328,12 @@ defined with a closed value set, a reader encountering a value it does not recog
 MUST treat that member as absent** (not recorded); this is what makes §7's promise that
 minor versions may add enum values actually hold for old readers, and it is why §7
 forbids growing the vocabulary of a REQUIRED member.
+
+**An array whose items come from a closed value set is read item by item.** A reader
+encountering an item it does not recognize MUST drop that item and keep the rest, and MUST
+treat the member as absent only when no item remains. The rule above is written for a single
+value; applied to a whole array it would let one value added in a minor version erase every
+value beside it. `roles` on a center (§6.18) is such a member.
 
 This tolerance rule is addressed to readers. It does not license writers to emit
 undefined members: writer conformance is §5.5's rule, checked strictly by the schema for
@@ -423,6 +436,7 @@ would put another person's face beside the diver's name.
 | `exit_position` | Position | O | Where the diver surfaced. |
 | `trip_uuid` | uuid | O | → `trips`. |
 | `course_uuid` | uuid | O | → `courses` (§6.17). The training course this dive was logged on. |
+| `center_uuid` | uuid | O | → `centers` (§6.18). Who the diver dived with: the center that ran the dive. |
 | `site_uuids` | array of uuid | O | → `sites`; the first element is the primary site, the remaining order is the diver's own (§5.3). |
 | `gear_uuids` | array of uuid | O | → `gear`; the diver's own order. |
 | `species_uuids` | array of uuid | O | → `species`; the diver's own order. |
@@ -772,6 +786,7 @@ One stretch of a trip: a date range, a place, or both. Embedded value object; no
 | `starts_on` | date | O | |
 | `ends_on` | date | O | MUST be ≥ `starts_on` when both are present. Each date is independently optional, as on a course (§6.17): a part logged with only its start is a real state, and so is a place the diver named and never dated. |
 | `location` | Location (§6.9) | O | Where this stretch of the trip was. Absent for a transit day, or for a stretch no geocoder resolved and the diver never named. |
+| `accommodation_uuid` | uuid | O | → `centers` (§6.18) — the first reference not named after its collection (§5.3). Where the diver slept during this stretch: a hotel, a friend's house, the boat of a liveaboard. One per part, since a change of accommodation is a new part. |
 
 A part carries **no name of its own**: `location.name` is the place's name, and a part with
 no location is identified by its dates, or by its position in the array when it has
@@ -786,6 +801,11 @@ place in one. A part carries no ordinal member, because the array's order is the
 **Parts MAY overlap and need not be contiguous.** Leaving one place and arriving at the
 next on the same day is two parts sharing a date, and a gap between two of them is a real
 thing to record; neither is a defect and no rule here forbids either.
+
+**A part records where the diver stayed and not who they dived with.** That is each dive's
+`center_uuid` (§6.2), and a reader wanting it for a part walks the trip's dives: a stored
+answer on the part could contradict the dives beneath it, and the dives are right even when
+one stretch's diving was split between two operators.
 
 ### 6.9 Location
 
@@ -917,7 +937,8 @@ One performed maintenance event.
 | `serviced_on` | date | R | |
 | `dive_count_at_service` | integer | O | ≥ 0. **Snapshot** (§5.7). |
 | `label` | string | O | ≤ 120. |
-| `performed_by` | string | O | ≤ 255. |
+| `performed_by` | string | O | ≤ 255. Who did the work, as free text — a technician's name, or *self* where the diver did it. The place it was done at is `center_uuid`. |
+| `center_uuid` | uuid | O | → `centers` (§6.18). The shop or center the work was done at. |
 | `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
@@ -934,7 +955,7 @@ One performed maintenance event.
 | `expires_on` | date | O | |
 | `instructor_name` | string | O | ≤ 255. |
 | `instructor_number` | string | O | ≤ 64. |
-| `training_center` | string | O | ≤ 255. |
+| `center_uuid` | uuid | O | → `centers` (§6.18). The center that ran the course the card came out of. |
 | `course_uuid` | uuid | O | → `courses` (§6.17). The course this card came out of. One course can issue several certifications; a certification names at most one course. |
 | `notes` | string | O | |
 | `front_file` | Stored File | O | §6.7 — the scan of the card's front. A card has one front and one back, so the members say so; an array with a side discriminator would let a document claim two fronts. |
@@ -960,10 +981,79 @@ one course.
 | `starts_on` | date | O | |
 | `ends_on` | date | O | MUST be ≥ `starts_on` when both are present. Each date is independently optional — a planned course has no dates yet, a referral course spans months with fuzzy edges, and a course with only one known date is a real state. |
 | `instructor_name` | string | O | ≤ 255. |
-| `instructor_number` | string | O | ≤ 64. |
-| `training_center` | string | O | ≤ 255. The same trio as §6.16's, duplicated deliberately rather than normalized away: imported history arrives certification-first, with no course to hang the fields on, so a certification stands alone. |
+| `instructor_number` | string | O | ≤ 64. The same pair as §6.16's, duplicated deliberately rather than normalized away: imported history arrives certification-first, with no course to hang the fields on, so a certification stands alone. |
+| `center_uuid` | uuid | O | → `centers` (§6.18). The center that ran the course. A course and the cards it issued reference one record rather than carrying two copies of its name. |
 | `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
+
+### 6.18 Center
+
+An organisation the diver dealt with: the dive center a dive went out with, the school that
+ran a course, the shop that serviced a regulator, the hotel or the boat a stretch of a trip
+was spent on. One record, however many of those it was, referenced wherever the diver met
+it — a dive (§6.2), a course (§6.17), a certification (§6.16), a service record (§6.15) and a
+trip part's `accommodation_uuid` (§6.9a). Like a course, a center carries no list of what
+references it, and a reader rebuilds that by walking the referencing records.
+
+**One record rather than one per role**, because the organisation is one. UDDF has five
+shapes for it — a dive base, a shop, an accommodation, an operator and a vessel — and every
+one is a name with an optional address, contact block and notes, differing in a field or
+two each; a resort that runs dives, rents rooms and sells gear is one record here, not three
+copies that drift apart. And like a dive site, a center is the diver's own record of the
+place rather than an entry in a shared directory: the same shop in two logbooks is two
+records with unrelated uuids (§5.3).
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `uuid` | uuid | R | |
+| `name` | string | R | 1–255. As the diver writes it. |
+| `roles` | array of string | O | What the center is, from the vocabulary below; no value twice, in no meaningful order, and possibly empty. An OPTIONAL member, so this vocabulary grows in minor versions (§7), and a reader drops a value it does not know and keeps the rest (§5.6). |
+| `phone` | string | O | ≤ 32. As written — free text, not E.164, on §6.1's terms. |
+| `email` | string | O | ≤ 255. |
+| `website` | string | O | ≤ 512. An absolute URL, scheme included. |
+| `address` | Address (§6.19) | O | Where the center is. |
+| `notes` | string | O | |
+| `created_at` | date-time | O | §5.7. |
+
+The vocabulary of `roles`:
+
+| value | what the center does |
+| --- | --- |
+| `dive_center` | runs dives and day boats |
+| `school` | teaches courses |
+| `shop` | sells or services equipment |
+| `accommodation` | has rooms — a hotel, a resort's rooms, a guest house, a flat, a friend's house |
+| `liveaboard` | operates boats a diver sleeps on |
+| `club` | a membership association, usually non-profit — a French *club de plongée*, a BSAC branch |
+| `other` | none of these — an aquarium, a navy school |
+
+**A resort is two values**, `dive_center` and `accommodation`, and there is no `resort`: an
+overlapping value would file one organisation two ways. **A role is what the center is, not
+what one reference used it for** — a dive's `center_uuid` names who the diver dived with
+whatever roles that center carries. An empty `roles` records nothing an absent one does not.
+
+**Deferred**, and named so a reader knows they were considered: a center's position on a
+map, its alias names, a fax number or a language, a rating, a dive base's prices and guides,
+a hotel's category, and everything about a vessel. Nothing this version was written against
+stores any of them (§1); each arrives in a minor version when something does (§7), and
+§5.5's extensions carry it until then.
+
+### 6.19 Address
+
+A postal address. Embedded value object; no uuid. A center (§6.18) carries one.
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `street` | string | O | ≤ 255. The street line, number included, as written. |
+| `city` | string | O | ≤ 255. |
+| `postcode` | string | O | ≤ 32. |
+| `region` | string | O | ≤ 255. The state, province, county or governorate, as the address writes it. |
+| `country` | string | R | 1–255. As written. |
+
+**`country` is the anchor**, and the one member an address cannot omit: it is the part of an
+address every other part is read inside, and the one UDDF's `<address>` requires as well. A
+street with no country beside it places the center nowhere a reader could look, so a source
+that records the rest of an address and no country has recorded no address.
 
 ## 7. Versioning
 
@@ -987,6 +1077,10 @@ A document declares the specification version it conforms to in its `version` me
   and recorded no wording at all, the writer has nothing to put there and a 1.0 reader is
   left an event it can only place in time; that is the residue of this rule, not a licence
   to invent wording (§5.4).
+- **An OPTIONAL array of closed values grows the same way**: a minor version may add values
+  to the vocabulary its items come from, and a reader that does not know one drops that item
+  and keeps the rest (§5.6) rather than losing the member. `roles` on a center (§6.18) is
+  such a member.
 - **A reader accepts any document whose major version it implements**, whatever the
   minor. A reader MUST reject, or clearly flag as unsupported, a document whose major
   version it does not implement.
@@ -1027,15 +1121,16 @@ one. Beyond generic JSON concerns:
   carry) that together form a movement history; the diver's name, handle, email address,
   phone number and date of birth, and their dive insurance; an emergency contact's name
   and phone number, which are **another person's** data, carried without that person
-  having exported anything; certification numbers, instructor names, and training centers,
-  which function as identity documents; the serial numbers of the dive computers on their
-  wrist (§6.4b) **and of the kit they own** (§6.12), which are stable hardware identifiers
-  that link two documents to one diver even when every other member differs — and the kit
-  list carries them for gear that never recorded a dive, so a document with no
-  `recordings` at all can still hold one; and free-text notes, of any length, on seven
-  record types. Software handling documents SHOULD treat them with the care of a
-  personal data export: serve them only to their owner, over authenticated channels,
-  without shared caching.
+  having exported anything; certification numbers and instructor names, which function as
+  identity documents; the centers the diver trained, dived, shopped and slept at, with their
+  addresses (§6.18); the serial numbers of the dive computers on their wrist (§6.4b) **and
+  of the kit they own** (§6.12), which are stable hardware identifiers that link two
+  documents to one diver even when every other member differs — and the kit list carries
+  them for gear that never recorded a dive, so a document with no `recordings` at all can
+  still hold one; and free-text notes, of any length, on dives, trips, courses, sites, gear,
+  service records, certifications and centers. Software handling documents SHOULD treat
+  them with the care of a personal data export: serve them only to their owner, over
+  authenticated channels, without shared caching.
 - **Archives raise the stakes** (Appendix A): they add the referenced binaries, which can
   include scans of certification cards and the diver's portrait (§6.1) — ID-like personal
   documents — and, among producer-added members, even a profile photo (the reference
@@ -1080,7 +1175,8 @@ members the document does not reference. The RECOMMENDED extension for the conta
 ## Appendix B. Example (informative)
 
 A minimal but realistic document — one dive with a cylinder and one recording carrying a
-short profile, its site, and the diver:
+short profile, its site, the trip and the course it was logged on, the card the course
+issued, the diver, and the center that ran the dive and the course and put the diver up:
 
 ```json
 {
@@ -1100,6 +1196,9 @@ short profile, its site, and the diver:
       "duration": 2460,
       "max_depth": 18.4,
       "water_type": "salt",
+      "trip_uuid": "019fec36-b882-7e23-97fa-9e297e8c9701",
+      "course_uuid": "019fec36-b8e1-7a40-8c3d-2f6b1e0d9a55",
+      "center_uuid": "019fec36-b8a9-7d02-8f3e-61c0b7a4d2e9",
       "site_uuids": ["019fec36-b8b8-7cc9-a4b9-ede85f907c94"],
       "cylinders": [
         { "volume": 12.0, "start_pressure": 200.0, "end_pressure": 70.0, "oxygen": 32.0 }
@@ -1117,6 +1216,29 @@ short profile, its site, and the diver:
       ]
     }
   ],
+  "trips": [
+    {
+      "uuid": "019fec36-b882-7e23-97fa-9e297e8c9701",
+      "name": "Dahab, April",
+      "parts": [
+        {
+          "starts_on": "2026-04-15",
+          "ends_on": "2026-04-22",
+          "location": { "name": "Dahab, Egypt" },
+          "accommodation_uuid": "019fec36-b8a9-7d02-8f3e-61c0b7a4d2e9"
+        }
+      ]
+    }
+  ],
+  "courses": [
+    {
+      "uuid": "019fec36-b8e1-7a40-8c3d-2f6b1e0d9a55",
+      "name": "Advanced Open Water",
+      "agency": "padi",
+      "status": "completed",
+      "center_uuid": "019fec36-b8a9-7d02-8f3e-61c0b7a4d2e9"
+    }
+  ],
   "sites": [
     {
       "uuid": "019fec36-b8b8-7cc9-a4b9-ede85f907c94",
@@ -1128,6 +1250,25 @@ short profile, its site, and the diver:
         "bbox": { "south": 28.44, "north": 28.6, "west": 34.45, "east": 34.6 }
       },
       "position": { "latitude": 28.567251, "longitude": 34.533257 }
+    }
+  ],
+  "certifications": [
+    {
+      "uuid": "019fec36-b926-7231-a80d-b5542f143976",
+      "agency": "padi",
+      "name": "Advanced Open Water Diver",
+      "certified_on": "2026-04-18",
+      "course_uuid": "019fec36-b8e1-7a40-8c3d-2f6b1e0d9a55",
+      "center_uuid": "019fec36-b8a9-7d02-8f3e-61c0b7a4d2e9"
+    }
+  ],
+  "centers": [
+    {
+      "uuid": "019fec36-b8a9-7d02-8f3e-61c0b7a4d2e9",
+      "name": "Blue Hole Divers",
+      "roles": ["dive_center", "school", "accommodation"],
+      "phone": "+20 69 555 0199",
+      "address": { "city": "Dahab", "country": "Egypt" }
     }
   ]
 }
