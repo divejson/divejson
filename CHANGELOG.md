@@ -7,6 +7,47 @@ repositories.
 
 ## Unreleased
 
+- **Centers are records (§4, §5.3, §5.6, §6.2, §6.9a, §6.15–§6.19, §7, §9).** A course and a
+  certification each named the organisation that ran it in a `training_center` string, a
+  service record named its shop the same way in `performed_by`, a dive could not say whom it
+  was dived with, and a trip part could not say where the diver slept. §6.18's **Center** is
+  one record for all of them — the dive center, the school, the shop, the hotel, the boat —
+  with a `name`, a set of `roles`, a `phone`, an `email`, a `website`, an `address` and
+  `notes`, in a new top-level `centers` collection. §6.19's **Address** is its own object,
+  anchored on a REQUIRED `country`, which UDDF's `<address>` requires too. A dive, a course, a
+  certification and a service record reference a center through `center_uuid`, and a trip
+  part through `accommodation_uuid`: the first reference out of an embedded object, and the
+  first not named after its collection, so §5.3 says that an embedded object may reference a
+  record and stay a value, and that such a member resolves where its definition says.
+  `performed_by` stays, for the person who did the work. §9's dossier names centers and their
+  addresses, and lists the record types carrying notes rather than counting them.
+
+  **`roles` is the format's first array of closed values**, because a resort runs dives and
+  rents rooms, and a school sells gear. Its vocabulary — `dive_center`, `school`, `shop`,
+  `accommodation`, `liveaboard`, `club`, `other` — is OPTIONAL so that it can grow in a minor
+  version, and §5.6 and §7 gain the rule that makes that safe: a reader drops an item it does
+  not know and keeps the rest, treating the member as absent only when nothing remains. The
+  single-value rule applied to a whole array would let one new value erase every value beside
+  it.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones below.
+  It breaks documents: `training_center` is an undefined member on a course and on a
+  certification, which the schema rejects, and every fixture carrying it lost it.
+  `valid/technical-dive` carries a center with every member, referenced from all five hosts,
+  and `valid/demo-logbook` one referenced from the four hosts it has. `fixtures/invalid/` gains
+  `accommodation-dangling-reference`, a part's reference to no center, which §3's rule 1 now
+  reaches inside a trip; `center-roles-repeated`; and `address-without-country`.
+
+  **UDDF's shapes read into it and it writes back out.** `docs/uddf-mapping.md` reads a
+  `<divebase>`, a `<shop>` and a trip part's `<accomodation>` and `<operator>` into centers
+  with the role each slot implies, folding the inline ones into the center they name, a
+  dive's link to a base or a shop into `center_uuid`, and skips the name-only base Subsurface
+  writes into every export. `docs/uddf-writing.md` writes a center to a `<shop>` where that is
+  all it is and to a `<divebase>` otherwise, a dive's reference as a link after its site
+  links, and a part's as an inline copy, reporting the roles the slots do not say back.
+  `fixtures/uddf/centers` is the reading pair, built from the XSD because no export in hand
+  carries any of the shapes, and `fixtures/write/uddf/centers` the writing one.
+
 - **A profile's axis is milliseconds (§5.1, §6.4, §6.5, §6.6).** On a whole-second axis a
   converter kept the first of two readings of one channel that rounded to the same second
   and dropped the other, and threw away every sub-second offset its source stated — while
