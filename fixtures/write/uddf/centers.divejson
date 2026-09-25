@@ -63,6 +63,14 @@
             "name": "Hurghada"
           },
           "accommodation_uuid": "019fed00-5c3a-7000-8000-0000000000a2"
+        },
+        {
+          "starts_on": "2026-03-21",
+          "ends_on": "2026-03-22",
+          "location": {
+            "name": "El Gouna"
+          },
+          "accommodation_uuid": "019fed00-5c3a-7000-8000-0000000000a5"
         }
       ]
     }
@@ -157,7 +165,7 @@
     },
     {
       "uuid": "019fed00-5c3a-7000-8000-0000000000a3",
-      "name": "Reefside Dive Supplies",
+      "name": "Reefside",
       "roles": [
         "shop"
       ],
@@ -177,6 +185,13 @@
       ],
       "phone": "+20 65 555 0123",
       "notes": "Seven nights aboard, nitrox included."
+    },
+    {
+      "uuid": "019fed00-5c3a-7000-8000-0000000000a5",
+      "name": "Reefside",
+      "roles": [
+        "accommodation"
+      ]
     }
   ]
 }

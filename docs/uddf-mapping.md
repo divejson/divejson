@@ -227,7 +227,8 @@ than on that string: a base is skipped when no dive and no `<trippart>` links it
 `<accomodation>` or `<operator>` in the file carries its name, and it carries no `<address>`,
 `<contact>` or `<notes>`. A base with any of those is kept whatever links it, and a linked
 one whatever it carries — which is what brings back the name-only base
-[`uddf-writing.md`](uddf-writing.md) writes for a center a part stays at.
+[`uddf-writing.md`](uddf-writing.md) writes for a center a part stays at, wherever it gives
+the part a copy.
 
 **Every string meets its member's bound.** A `<name>` or an address part past its bound is
 cut to it and reported, as a site's name is; a phone past 32 characters, an email past 255
