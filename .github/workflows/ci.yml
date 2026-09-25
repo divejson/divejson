@@ -44,7 +44,7 @@ jobs:
       # mid-flight labels this commit. The chore that closes the order moves the two
       # back together.
       - name: Install the pinned implementation
-        run: pip install "git+https://github.com/divejson/divejson-py@b1aaf29aa75a25d931851663bbf7065cfd349c42"
+        run: pip install "git+https://github.com/divejson/divejson-py@f271bc4e0b8fe486136609ff3e593bc42f206213"
 
       # `jsonschema` arrives as a dependency of the implementation. This is the one
       # check that is about the schema as a document rather than about what it
