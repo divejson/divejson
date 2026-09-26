@@ -541,9 +541,11 @@ at all.
 the rest, and a one-word name leaves `<lastname>` empty, `personalType` requiring it. A reader
 joins the non-empty parts with single spaces ([`uddf-mapping.md`](uddf-mapping.md)), so a
 name whose words are separated by single spaces, with none around them, comes back
-byte-identical, and any other whitespace in a name is normalised to that on the way out. The
-first space is where Subsurface's and Bubbletrail's UDDF exports split a name too, so a reader
-of either that re-joins the two elements sees the same string. A buddy's children run in
+byte-identical. Any other whitespace in a name goes out normalised to that and is reported,
+and a name of whitespace alone goes out empty, which a reader drops along with every
+reference to the person, and is reported too. The first space is where Subsurface's and
+Bubbletrail's UDDF exports split a name, so a reader of either that re-joins the two
+elements sees the same string. A buddy's children run in
 `personType`'s order: `<personal>`, `<contact>`, `<notes>`.
 
 **A dive's people are linked in the dive's own order, after its sites and its contact**
