@@ -13,8 +13,9 @@ of record is <https://github.com/divejson/divejson>. This document is licensed
 A dive log is a diver's property, and it outlives any single application. DiveJSON is a
 JSON document format for moving a complete logbook between applications without loss:
 dives with full sampled profiles, gas mixtures, trips, training courses, dive sites,
-marine-life sightings, gear and its service history, certifications, and the contacts
-behind them — the dive centers, shops and places to stay.
+marine-life sightings, gear and its service history, certifications, the people the diver
+dived, travelled and trained with, and the contacts behind them — the dive centers, shops
+and places to stay.
 
 The format exists because the field lacks a working interchange format. UDDF, the nominal
 incumbent, is XML, frozen since 2018, and — measurably, in round-trip testing between
@@ -71,7 +72,8 @@ The schema cannot express every requirement. The requirements listed below are n
 but live outside the schema; the reference validator (`divejson validate`) checks both
 the schema and this list:
 
-1. Identifier uniqueness and referential closure (§5.3).
+1. Identifier uniqueness and referential closure (§5.3), a Person Reference's
+   `person_uuid` (§6.20) included.
 2. Cross-member arithmetic: `oxygen + helium ≤ 100` and `end_pressure ≤ start_pressure`
    on a cylinder (§6.3); `avg_depth ≤ max_depth` on a dive (§6.2); `ends_on ≥ starts_on`
    on a trip part (§6.9a) and on a course (§6.17); `south ≤ north` on a bounding box
@@ -86,6 +88,9 @@ the schema and this list:
    validators.
 6. `gf_low ≤ gf_high` on a recording's deco model (§6.4c). The schema pairs the two and
    bounds each; which of them is the larger is arithmetic between members, like rule 2's.
+7. No person twice in one `people` list (§6.20). The schema holds a list of bare uuids to
+   the same rule with `uniqueItems`, and cannot hold this one: it compares whole items, and
+   two references to one person under two roles are two different objects to it.
 
 Requirements addressed to writer and reader *behaviour* — nothing invented (§5.4),
 unknown-member and unknown-value tolerance (§5.6), offset preservation (§5.2), the reserved
@@ -119,6 +124,7 @@ A DiveJSON document is a single JSON object:
 | `gear_service_records` | array of Service Record (§6.15) | OPTIONAL | |
 | `certifications` | array of Certification (§6.16) | OPTIONAL | |
 | `contacts` | array of Contact (§6.18) | OPTIONAL | |
+| `people` | array of Person (§6.20) | OPTIONAL | |
 | `extensions` | object (§5.5) | OPTIONAL | |
 
 The order of `format` and `version` is a SHOULD and not a requirement on the document: a
@@ -239,13 +245,14 @@ Stored-file records (§6.7) and the diver (§6.1) carry uuids too.
   one. The corresponding collection is the one a member's name names, except where the
   name says what the record is *to* its host rather than which collection it is in: such a
   member resolves where its definition says — a trip part's `accommodation_uuid` in
-  `contacts` (§6.9a).
+  `contacts` (§6.9a), and a certification's `instructor_uuid` in `people` (§6.16).
 - A reference-list member (`site_uuids`, `gear_uuids`, `species_uuids`,
-  `gear_uuids` on a gear set) MUST NOT contain the same uuid twice.
+  `gear_uuids` on a gear set) MUST NOT contain the same uuid twice, and a `people` list
+  (§6.20) MUST NOT reference the same person twice.
 - Reference-list order is meaningful and writers MUST preserve the source order: a dive's
   `site_uuids` leads with the primary site, and the rest of that list — like
-  `species_uuids` and `gear_uuids` on a dive and on a gear set — is the diver's own
-  order, whatever it means to them.
+  `species_uuids` and `gear_uuids` on a dive and on a gear set, and every `people` list —
+  is the diver's own order, whatever it means to them.
 
 uuids identify records *within* a logbook and, for the same diver's data, across
 exports. They are not portable identities for shared realities: the same physical dive
@@ -254,11 +261,12 @@ record has an external identity that does mean the same thing everywhere — a s
 WoRMS AphiaID (§6.11) — that identity, not the uuid, is the interchange key.
 
 Embedded objects (cylinders, recordings, profile, trip parts, locations, addresses,
-positions, a diver's emergency contacts and insurances) have no independent identity;
-stored-file records (§6.7) do carry a `uuid` because files are addressable objects in the
-source logbook. An embedded object may still **reference** a record: a trip part names the
-contact the diver stayed at (§6.9a), under the same resolution rule as a record's own
-references, and stays a value with no identity of its own.
+positions, person references, a diver's emergency contacts and insurances) have no
+independent identity; stored-file records (§6.7) do carry a `uuid` because files are
+addressable objects in the source logbook. An embedded object may still **reference** a
+record: a trip part names the contact the diver stayed at (§6.9a) and a person reference
+names a person (§6.20), under the same resolution rule as a record's own references, and
+each stays a value with no identity of its own.
 
 ### 5.4 Absent members, null, and "nothing invented"
 
@@ -436,10 +444,11 @@ would put another person's face beside the diver's name.
 | `exit_position` | Position | O | Where the diver surfaced. |
 | `trip_uuid` | uuid | O | → `trips`. |
 | `course_uuid` | uuid | O | → `courses` (§6.17). The training course this dive was logged on. |
-| `contact_uuid` | uuid | O | → `contacts` (§6.18). Who the diver dived with: the contact that ran the dive. |
+| `contact_uuid` | uuid | O | → `contacts` (§6.18). The contact that ran the dive. |
 | `site_uuids` | array of uuid | O | → `sites`; the first element is the primary site, the remaining order is the diver's own (§5.3). |
 | `gear_uuids` | array of uuid | O | → `gear`; the diver's own order. |
 | `species_uuids` | array of uuid | O | → `species`; the diver's own order. |
+| `people` | array of Person Reference | O | §6.20 — who the diver dived with, each with what they were on this dive; the diver's own order, and no person twice. |
 | `cylinders` | array of Cylinder | O | §6.3, in the diver's own cylinder order. |
 | `recordings` | array of Recording | O | §6.4a — one entry per device that recorded this dive, the first primary. |
 | `created_at` | date-time | O | §5.7. |
@@ -774,8 +783,16 @@ them.
 | `uuid` | uuid | R | |
 | `name` | string | R | 1–255. |
 | `parts` | array of Trip Part (§6.9a) | O | In the diver's own order, which is not necessarily date order (§6.9a). Absent or empty is a trip whose stretches were never recorded, and it has no span. |
+| `people` | array of Person Reference | O | §6.20 — who came on the trip, whether or not they dived; the diver's own order, and no person twice. Not the dives' people gathered up: see below. |
 | `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
+
+**A trip's `people` is a fact of its own, and a reader MUST NOT fill it from the trip's
+dives**, nor a dive's from its trip's. Who came on a trip is not who was on each dive: a
+companion who stayed on the boat came on the trip and is on none of its dives, and a group
+that split across two boats dived with different people on each. No walk of the dives
+derives the first, and copying the trip's list onto a dive would put people on it the diver
+never said were there (§5.4).
 
 ### 6.9a Trip Part
 
@@ -802,10 +819,10 @@ place in one. A part carries no ordinal member, because the array's order is the
 next on the same day is two parts sharing a date, and a gap between two of them is a real
 thing to record; neither is a defect and no rule here forbids either.
 
-**A part records where the diver stayed and not who they dived with.** That is each dive's
-`contact_uuid` (§6.2), and a reader wanting it for a part walks the trip's dives: a stored
-answer on the part could contradict the dives beneath it, and the dives are right even when
-one stretch's diving was split between two operators.
+**A part records where the diver stayed and not who they dived with.** Those are each dive's
+`people` and `contact_uuid` (§6.2), and a reader wanting them for a part walks the trip's
+dives: a stored answer on the part could contradict the dives beneath it, and the dives are
+right even when one stretch's diving was split between two operators.
 
 ### 6.9 Location
 
@@ -953,8 +970,8 @@ One performed maintenance event.
 | `number` | string | O | ≤ 64. |
 | `certified_on` | date | O | |
 | `expires_on` | date | O | |
-| `instructor_name` | string | O | ≤ 255. |
-| `instructor_number` | string | O | ≤ 64. |
+| `instructor_uuid` | uuid | O | → `people` (§6.20) — the second reference not named after its collection (§5.3). The instructor who certified the diver. |
+| `instructor_number` | string | O | ≤ 64. The instructor's number as the card prints it. |
 | `contact_uuid` | uuid | O | → `contacts` (§6.18). The contact that ran the course the card came out of. |
 | `course_uuid` | uuid | O | → `courses` (§6.17). The course this card came out of. One course can issue several certifications; a certification names at most one course. |
 | `notes` | string | O | |
@@ -980,9 +997,9 @@ one course.
 | `status` | string | O | One of `"planned"`, `"in_progress"`, `"completed"`, `"incomplete"`, `"provisional"`, `"not_passed"` — a booked course exists before its first dive, a referral leaves one open for months, and some agencies issue provisional passes. Absent means not recorded; readers MUST NOT assume `"completed"` (§5.4). |
 | `starts_on` | date | O | |
 | `ends_on` | date | O | MUST be ≥ `starts_on` when both are present. Each date is independently optional — a planned course has no dates yet, a referral course spans months with fuzzy edges, and a course with only one known date is a real state. |
-| `instructor_name` | string | O | ≤ 255. |
-| `instructor_number` | string | O | ≤ 64. The same pair as §6.16's, duplicated deliberately rather than normalized away: imported history arrives certification-first, with no course to hang the fields on, so a certification stands alone. |
+| `instructor_number` | string | O | ≤ 64. The instructor's number, as on §6.16, and carried on both deliberately rather than normalized away: imported history arrives certification-first, with no course to hang it on, so a certification stands alone. The instructor themselves is one person (§6.20), whom the course names among its `people` and the card through `instructor_uuid`. |
 | `contact_uuid` | uuid | O | → `contacts` (§6.18). The contact that ran the course. A course and the cards it issued reference one record rather than carrying two copies of its name. |
+| `people` | array of Person Reference | O | §6.20 — who taught the course and who learned beside the diver: its instructors with the role `instructor`, fellow students with `student`. The diver's own order, and no person twice. |
 | `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
@@ -994,7 +1011,9 @@ the boat or the friend's house where a stretch of a trip was spent. One record, 
 of those it was, referenced wherever the diver met it — a dive (§6.2), a course (§6.17), a
 certification (§6.16), a service record (§6.15) and a trip part's `accommodation_uuid`
 (§6.9a). Like a course, a contact carries no list of what references it, and a reader
-rebuilds that by walking the referencing records.
+rebuilds that by walking the referencing records. An individual the diver was *with* — a
+buddy, a guide, an instructor — is not a contact but a person (§6.20): organisations dealt
+with, individuals been with.
 
 **One record rather than one per role**, because the party is one. UDDF has five shapes for
 it — a dive base, a shop, an accommodation, an operator and a vessel — and every one is a
@@ -1030,8 +1049,9 @@ The vocabulary of `roles`:
 
 **A resort is two values**, `dive_center` and `accommodation`, and there is no `resort`: an
 overlapping value would file one party two ways. **A role is what the contact is, not
-what one reference used it for** — a dive's `contact_uuid` names who the diver dived with
-whatever roles that contact carries. An empty `roles` records nothing an absent one does not.
+what one reference used it for** — a dive's `contact_uuid` names the contact that ran the
+dive whatever roles that contact carries. An empty `roles` records nothing an absent one does
+not.
 
 **Deferred**, and named so a reader knows they were considered: a contact's position on a
 map, its alias names, a fax number or a language, a rating, a dive base's prices and guides,
@@ -1055,6 +1075,83 @@ A postal address. Embedded value object; no uuid. A contact (§6.18) carries one
 address every other part is read inside, and the one UDDF's `<address>` requires as well. A
 street with no country beside it places the contact nowhere a reader could look, so a source
 that records the rest of an address and no country has recorded no address.
+
+### 6.20 Person
+
+An individual the diver was with — the buddy beside them, the guide who led the dive, the
+instructor who taught the course, a fellow student, the companion who came on the trip and
+stayed on the boat. One record, referenced with a role per occasion from any number of dives
+(§6.2), trips (§6.8) and courses (§6.17), and from a certification as its instructor
+(§6.16). Like a contact, a person carries no list of what references it.
+
+**A person is the diver's own record about somebody**, not that somebody's record of
+themselves: the name is what the diver wrote rather than what the person calls themselves,
+and the same person in two logbooks is two records with unrelated uuids (§5.3), as a contact
+or a dive site is.
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `uuid` | uuid | R | |
+| `name` | string | R | 1–255. As the diver writes it. |
+| `email` | string | O | ≤ 255. An email address, as a contact's is (§6.18). |
+| `phone` | string | O | ≤ 32. As written — free text, not E.164, on §6.1's terms. |
+| `notes` | string | O | |
+| `created_at` | date-time | O | §5.7. |
+
+**It carries no identity for the person either, and that is deliberate.** An identity would
+have to name the same person in every logbook, and nothing a writer holds does. A diver's
+`uuid` (§6.1) is one application's identifier, which a reader importing a logbook never
+applies to its own account, so one person holds unrelated diver uuids in two applications'
+files; and a converter reading a format whose owner carries no identifier of its own
+derives one from whatever stands in for it, so every UDDF file whose owner id is the literal
+`owner` converts to the same diver uuid, whoever's logbook it is. An application that links a
+person to an account of its own carries that link under its producer key (§5.5), where it
+means what that application says it means. `email` is the portable contact, and a reader MAY
+match on it if it chooses.
+
+A **Person Reference** is an embedded object, with no uuid, naming one person on one
+occasion:
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `person_uuid` | uuid | R | → `people`. |
+| `role` | string | O | What the person was on this occasion, from the vocabulary below. An OPTIONAL member, so this vocabulary grows in minor versions (§7), and a reader that does not know a value treats `role` as absent and keeps the reference (§5.6). |
+
+A dive's, a trip's and a course's `people` is an array of them, in the diver's own order
+(§5.3), naming a person at most once (§3).
+
+The vocabulary of `role`:
+
+| value | what the person was |
+| --- | --- |
+| `buddy` | dived alongside the diver |
+| `guide` | led the dive professionally — a divemaster, a dive guide |
+| `instructor` | taught |
+| `student` | learned: a fellow student, or the diver's own student where the diver taught |
+| `companion` | came along with no diving role |
+
+**An absent `role` means the person was there**, and nothing more is said about as what.
+There is no `other`: `role` is OPTIONAL, so a value meaning *none of these* would be a second
+spelling of leaving it out, which is the argument §6.6 makes for an event's `type`.
+
+**One role per reference, not a set.** A contact's `roles` is a set because a party *is*
+several things at once (§6.18); a person on one occasion was there in one capacity, and where
+two apply the more specific is written — the instructor on a one-student course dive is its
+instructor, not its buddy. The role is the occasion's rather than the person's, which is why
+it sits on the reference: Tuesday's buddy is Thursday's guide.
+
+**A certification's instructor is a reference of its own**, `instructor_uuid` rather than a
+list, because a card is signed by one instructor. The course it came out of names the same
+person among its `people` with the role `instructor`, so one record serves both, and the
+number printed on the card stays on the card and the course as `instructor_number` (§6.16,
+§6.17).
+
+**Deferred**, and named so a reader knows they were considered: a person's photograph,
+website, address and date of birth, and their certification level and agency, which are the
+other person's facts and stale the day they pass a course; and an identity that names the
+same person everywhere, an account at a host or a federated handle, for the reason above.
+Each arrives in a minor version when an implementation stores it (§1, §7), and §5.5's
+extensions carry it until then.
 
 ## 7. Versioning
 
@@ -1121,17 +1218,18 @@ one. Beyond generic JSON concerns:
   fixes, and the locality centres and bounding boxes a trip part and a dive site each
   carry) that together form a movement history; the diver's name, handle, email address,
   phone number and date of birth, and their dive insurance; an emergency contact's name
-  and phone number, which are **another person's** data, carried without that person
-  having exported anything; certification numbers and instructor names, which function as
-  identity documents; the contacts the diver trained, dived, shopped and slept at, with their
-  addresses (§6.18); the serial numbers of the dive computers on their wrist (§6.4b) **and
-  of the kit they own** (§6.12), which are stable hardware identifiers that link two
-  documents to one diver even when every other member differs — and the kit list carries
-  them for gear that never recorded a dive, so a document with no `recordings` at all can
-  still hold one; and free-text notes, of any length, on dives, trips, courses, sites, gear,
-  service records, certifications and contacts. Software handling documents SHOULD treat
-  them with the care of a personal data export: serve them only to their owner, over
-  authenticated channels, without shared caching.
+  and phone number, and the people the diver was with — their names, emails, phones and the
+  diver's notes about them (§6.20) — which are **other persons'** data, carried without
+  those persons having exported anything; certification and instructor numbers, which
+  function as identity documents; the contacts the diver trained, dived, shopped and slept
+  at, with their addresses (§6.18); the serial numbers of the dive computers on their wrist
+  (§6.4b) **and of the kit they own** (§6.12), which are stable hardware identifiers that
+  link two documents to one diver even when every other member differs — and the kit list
+  carries them for gear that never recorded a dive, so a document with no `recordings` at all
+  can still hold one; and free-text notes, of any length, on dives, trips, courses, sites,
+  gear, service records, certifications, contacts and people. Software handling documents
+  SHOULD treat them with the care of a personal data export: serve them only to their owner,
+  over authenticated channels, without shared caching.
 - **Archives raise the stakes** (Appendix A): they add the referenced binaries, which can
   include scans of certification cards and the diver's portrait (§6.1) — ID-like personal
   documents — and, among producer-added members, even a profile photo (the reference
@@ -1177,8 +1275,9 @@ members the document does not reference. The RECOMMENDED extension for the conta
 
 A minimal but realistic document — one dive with a cylinder and one recording carrying a
 short profile, its site, the trip and the course it was logged on, the card the course
-issued, the diver, and one contact — the dive center that ran the dive and the course and
-put the diver up:
+issued, the diver, one contact — the dive center that ran the dive and the course and put
+the diver up — and one person, the instructor who taught the course, dived it beside the
+diver and signed the card:
 
 ```json
 {
@@ -1202,6 +1301,7 @@ put the diver up:
       "course_uuid": "019fec36-b8e1-7a40-8c3d-2f6b1e0d9a55",
       "contact_uuid": "019fec36-b8a9-7d02-8f3e-61c0b7a4d2e9",
       "site_uuids": ["019fec36-b8b8-7cc9-a4b9-ede85f907c94"],
+      "people": [{ "person_uuid": "019fec36-b8c4-7a15-9e2d-4f81c3a7b6d0", "role": "instructor" }],
       "cylinders": [
         { "volume": 12.0, "start_pressure": 200.0, "end_pressure": 70.0, "oxygen": 32.0 }
       ],
@@ -1238,7 +1338,8 @@ put the diver up:
       "name": "Advanced Open Water",
       "agency": "padi",
       "status": "completed",
-      "contact_uuid": "019fec36-b8a9-7d02-8f3e-61c0b7a4d2e9"
+      "contact_uuid": "019fec36-b8a9-7d02-8f3e-61c0b7a4d2e9",
+      "people": [{ "person_uuid": "019fec36-b8c4-7a15-9e2d-4f81c3a7b6d0", "role": "instructor" }]
     }
   ],
   "sites": [
@@ -1260,6 +1361,7 @@ put the diver up:
       "agency": "padi",
       "name": "Advanced Open Water Diver",
       "certified_on": "2026-04-18",
+      "instructor_uuid": "019fec36-b8c4-7a15-9e2d-4f81c3a7b6d0",
       "course_uuid": "019fec36-b8e1-7a40-8c3d-2f6b1e0d9a55",
       "contact_uuid": "019fec36-b8a9-7d02-8f3e-61c0b7a4d2e9"
     }
@@ -1271,6 +1373,13 @@ put the diver up:
       "roles": ["dive_center", "school", "accommodation"],
       "phone": "+20 69 555 0199",
       "address": { "city": "Dahab", "country": "Egypt" }
+    }
+  ],
+  "people": [
+    {
+      "uuid": "019fec36-b8c4-7a15-9e2d-4f81c3a7b6d0",
+      "name": "Karim Nabil",
+      "email": "karim@bluehole.example"
     }
   ]
 }

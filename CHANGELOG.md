@@ -7,10 +7,54 @@ repositories.
 
 ## Unreleased
 
+- **People are records (§3, §4, §5.3, §6.2, §6.8, §6.9a, §6.16–§6.18, §6.20, §9).** A dive
+  could not say who the diver dived with, a trip who came on it, or a course who taught it
+  and who learned beside the diver, and the instructor was a pair of strings on a course and
+  on a certification. §6.20's **Person** is one record for all of them — the buddy, the
+  guide, the instructor, a fellow student, the companion who stayed on the boat — with a
+  `name`, an `email`, a `phone` and `notes`, in a new top-level `people` collection. A dive,
+  a trip and a course reference people through a `people` list of **Person References**,
+  each a `person_uuid` and an OPTIONAL `role` — `buddy`, `guide`, `instructor`, `student`
+  or `companion`, what the person was on that occasion; absent, they were there. A
+  certification names its instructor through `instructor_uuid`, the second reference not
+  named after its collection, so §5.3's resolution sentence names both. A trip's `people` is
+  its own fact and a reader never fills it from the dives. §3 gains rule 7, no person twice
+  in one list, which `uniqueItems` cannot say of objects. §6.18's contact becomes the
+  organisation a diver dealt with and nothing else: a dive's `contact_uuid` names the contact
+  that ran it, and §6.9a sends a reader to each dive's `people` and `contact_uuid` for whom a
+  stretch was dived with. §9's dossier names the people, their contact details being other
+  persons' data.
+
+  **A person carries no identity**, and §6.20 says why: a diver's uuid is one application's,
+  so the same person holds unrelated ones in two files, and an application that links a
+  person to an account of its own carries the link under its producer key. `email` is the
+  portable contact a reader may match on.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below. It breaks documents: `instructor_name` is an undefined member on a course and on a
+  certification, which the schema rejects, and every fixture carrying it lost it — the
+  `invalid/` copies of `technical-dive` included, each still failing on its own defect rather
+  than on the removed member. `instructor_number` stays on both, as the number the card
+  prints. `valid/technical-dive` carries four people across every host and every role but
+  `guide`, and `valid/demo-logbook` one referenced from a dive and its trip.
+  `fixtures/invalid/` gains `person-dangling-reference`, `person-referenced-twice` and
+  `instructor-dangling-reference`.
+
+  **UDDF's people read in and write back out, and Subsurface's are read.**
+  `docs/uddf-mapping.md` reads a `<diver><buddy>` into a person, a dive's link to it into a
+  reference with the role `buddy` — or `student`, where the buddy carries `<student/>` — and
+  a link to a dive base's `<guide>` into a reference to the buddy it names with the role
+  `guide`, reporting the rest of what a buddy carries. `docs/uddf-writing.md` writes every
+  person as a `<buddy>`, a dive's `guide` as a `<guide>` under its `<divebase>`, and every
+  other role, and a trip's and a course's people, as reported. `docs/ssrf-mapping.md` reads
+  the buddy field, split on commas, and the divemaster, one person per name across the file.
+  `fixtures/uddf/people` and `fixtures/ssrf/people` are the reading pairs and
+  `fixtures/write/uddf/people` the writing one.
+
 - **Contacts are records (§4, §5.3, §5.6, §6.2, §6.9a, §6.15–§6.19, §7, §9).** A course and a
   certification each named the organisation that ran it in a `training_center` string, a
-  service record named its shop the same way in `performed_by`, a dive could not say whom it
-  was dived with, and a trip part could not say where the diver slept. §6.18's **Contact** is
+  service record named its shop the same way in `performed_by`, a dive could not say who ran
+  it, and a trip part could not say where the diver slept. §6.18's **Contact** is
   one record for all of them — the dive center, the school, the shop, the hotel, the boat, a
   friend's house — with a `name`, a set of `roles`, a `phone`, an `email`, a `website`, an `address` and
   `notes`, in a new top-level `contacts` collection. §6.19's **Address** is its own object,
