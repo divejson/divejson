@@ -79,8 +79,9 @@ else. A round trip through that would hand the diver back a location they never 
 `writing.md` has the kinds and what a `where` is. In this format `absent` is an element UDDF
 requires that the document had nothing for, and `dropped` is a member UDDF has nowhere to
 put — or, in the two findings *Devices* below describes, a fact about the order a dive's
-recordings come back in, which the file has nowhere to carry either, and in the one *Contacts*
-describes, a contact a reader will take for a placeholder; the paths are `dives/0`,
+recordings come back in, which the file has nowhere to carry either, in the one *Contacts*
+describes, a contact a reader will take for a placeholder, and in the one *People* describes,
+a reference with no role that a reader will take for a buddy; the paths are `dives/0`,
 `dives/0/cylinders/1`, `dives/0/people/1`, `trips/0/parts/1`, `contacts/0`, `people/0` and
 `$`.
 
@@ -553,8 +554,9 @@ elements sees the same string. A buddy's children run in
 
 **`buddy` and no role at all are one plain link**, and a plain link reads back as `buddy`,
 which is UDDF's own reading of a dive linking a buddy directly. So a reference with no role
-returns with one: a role the document never had, gained rather than lost, and like every
-gain not reported.
+comes back with one the document never had, and it is reported, as a contact recording no
+roles is (*Contacts* above): an absent role says only that the person was there, and `buddy`
+says they dived alongside the diver, which a companion who stayed on the boat did not.
 
 **`guide` is the one other role UDDF can say, and only through a dive base.** `<guide>` is a
 child of `<divebase>`, holding nothing but an id and a `<link>` to a buddy, so a guide
