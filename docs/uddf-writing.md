@@ -80,8 +80,9 @@ else. A round trip through that would hand the diver back a location they never 
 requires that the document had nothing for, and `dropped` is a member UDDF has nowhere to
 put — or, in the two findings *Devices* below describes, a fact about the order a dive's
 recordings come back in, which the file has nowhere to carry either, in the one *Contacts*
-describes, a contact a reader will take for a placeholder, and in the one *People* describes,
-a reference with no role that a reader will take for a buddy; the paths are `dives/0`,
+describes, a contact a reader will take for a placeholder, and in the two *People* describes,
+a reference with no role that a reader will take for a buddy and a person whose name is
+whitespace alone, whom a reader drops; the paths are `dives/0`,
 `dives/0/cylinders/1`, `dives/0/people/1`, `trips/0/parts/1`, `contacts/0`, `people/0` and
 `$`.
 
