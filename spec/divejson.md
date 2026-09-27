@@ -73,7 +73,7 @@ but live outside the schema; the reference validator (`divejson validate`) check
 the schema and this list:
 
 1. Identifier uniqueness and referential closure (§5.3), a Person Reference's
-   `person_uuid` (§6.20) included.
+   `person_uuid` (§6.20) and a Sighting's `species_uuid` (§6.3a) included.
 2. Cross-member arithmetic: `oxygen + helium ≤ 100` and `end_pressure ≤ start_pressure`
    on a cylinder (§6.3); `avg_depth ≤ max_depth` on a dive (§6.2); `ends_on ≥ starts_on`
    on a trip part (§6.9a) and on a course (§6.17); `south ≤ north` on a bounding box
@@ -88,9 +88,12 @@ the schema and this list:
    validators.
 6. `gf_low ≤ gf_high` on a recording's deco model (§6.4c). The schema pairs the two and
    bounds each; which of them is the larger is arithmetic between members, like rule 2's.
-7. No person twice in one `people` list (§6.20). The schema holds a list of bare uuids to
-   the same rule with `uniqueItems`, and cannot hold this one: it compares whole items, and
-   two references to one person under two roles are two different objects to it.
+7. No record twice in one list of embedded references: no person twice in one `people`
+   list (§6.20), and no species twice in one dive's `sightings` (§6.3a). The schema holds a
+   list of bare uuids to the same rule with `uniqueItems`, and cannot hold this one: it
+   compares whole items, and two references to one record are two different objects to it
+   whenever anything beside the uuid differs — one person under two roles, one species
+   with two counts.
 
 Requirements addressed to writer and reader *behaviour* — nothing invented (§5.4),
 unknown-member and unknown-value tolerance (§5.6), offset preservation (§5.2), the reserved
@@ -246,13 +249,14 @@ Stored-file records (§6.7) and the diver (§6.1) carry uuids too.
   name says what the record is *to* its host rather than which collection it is in: such a
   member resolves where its definition says — a trip part's `accommodation_uuid` in
   `contacts` (§6.9a), and a certification's `instructor_uuid` in `people` (§6.16).
-- A reference-list member (`site_uuids`, `gear_uuids`, `species_uuids`,
-  `gear_uuids` on a gear set) MUST NOT contain the same uuid twice, and a `people` list
-  (§6.20) MUST NOT reference the same person twice.
+- A reference-list member (`site_uuids` and `gear_uuids` on a dive, `gear_uuids` on a
+  gear set) MUST NOT contain the same uuid twice, and a list of embedded references MUST
+  NOT reference the same record twice: a `people` list (§6.20) names a person once, and a
+  dive's `sightings` (§6.3a) a species once.
 - Reference-list order is meaningful and writers MUST preserve the source order: a dive's
-  `site_uuids` leads with the primary site, and the rest of that list — like
-  `species_uuids` and `gear_uuids` on a dive and on a gear set, and every `people` list —
-  is the diver's own order, whatever it means to them.
+  `site_uuids` leads with the primary site, and the rest of that list — like `gear_uuids`
+  on a dive and on a gear set, a dive's `sightings` and every `people` list — is the
+  diver's own order, whatever it means to them.
 
 uuids identify records *within* a logbook and, for the same diver's data, across
 exports. They are not portable identities for shared realities: the same physical dive
@@ -260,13 +264,13 @@ site or animal species in two different logbooks will carry two unrelated uuids.
 record has an external identity that does mean the same thing everywhere — a species'
 WoRMS AphiaID (§6.11) — that identity, not the uuid, is the interchange key.
 
-Embedded objects (cylinders, recordings, profile, trip parts, locations, addresses,
-positions, person references, a diver's emergency contacts and insurances) have no
-independent identity; stored-file records (§6.7) do carry a `uuid` because files are
+Embedded objects (sightings, cylinders, recordings, profile, trip parts, locations,
+addresses, positions, person references, a diver's emergency contacts and insurances) have
+no independent identity; stored-file records (§6.7) do carry a `uuid` because files are
 addressable objects in the source logbook. An embedded object may still **reference** a
-record: a trip part names the contact the diver stayed at (§6.9a) and a person reference
-names a person (§6.20), under the same resolution rule as a record's own references, and
-each stays a value with no identity of its own.
+record: a sighting names the species seen (§6.3a), a trip part the contact the diver stayed
+at (§6.9a) and a person reference a person (§6.20), under the same resolution rule as a
+record's own references, and each stays a value with no identity of its own.
 
 ### 5.4 Absent members, null, and "nothing invented"
 
@@ -447,7 +451,7 @@ would put another person's face beside the diver's name.
 | `contact_uuid` | uuid | O | → `contacts` (§6.18). The contact that ran the dive. |
 | `site_uuids` | array of uuid | O | → `sites`; the first element is the primary site, the remaining order is the diver's own (§5.3). |
 | `gear_uuids` | array of uuid | O | → `gear`; the diver's own order. |
-| `species_uuids` | array of uuid | O | → `species`; the diver's own order. |
+| `sightings` | array of Sighting | O | §6.3a — the species the diver saw on this dive, each with how many and what they wrote about it; the diver's own order, and no species twice. |
 | `people` | array of Person Reference | O | §6.20 — who the diver dived with, each with what they were on this dive; the diver's own order, and no person twice. |
 | `cylinders` | array of Cylinder | O | §6.3, in the diver's own cylinder order. |
 | `recordings` | array of Recording | O | §6.4a — one entry per device that recorded this dive, the first primary. |
@@ -461,6 +465,25 @@ the logbook's, a recording's samples are the device's, and the two legitimately 
 diver corrects the first and never the second. The oxygen clocks and the surface pressure
 are not on that list: they are a device's own arithmetic, and each recording carries its
 device's (§6.4a).
+
+### 6.3a Sighting
+
+One species seen on one dive. Embedded in the dive; no uuid.
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `species_uuid` | uuid | R | → `species` (§6.11). What the diver saw. |
+| `count` | integer | O | > 0. How many the diver counted. An estimate is still this number: a shoal the diver put at about forty is `40`. |
+| `notes` | string | O | What the diver wrote about this sighting. |
+
+**An absent `count` means seen and not counted**, and absence is the only spelling of it: a
+writer MUST NOT emit `1` for a sighting nobody counted (§5.4), since one animal is a
+recorded fact and an uncounted sighting is not. Nor is there a `0`: an animal looked for and
+not found is a survey's record, not a sighting.
+
+**One sighting per species per dive.** A dive's `sightings` names a species at most once
+(§3), so three lionfish are one sighting with a `count` of `3`, never several sightings
+whose counts a reader would have to add up.
 
 ### 6.3 Cylinder
 
@@ -869,11 +892,11 @@ again. Writers MUST NOT fill either position from the other, and readers MUST NO
 ### 6.11 Species
 
 A marine species the diver has sighted. Species records are a projection of the source
-application's catalog, limited to what the document's dives reference.
+application's catalog, limited to what the document's sightings reference (§6.3a).
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `uuid` | uuid | R | The document-internal identity dives reference. |
+| `uuid` | uuid | R | The document-internal identity a sighting references. |
 | `aphia_id` | integer | O | > 0. The WoRMS AphiaID — **the interchange identity**. A uuid means nothing outside its logbook; an AphiaID names the same taxon everywhere. |
 | `scientific_name` | string | O | 1–255. |
 | `common_name` | string | O | 1–255. |
@@ -1226,10 +1249,10 @@ one. Beyond generic JSON concerns:
   (§6.4b) **and of the kit they own** (§6.12), which are stable hardware identifiers that
   link two documents to one diver even when every other member differs — and the kit list
   carries them for gear that never recorded a dive, so a document with no `recordings` at all
-  can still hold one; and free-text notes, of any length, on dives, trips, courses, sites,
-  gear, service records, certifications, contacts and people. Software handling documents
-  SHOULD treat them with the care of a personal data export: serve them only to their owner,
-  over authenticated channels, without shared caching.
+  can still hold one; and free-text notes, of any length, on dives and their sightings,
+  trips, courses, sites, gear, service records, certifications, contacts and people.
+  Software handling documents SHOULD treat them with the care of a personal data export:
+  serve them only to their owner, over authenticated channels, without shared caching.
 - **Archives raise the stakes** (Appendix A): they add the referenced binaries, which can
   include scans of certification cards and the diver's portrait (§6.1) — ID-like personal
   documents — and, among producer-added members, even a profile photo (the reference
