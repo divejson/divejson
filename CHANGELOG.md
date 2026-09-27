@@ -7,6 +7,36 @@ repositories.
 
 ## Unreleased
 
+- **A dive's sightings carry a count and a note (§3, §5.3, §6.2, §6.3a, §6.11, §9).** A
+  dive's `species_uuids` said which species the diver saw and nothing else: not how many, and
+  not what the diver wrote about them. §6.3a's **Sighting** is one species seen on one dive,
+  embedded in it: a `species_uuid`, an OPTIONAL `count` above zero — absent is seen and not
+  counted, which is never written as `1` — and OPTIONAL `notes`. A dive's `sightings` replaces
+  `species_uuids`, in the diver's own order. §3's rule 7 widens from no person twice in one
+  `people` list to no record twice in one list of embedded references, so a dive names a
+  species in one sighting at most, which `uniqueItems` cannot say of objects either; three
+  lionfish are one sighting with a count of three. §5.3 names the sighting among the embedded
+  objects that reference a record, §6.11's species is what a sighting references, and §9's
+  list of free text gains sightings.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below, and it is the one that could not wait for a minor version: a uuid list becoming a
+  list of objects is a change of type, which §7 forbids after the tag. It breaks documents:
+  `species_uuids` is an undefined member, which the schema rejects and
+  `fixtures/invalid/undefined-member.divejson` already names, so no invalid fixture is added
+  for it. Every fixture carrying it moved — the `invalid/` copies of `technical-dive`
+  included, each still failing on its own defect, and `valid/demo-logbook`'s eight empty
+  lists, renamed by hand. `valid/technical-dive` carries one sighting with a count and a note
+  and one bare. `fixtures/invalid/` gains `sighting-dangling-reference` and
+  `sighting-species-repeated`.
+
+  **UDDF has a slot, and it stays empty both ways.** `docs/uddf-writing.md` writes neither
+  the species nor a dive's sightings, and says why: a `<species>` under
+  `<informationafterdive><observations>` sits under a class the format does not carry, and
+  UDDF's class-free spelling, names in a `<notes>` paragraph, carries no count and no note.
+  `docs/uddf-mapping.md` names `<observations>` among what it deliberately does not map,
+  since no file in hand fills it.
+
 - **People are records (§3, §4, §5.3, §6.2, §6.8, §6.9a, §6.16–§6.18, §6.20, §9).** A dive
   could not say who the diver dived with, a trip who came on it, or a course who taught it
   and who learned beside the diver, and the instructor was a pair of strings on a course and
