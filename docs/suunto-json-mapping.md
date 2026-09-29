@@ -631,10 +631,10 @@ Read as a list of what was considered, not of what was missed.
   `NumberInSeries` was refused alongside them until §6.4b gave a device's counter a home;
   it is carried now, under *Device* above. A dive's `number` is still the diver's own
   numbering and a device's counter is still not reliably it — which is why the two are
-  different members rather than one. **Untested**: no file in hand carries a
-  `Header.Diving.NumberInSeries`. Only the D5 shapes have a `Header.Diving` at all — the
-  Ocean shape has none, per *The three header shapes* above — and the one D5 file in
-  `fixtures/suunto_json/` states no number inside it.
+  different members rather than one. `d5-deco-max-depth.json`, `d5-deep-stop-broken.json`
+  and `d5-stop-alarms.json` each carry a `Header.Diving.NumberInSeries`, and each pair's
+  document carries the same figure as the `dive_number` of its recording's device, per the
+  row under *Device* above.
 - **`Diving.StartTissue` / `EndTissue`'s `Helium`, `Nitrogen`, `OLF`, `RgbmHelium` and
   `RgbmNitrogen`** — everything under those blocks but `CNS` and `OTU`. §6.2 has no member
   for a tissue model's state, and a loading figure is only meaningful beside the algorithm
