@@ -7,6 +7,47 @@ repositories.
 
 ## Unreleased
 
+- **A dive carries its rating, tags, type, air temperature, current, waves, weather, entry
+  type and boat name (§3, §5.3, §6.2, §6.4a, §6.4b, §9).** A dive had nowhere for how the
+  diver rated it, what they labelled it, what kind of dive it was or what it was dived in,
+  so "night dive, strong current, from the boat, four stars" went into `notes`. §6.2 gains
+  nine OPTIONAL members: `type` — `open_circuit`, `closed_circuit`, `semi_closed`,
+  `freedive`, `snorkel` or `surface_supplied` — the diver's own statement of the kind of
+  dive, which §6.4a names as the member a recording's `mode` is not, neither derived from
+  the other; `rating`, 1 to 5, an unrated dive carrying none; `tags`, free text in the
+  diver's own order, each 1–64 code points; `air_temperature` in °C; `current`, `waves` and
+  `weather`, from vocabularies of five, four and seven values; `entry_type` — `shore`,
+  `boat`, `pier` or `pool`; and `boat_name`, 1–255. Every vocabulary grows in minor
+  versions, and none has an `other`. §3 gains rule 8, no tag twice on one dive once trimmed
+  and case-folded, which `uniqueItems` cannot say, and defines both terms — Unicode full case
+  folding, under which `ß` and `ss` are one, and White_Space trimmed from either end — which
+  the spec used and never defined; §6.4b's paragraph on trimming points at it. §5.3 names a
+  dive's `tags` among the lists whose order is the diver's, and §9's list of free text gains
+  the tags and the boat's name. The members are additive, so they land inside 1.0 with
+  `$id`, `title` and `version` untouched. `technical-dive`'s first dive carries all nine, on
+  both sides of its UDDF write pair, and `fixtures/invalid/` gains `tags-repeated-by-case`
+  and `tags-repeated-by-whitespace` for rule 8's two halves, `tags-repeated` for the byte-equal
+  case, a file for each end of the tag's and the boat name's lengths — `tag-empty`,
+  `tag-too-long`, `boat-name-empty` and `boat-name-too-long` — `rating-out-of-range` for the
+  `0` some applications store for unrated, and a file for each vocabulary: `type-unknown`,
+  `current-unknown`, `waves-unknown`, `weather-unknown` and `entry-type-unknown`.
+
+  **UDDF holds five of them.** `docs/uddf-mapping.md` reads
+  `<airtemperature>`, `<apparatus>`, `<platform>`, `<current>` and `<rating>`, and
+  `fixtures/uddf/conditions.uddf` pins each read: UDDF's ten-step rating reads onto five,
+  rounding up, and its six-step current onto five, each reported `resolved`, as is
+  `rebreather`, which names closed and semi-closed circuits alike and reads as
+  `closed_circuit`; the platform's kinds of boat fold into `boat` silently.
+  `docs/converting.md`'s `resolved` widens to a value read onto a coarser scale, and says why
+  a vocabulary fold is not one. `docs/uddf-writing.md` doubles the rating, writes the type
+  and the entry type where UDDF has a word for them and reports the rest — `semi_closed`
+  reading back as `closed_circuit`, and a freedive, a snorkel, a plain boat and a pool not
+  written — and lists the tags, the waves, the weather and the boat's name among the members
+  with no UDDF slot. The `.ssrf`, DM5 XML and Suunto JSON documents say where Subsurface's
+  `@rating`, `@tags`, `<temperature @air>`, `@wavesize` and `@current`, DM5's `<Boat>` and
+  `<DiveTags>`, and Suunto's `Feeling` would land, and that each waits for a file that states
+  one.
+
 - **A dive's sightings carry a count and a note (§3, §5.3, §6.2, §6.3a, §6.11, §9).** A
   dive's `species_uuids` said which species the diver saw and nothing else: not how many, and
   not what the diver wrote about them. §6.3a's **Sighting** is one species seen on one dive,
