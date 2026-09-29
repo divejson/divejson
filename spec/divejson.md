@@ -94,6 +94,11 @@ the schema and this list:
    compares whole items, and two references to one record are two different objects to it
    whenever anything beside the uuid differs — one person under two roles, one species
    with two counts.
+8. No tag twice on one dive (§6.2): two members of a dive's `tags` that are equal once each
+   is **trimmed** — its leading and trailing White_Space code points removed, the Unicode
+   property — and **case-folded** — Unicode full case folding, the C and F mappings of
+   `CaseFolding.txt`, under which `ß` and `ss` are one — are one tag written twice. The
+   schema's `uniqueItems` holds the byte-equal case, and this rule the rest.
 
 Requirements addressed to writer and reader *behaviour* — nothing invented (§5.4),
 unknown-member and unknown-value tolerance (§5.6), offset preservation (§5.2), the reserved
@@ -253,10 +258,10 @@ Stored-file records (§6.7) and the diver (§6.1) carry uuids too.
   gear set) MUST NOT contain the same uuid twice, and a list of embedded references MUST
   NOT reference the same record twice: a `people` list (§6.20) names a person once, and a
   dive's `sightings` (§6.3a) a species once.
-- Reference-list order is meaningful and writers MUST preserve the source order: a dive's
-  `site_uuids` leads with the primary site, and the rest of that list — like `gear_uuids`
-  on a dive and on a gear set, a dive's `sightings` and every `people` list — is the
-  diver's own order, whatever it means to them.
+- Reference-list order is meaningful, and so is the order of a dive's `tags`: writers MUST
+  preserve the source order. A dive's `site_uuids` leads with the primary site, and the rest
+  of that list — like `gear_uuids` on a dive and on a gear set, a dive's `sightings` and
+  `tags` and every `people` list — is the diver's own order, whatever it means to them.
 
 uuids identify records *within* a logbook and, for the same diver's data, across
 exports. They are not portable identities for shared realities: the same physical dive
@@ -437,6 +442,9 @@ would put another person's face beside the diver's name.
 | `started_at` | date-time or date | R | Local wall clock, with its UTC offset when the source recorded one (§5.2) — or the date alone, where the source recorded the day and not the time of day (§5.2). |
 | `duration` | integer | O | Seconds; > 0. The dive's own duration as logged, which MAY differ from any recording's profile span. |
 | `notes` | string | O | |
+| `type` | string | O | One of `"open_circuit"`, `"closed_circuit"`, `"semi_closed"`, `"freedive"`, `"snorkel"`, `"surface_supplied"` — the diver's own statement of what kind of dive it was. `snorkel` is the outing, not the tube §6.12 names by the same word. No "other": an unlistable kind of dive is simply not recorded. An OPTIONAL member, so this vocabulary grows in minor versions (§7). It is not a recording's `mode`, and neither is derived from the other (§6.4a). |
+| `rating` | integer | O | 1–5, the diver's own, 1 the lowest and 5 the highest. An unrated dive has no `rating` (§5.4): a source that stores unrated as `0` has recorded none. |
+| `tags` | array of string | O | The diver's own labels for the dive, each 1–64 code points, in the diver's own order (§5.3), and no tag twice once trimmed and case-folded (§3). Free text on purpose: every logbook's list of dive types is one its diver extends, which a closed vocabulary cannot be. A writer trims each tag and leaves the whitespace inside it alone. |
 | `max_depth` | number | O | Meters; > 0. |
 | `avg_depth` | number | O | Meters; > 0, and MUST be ≤ `max_depth` when both are present. |
 | `bottom_temperature` | number | O | °C; unbounded (ice divers and volcanic vents exist). |
@@ -444,6 +452,12 @@ would put another person's face beside the diver's name.
 | `weight` | number | O | Kilograms of ballast; ≥ 0. `0` is a recorded "no lead", distinct from absent. |
 | `water_type` | string | O | One of `"salt"`, `"fresh"`, `"brackish"` — the water the dive was in. No "other": an unlistable water type is simply not recorded. The density a computer was set to is a setting of that computer, the recording's `salinity` (§6.4a). |
 | `altitude` | integer | O | Meters above sea level of the site at dive time; −450 to 6500 (Dead Sea to the highest reported altitude dives). |
+| `air_temperature` | number | O | °C; unbounded, like `bottom_temperature`. The air at the surface. |
+| `current` | string | O | One of `"none"`, `"light"`, `"moderate"`, `"strong"`, `"extreme"` — the current the diver met. No "other": an unlistable current is simply not recorded. An OPTIONAL member, so this vocabulary grows in minor versions (§7). |
+| `waves` | string | O | One of `"calm"`, `"slight"`, `"moderate"`, `"rough"` — the water's surface. No "other": an unlistable sea is simply not recorded. An OPTIONAL member, so this vocabulary grows in minor versions (§7). |
+| `weather` | string | O | One of `"clear"`, `"partly_cloudy"`, `"overcast"`, `"rain"`, `"storm"`, `"snow"`, `"fog"` — the weather at the surface. No "other": an unlistable weather is simply not recorded. An OPTIONAL member, so this vocabulary grows in minor versions (§7). |
+| `entry_type` | string | O | One of `"shore"`, `"boat"`, `"pier"`, `"pool"` — where the diver entered the water from. `pier` covers a jetty, a dock, a pontoon and a harbour wall. How they entered — a giant stride, a back roll — is not an entry type, and a tag can carry it. No "other": an unlistable entry is simply not recorded. An OPTIONAL member, so this vocabulary grows in minor versions (§7). |
+| `boat_name` | string | O | 1–255. The name of the boat the dive was made from. A liveaboard is a contact, with the `liveaboard` role (§6.18); a day boat's name is what is left. |
 | `entry_position` | Position | O | Where the diver entered the water. |
 | `exit_position` | Position | O | Where the diver surfaced. |
 | `trip_uuid` | uuid | O | → `trips`. |
@@ -462,9 +476,16 @@ What stays on the dive is the **diver's logbook entry**: `duration`, `max_depth`
 logs it, and a hand-entered dive carries them with no recording at all. A writer that seeds
 them from a device's record is not emitting a derived member (§5.7): the dive's figure is
 the logbook's, a recording's samples are the device's, and the two legitimately diverge — a
-diver corrects the first and never the second. The oxygen clocks and the surface pressure
-are not on that list: they are a device's own arithmetic, and each recording carries its
-device's (§6.4a).
+diver corrects the first and never the second. The diver's own account of the dive — its
+`type`, `rating` and `tags` — and the conditions it was dived in, from `air_temperature` to
+`boat_name`, are on that list too. The oxygen clocks and the surface pressure are not: they
+are a device's own arithmetic, and each recording carries its device's (§6.4a).
+
+**Well-known tags (informative).** These are the tags a reader looking for a kind of dive
+will meet most often, and the spellings worth matching on: `night`, `wreck`, `cave`,
+`drift`, `deep`, `ice`, `training`, `photo`, `spearfishing`, `sidemount`, `solo`. The list
+binds no writer — a diver's tags are theirs to spell — and a reader matching a tag against
+it compares the two trimmed and case-folded, as §3 compares two tags on one dive.
 
 ### 6.3a Sighting
 
@@ -558,15 +579,16 @@ dive routinely has two answers: a backup run in gauge mode beside a primary on o
 is ordinary practice, and the dive was not a gauge dive. So is a deco model — two computers
 running different gradient factors on one dive give the diver two ceilings and two no-deco
 clocks, which is exactly why divers wear two — and so are the oxygen clocks and the surface
-pressure they computed. A dive-level `mode` would be the diver's own statement of what kind
-of dive it was, which is a different member and one nothing in this version writes; until
-something does, §5.5's extensions mechanism is where it belongs.
+pressure they computed. The diver's own statement of what kind of dive it was is a
+different member, the dive's `type` (§6.2).
 
 **`salinity` is a calibration and not a kind of water.** Two computers on one dive may be
 set differently, and a diver in fresh water may have left theirs on `salt`; the dive's
 `water_type` (§6.2) says what the water was. A reader MUST NOT derive the dive's
 `water_type` from a recording's `salinity`, nor a `salinity` from the dive's `water_type`
-(§5.4).
+(§5.4). **`mode` and the dive's `type` are two facts on the same terms**, a setting of one
+device and the kind of dive the diver made: a reader MUST NOT derive the dive's `type` from a
+recording's `mode`, nor a `mode` from the dive's `type`.
 
 **`recordings` is ordered, and the first entry is primary**: the one a reader shows by
 default, and the one whose file a consumer that can hold only one takes. Order rather
@@ -601,11 +623,12 @@ two can describe the same physical object without being the same record.
 absent value is absence (§5.4), and a device that records nothing at all about itself is not
 written: a writer emits no `device` member rather than an object with no members in it.
 **A writer also trims every string before writing it**, which binds the writer rather than
-the document: whitespace is not on §3's list of requirements outside the schema, so nothing
+the document: no requirement on §3's list forbids surrounding whitespace, so nothing
 validates it, and `"  Perdix 2  "` is a conforming document. A reader strips before it
 compares, so a writer that skips the trim costs itself a match rather than a valid file —
 which is why the comparison rules elsewhere say *trimmed and case-folded* rather than
-assuming it was done upstream.
+assuming it was done upstream. §3's rule 8 is the one such comparison the validator makes,
+between two tags on one dive, and it trims and case-folds as those rules do.
 
 The serial earns its place for one reason: it is the only thing that reliably tells one
 device's record from another's when a diver wears two computers of one make. §6.12 carries
@@ -1249,8 +1272,9 @@ one. Beyond generic JSON concerns:
   (§6.4b) **and of the kit they own** (§6.12), which are stable hardware identifiers that
   link two documents to one diver even when every other member differs — and the kit list
   carries them for gear that never recorded a dive, so a document with no `recordings` at all
-  can still hold one; and free-text notes, of any length, on dives and their sightings,
-  trips, courses, sites, gear, service records, certifications, contacts and people.
+  can still hold one; and free text: notes, of any length, on dives and their sightings,
+  trips, courses, sites, gear, service records, certifications, contacts and people, a
+  dive's tags, and the name of the boat it was made from.
   Software handling documents SHOULD treat them with the care of a personal data export:
   serve them only to their owner, over authenticated channels, without shared caching.
 - **Archives raise the stakes** (Appendix A): they add the referenced binaries, which can

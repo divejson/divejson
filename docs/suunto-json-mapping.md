@@ -54,7 +54,8 @@ Nothing else in the file distinguishes a run from a dive whose computer recorded
 so an activity that states some other type is skipped and reported — `converting.md`'s rule
 for a source record that is not a dive at all, and this is the format that shows it at its
 plainest, since a run and a dive here are the same shape. A **freedive** is not one of those:
-§6.4a's `mode` is what says which kind of dive it is, and the DM5 XML reader carries one.
+it is a dive, §6.4a's `mode` is what says its computer ran in freedive mode, and the DM5 XML
+reader carries one.
 No file in hand has a freedive in this shape — every one of the 35 states `51` — so nothing
 here says how the app would mark it.
 
@@ -613,8 +614,10 @@ Read as a list of what was considered, not of what was missed.
   none of these — and is not documented as a maximum depth.
 - **`Header.Feeling`, `IsSupervised`, `DiveInWorkout`, `DeviceLocation`, `MoveType`,
   `Activity`, `Personal`, `Settings`, `Targets`** — the diver's rating of the dive and the
-  watch's configuration. §6.2 has nowhere for a 1-5 feeling, and inventing an `extensions`
-  member for it would be this reader defining vocabulary.
+  watch's configuration. §6.2's `rating` is where a five-step feeling would go, and it waits
+  for a pair: no input in `fixtures/suunto_json/` keeps one, and a mapping no pair
+  exercises is not adopted (`converting.md`). The rest has no member, and inventing an
+  `extensions` member for it would be this reader defining vocabulary.
 - **Every fitness member — `EPOC`, `Energy`, `MAXVO2`, `FitnessAge`,
   `FitnessAgeClassification`, `HrZones`, `PowerZones`, `SpeedZones`, `PeakTrainingEffect`,
   `RecoveryTime`, `TraingingLoadPeak` (the vendor's spelling), `StepCount`,
