@@ -26,11 +26,11 @@ repositories.
   the tags and the boat's name. The members are additive, so they land inside 1.0 with
   `$id`, `title` and `version` untouched. `technical-dive`'s first dive carries all nine, on
   both sides of its UDDF write pair, and `fixtures/invalid/` gains `tags-repeated-by-case`
-  and `tags-repeated-by-whitespace` for rule 8's two halves and a file for each bound and
-  vocabulary the schema holds: `tags-repeated`,
-  `tag-empty`, `tag-too-long`, `rating-out-of-range`, `boat-name-empty`,
-  `boat-name-too-long`, `type-unknown`, `current-unknown`, `waves-unknown`,
-  `weather-unknown` and `entry-type-unknown`.
+  and `tags-repeated-by-whitespace` for rule 8's two halves, `tags-repeated` for the byte-equal
+  case, a file for each end of the tag's and the boat name's lengths — `tag-empty`,
+  `tag-too-long`, `boat-name-empty` and `boat-name-too-long` — `rating-out-of-range` for the
+  `0` some applications store for unrated, and a file for each vocabulary: `type-unknown`,
+  `current-unknown`, `waves-unknown`, `weather-unknown` and `entry-type-unknown`.
 
   **UDDF holds five of them.** `docs/uddf-mapping.md` reads
   `<airtemperature>`, `<apparatus>`, `<platform>`, `<current>` and `<rating>`, and
