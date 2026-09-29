@@ -26,7 +26,8 @@ repositories.
   the tags and the boat's name. The members are additive, so they land inside 1.0 with
   `$id`, `title` and `version` untouched. `technical-dive`'s first dive carries all nine, on
   both sides of its UDDF write pair, and `fixtures/invalid/` gains `tags-repeated-by-case`
-  for rule 8 and a file for each bound and vocabulary the schema holds: `tags-repeated`,
+  and `tags-repeated-by-whitespace` for rule 8's two halves and a file for each bound and
+  vocabulary the schema holds: `tags-repeated`,
   `tag-empty`, `tag-too-long`, `rating-out-of-range`, `boat-name-empty`,
   `boat-name-too-long`, `type-unknown`, `current-unknown`, `waves-unknown`,
   `weather-unknown` and `entry-type-unknown`.
