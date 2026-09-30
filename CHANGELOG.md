@@ -7,6 +7,36 @@ repositories.
 
 ## Unreleased
 
+- **A location has one name, and `full_name` is removed (§6.9).** A location carried two
+  text members that nothing bound to each other: `name`, the place as a person writes it, and
+  `full_name`, the fullest written form the source held for it. A name that runs out through
+  its region to its country — "Dahab, South Sinai, Egypt" — is how a person writes a place
+  when they take the trouble, and a lookup fills it for nothing, where the place and its
+  country alone is often ambiguous; once the name carries the region, the fuller form says
+  nothing a reader uses. §6.9's `name` row gives that shape as its second example, beside the
+  name alone, and the member goes with the paragraph saying nothing binds it to `name`.
+  Nothing structured replaces it: a location is a named place and not an address, and where
+  it has a `position` its town, region and country can be looked up again. Appendix B's site
+  carries its region in its locality's name.
+
+  **This is a breaking change and it lands inside 1.0**, on the ground the `display_name`
+  rename below stood on: nothing is tagged, and `$id`, `title` and `version` are untouched at
+  `1.0`. The definition keeps `additionalProperties: false`, so a document still carrying
+  `full_name` is refused, and `fixtures/invalid/` gains `location-full-name.divejson` for it,
+  a member removed being a tightening that owes a file. Every other fixture loses the member.
+
+  **In UDDF a trip part's place is its `<geography><location>`.** A `<trippart>` has two text
+  slots where a location has one, and writers spend its `<name>` on a label for the stretch —
+  "Red Sea Liveaboard" — as often as on a place, which §6.9a gives no member to.
+  `docs/uddf-mapping.md` reads the `<location>` as the part's `location.name` wherever it has
+  text and the `<name>` otherwise, reporting a `<name>` that differs, so a nameless part whose
+  `<location>` has text has a place rather than losing it. `docs/uddf-writing.md` writes a
+  part's `location.name` into both slots with the location's coordinates beside it, so a part
+  with a `position` keeps it where it was dropped for want of a fuller name.
+  `fixtures/uddf/opendiving` reads its part as "Sha'ab Ali, Egypt" with the label reported,
+  and every write pair with a located part — `contacts`, `opendiving`, `people` and
+  `technical-dive` — carries a `<geography>` on each such part.
+
 - **A dive carries its rating, tags, type, air temperature, current, waves, weather, entry
   type and boat name (§3, §5.3, §6.2, §6.4a, §6.4b, §9).** A dive had nowhere for how the
   diver rated it, what they labelled it, what kind of dive it was or what it was dived in,

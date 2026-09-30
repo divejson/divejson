@@ -878,8 +878,7 @@ or one the diver simply named.
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `name` | string | R | 1–255. The place as a person writes it — the name alone ("Moalboal"), or the name and its country ("Dahab, Egypt"). |
-| `full_name` | string | O | ≤ 512. The fullest written form the source held for the place, typically the name extended outward to the country ("Dahab, South Sinai Governorate, Egypt"). |
+| `name` | string | R | 1–255. The place as a person writes it — the name alone ("Moalboal"), or extended outward through its region to its country ("Dahab, South Sinai, Egypt"). |
 | `position` | Position | O | §6's Position object — where the *place* is. |
 | `bbox` | Bounding Box | O | The geocoded extent of the named place — the rectangle a geocoder returned for it, so a reader can frame a map around the whole area without re-geocoding. Requires `position`. |
 
@@ -888,11 +887,6 @@ A **Bounding Box** is an object with four REQUIRED number members — `south` an
 exceed `east`, which means the box crosses the antimeridian. A location with a bare
 `name` and nothing else is fully conforming — a place the diver named but no geocoder
 resolved.
-
-**Nothing binds `full_name` to `name`.** It is usually the longer and is not required to
-contain the other — a lookup asked about a local name often answers with the district
-around it, so `"Sipadan Island Park"` may carry `"Sabah, Malaysia"`. Neither §3's list nor
-anything here constrains the pair.
 
 ### 6.10 Dive Site
 
@@ -1394,8 +1388,7 @@ diver and signed the card:
       "uuid": "019fec36-b8b8-7cc9-a4b9-ede85f907c94",
       "name": "House Reef",
       "location": {
-        "name": "Dahab, Egypt",
-        "full_name": "Dahab, South Sinai Governorate, Egypt",
+        "name": "Dahab, South Sinai, Egypt",
         "position": { "latitude": 28.5091, "longitude": 34.5136 },
         "bbox": { "south": 28.44, "north": 28.6, "west": 34.45, "east": 34.6 }
       },
