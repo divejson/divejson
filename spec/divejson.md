@@ -75,9 +75,10 @@ the schema and this list:
 1. Identifier uniqueness and referential closure (§5.3), a Person Reference's
    `person_uuid` (§6.20) and a Sighting's `species_uuid` (§6.3a) included.
 2. Cross-member arithmetic: `oxygen + helium ≤ 100` and `end_pressure ≤ start_pressure`
-   on a cylinder (§6.3); `avg_depth ≤ max_depth` on a dive (§6.2); `ends_on ≥ starts_on`
-   on a trip part (§6.9a) and on a course (§6.17); `south ≤ north` on a bounding box
-   (§6.9), on either host a location has — a trip part (§6.9a) and a dive site (§6.10).
+   on a cylinder (§6.3); `avg_depth ≤ max_depth` on a dive (§6.2); `depth_from ≤
+   depth_to` on a dive site (§6.10); `ends_on ≥ starts_on` on a trip part (§6.9a) and on a
+   course (§6.17); `south ≤ north` on a bounding box (§6.9), on either host a location has
+   — a trip part (§6.9a) and a dive site (§6.10).
 3. Profile series integrity, in every recording (§6.4a): equal `times`/`values` lengths
    and strictly increasing `times` (§6.5), and `profile.duration` covering the latest
    sample (§6.4).
@@ -88,17 +89,22 @@ the schema and this list:
    validators.
 6. `gf_low ≤ gf_high` on a recording's deco model (§6.4c). The schema pairs the two and
    bounds each; which of them is the larger is arithmetic between members, like rule 2's.
-7. No record twice in one list of embedded references: no person twice in one `people`
-   list (§6.20), and no species twice in one dive's `sightings` (§6.3a). The schema holds a
-   list of bare uuids to the same rule with `uniqueItems`, and cannot hold this one: it
-   compares whole items, and two references to one record are two different objects to it
-   whenever anything beside the uuid differs — one person under two roles, one species
-   with two counts.
-8. No tag twice on one dive (§6.2): two members of a dive's `tags` that are equal once each
-   is **trimmed** — its leading and trailing White_Space code points removed, the Unicode
+7. No record twice in one list of embedded references, and no registry entry twice in one
+   list of External Ids: no person twice in one `people` list (§6.20), no species twice in
+   one dive's `sightings` (§6.3a), and no two entries of a dive site's `external_ids`
+   (§6.10) with the same `registry` and the same `identifier`, compared exactly. The schema
+   holds a list of bare uuids to the same rule with `uniqueItems`, and cannot hold these:
+   it compares whole items, and two references to one thing are two different objects to it
+   whenever anything beside what they name differs — one person under two roles, one
+   species with two counts, one registry entry with `extensions` on one side only.
+8. No tag twice on one dive or one dive site, and no name twice on one dive site (§6.2,
+   §6.10): two members of a dive's or a site's `tags` that are equal once each is
+   **trimmed** — its leading and trailing White_Space code points removed, the Unicode
    property — and **case-folded** — Unicode full case folding, the C and F mappings of
-   `CaseFolding.txt`, under which `ß` and `ss` are one — are one tag written twice. The
-   schema's `uniqueItems` holds the byte-equal case, and this rule the rest.
+   `CaseFolding.txt`, under which `ß` and `ss` are one — are one tag written twice. A site's
+   `other_names` are compared the same way, with each other and with the site's `name`, so
+   one that repeats another or the name itself is one name written twice. The schema's
+   `uniqueItems` holds the byte-equal case within one list, and this rule the rest.
 
 Requirements addressed to writer and reader *behaviour* — nothing invented (§5.4),
 unknown-member and unknown-value tolerance (§5.6), offset preservation (§5.2), the reserved
@@ -258,21 +264,29 @@ Stored-file records (§6.7) and the diver (§6.1) carry uuids too.
   gear set) MUST NOT contain the same uuid twice, and a list of embedded references MUST
   NOT reference the same record twice: a `people` list (§6.20) names a person once, and a
   dive's `sightings` (§6.3a) a species once.
-- Reference-list order is meaningful, and so is the order of a dive's `tags`: writers MUST
-  preserve the source order. A dive's `site_uuids` leads with the primary site, and the rest
-  of that list — like `gear_uuids` on a dive and on a gear set, a dive's `sightings` and
-  `tags` and every `people` list — is the diver's own order, whatever it means to them.
+- Reference-list order is meaningful, and so is the order of the `tags` on a dive and on a
+  dive site and of a site's `other_names`: writers MUST preserve the source order. A dive's
+  `site_uuids` leads with the primary site, and the rest of that list — like `gear_uuids` on
+  a dive and on a gear set, a dive's `sightings`, every `tags` list, a site's `other_names`
+  and every `people` list — is the diver's own order, whatever it means to them.
 
 uuids identify records *within* a logbook and, for the same diver's data, across
 exports. They are not portable identities for shared realities: the same physical dive
-site or animal species in two different logbooks will carry two unrelated uuids. Where a
-record has an external identity that does mean the same thing everywhere — a species'
-WoRMS AphiaID (§6.11) — that identity, not the uuid, is the interchange key.
+site or animal species in two different logbooks will carry two unrelated uuids. What
+names a shared reality is an identity from outside the logbook. A species' WoRMS AphiaID
+(§6.11) names the same taxon everywhere, and that identity, not the uuid, is the
+interchange key. A dive site's `external_ids` (§6.10) name the place's entries in
+registries outside the logbook, and two entries with the same `registry` and `identifier`
+name the same registry entry — which is evidence that two sites are one place, and not
+proof. A site may carry several entries, and two sites of one logbook may share one,
+since nothing promises that a registry's object is as fine as a diver's site. So a reader
+matching the sites of two logbooks MUST NOT take two sites for one on the strength of an
+entry unless that entry sits on exactly one site on each side.
 
 Embedded objects (sightings, cylinders, recordings, profile, trip parts, locations,
-addresses, positions, person references, a diver's emergency contacts and insurances) have
-no independent identity; stored-file records (§6.7) do carry a `uuid` because files are
-addressable objects in the source logbook. An embedded object may still **reference** a
+addresses, positions, person references, a site's External Ids, a diver's emergency contacts
+and insurances) have no independent identity; stored-file records (§6.7) do carry a `uuid`
+because files are addressable objects in the source logbook. An embedded object may still **reference** a
 record: a sighting names the species seen (§6.3a), a trip part the contact the diver stayed
 at (§6.9a) and a person reference a person (§6.20), under the same resolution rule as a
 record's own references, and each stays a value with no identity of its own.
@@ -350,7 +364,8 @@ forbids growing the vocabulary of a REQUIRED member.
 encountering an item it does not recognize MUST drop that item and keep the rest, and MUST
 treat the member as absent only when no item remains. The rule above is written for a single
 value; applied to a whole array it would let one value added in a minor version erase every
-value beside it. `roles` on a contact (§6.18) is such a member.
+value beside it. `roles` on a contact (§6.18) and `entry_types` on a dive site (§6.10) are
+such members.
 
 This tolerance rule is addressed to readers. It does not license writers to emit
 undefined members: writer conformance is §5.5's rule, checked strictly by the schema for
@@ -451,7 +466,7 @@ would put another person's face beside the diver's name.
 | `visibility` | number | O | Meters; ≥ 0. A number, not an integer — half-meter visibility is a real low-vis fact. |
 | `weight` | number | O | Kilograms of ballast; ≥ 0. `0` is a recorded "no lead", distinct from absent. |
 | `water_type` | string | O | One of `"salt"`, `"fresh"`, `"brackish"` — the water the dive was in. No "other": an unlistable water type is simply not recorded. The density a computer was set to is a setting of that computer, the recording's `salinity` (§6.4a). |
-| `altitude` | integer | O | Meters above sea level of the site at dive time; −450 to 6500 (Dead Sea to the highest reported altitude dives). |
+| `altitude` | integer | O | Meters above sea level of the water the dive was made in; −450 to 6500 (Dead Sea to the highest reported altitude dives). A dive site carries its own (§6.10), and neither is derived from the other. |
 | `air_temperature` | number | O | °C; unbounded, like `bottom_temperature`. The air at the surface. |
 | `current` | string | O | One of `"none"`, `"light"`, `"moderate"`, `"strong"`, `"extreme"` — the current the diver met. No "other": an unlistable current is simply not recorded. An OPTIONAL member, so this vocabulary grows in minor versions (§7). |
 | `waves` | string | O | One of `"calm"`, `"slight"`, `"moderate"`, `"rough"` — the water's surface. No "other": an unlistable sea is simply not recorded. An OPTIONAL member, so this vocabulary grows in minor versions (§7). |
@@ -628,7 +643,8 @@ validates it, and `"  Perdix 2  "` is a conforming document. A reader strips bef
 compares, so a writer that skips the trim costs itself a match rather than a valid file —
 which is why the comparison rules elsewhere say *trimmed and case-folded* rather than
 assuming it was done upstream. §3's rule 8 is the one such comparison the validator makes,
-between two tags on one dive, and it trims and case-folds as those rules do.
+between two tags on one dive or one site and among a site's names, and it trims and
+case-folds as those rules do.
 
 The serial earns its place for one reason: it is the only thing that reliably tells one
 device's record from another's when a diver wears two computers of one make. §6.12 carries
@@ -894,8 +910,16 @@ resolved.
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | |
 | `name` | string | R | 1–255. |
+| `other_names` | array of string | O | Each 1–255. Other names the site goes by — a local-language name, another spelling, one shop's nickname, a wreck's ship name, a former name — in the diver's own order (§5.3), and none repeating another or the site's `name` once trimmed and case-folded (§3). |
 | `location` | Location (§6.9) | O | The locality the site is in ("Las Galletas, Tenerife"). Absent where the source recorded none, which is the common case. |
 | `position` | Position | O | §6's Position object — where the *site* is. |
+| `external_ids` | array of External Id | O | The place's entries in registries outside the logbook, below. No entry twice (§3), in no meaningful order. |
+| `depth_from` | number | O | Meters; ≥ 0. The shallowest depth dived at the site. |
+| `depth_to` | number | O | Meters; ≥ 0. The deepest depth dived at the site, and MUST be ≥ `depth_from` when both are present. |
+| `water_type` | string | O | One of the values of a dive's `water_type` (§6.2) — `"salt"`, `"fresh"`, `"brackish"` — the water at the site. |
+| `altitude` | integer | O | Meters above sea level of the site's water; −450 to 6500, §6.2's range. |
+| `entry_types` | array of string | O | Values from §6.2's `entry_type` vocabulary — `"shore"`, `"boat"`, `"pier"`, `"pool"` — every way divers enter the water there. No value twice, in no meaningful order. An OPTIONAL member, so this vocabulary grows in minor versions (§7), and a reader drops a value it does not know and keeps the rest (§5.6). |
+| `tags` | array of string | O | The diver's own labels for the site, under every rule a dive's `tags` follow (§6.2): each 1–64 code points, in the diver's own order (§5.3), and no tag twice once trimmed and case-folded (§3). |
 | `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
@@ -905,6 +929,55 @@ locality the place resolved to and `location.bbox` its extent, which is an area 
 than a point and exists so a reader can frame a map on the locality without geocoding it
 again. Writers MUST NOT fill either position from the other, and readers MUST NOT take
 `location.position` for the site's own coordinates.
+
+**A site's `water_type`, `altitude` and `entry_types` are the place's, and a dive's
+`water_type`, `altitude` and `entry_type` (§6.2) are what was recorded that day.** The two
+are different facts on the same terms as the two positions: a boat dive at a site divers
+usually reach from the shore is a real record, and so is a dive logged at no site at all.
+Writers MUST NOT fill either from the other, and readers MUST NOT derive one from the other
+(§5.4). An application that offers a site's values when a diver logs a new dive there is
+behaving as an application, and what the diver then saves is the dive's own. So is the
+depth range the place's: `depth_from` and `depth_to` are where the site is dived, which no
+walk of one diver's dives derives.
+
+An **External Id** is an embedded object, with no uuid, naming the site's entry in one
+registry outside the logbook. Its two members are REQUIRED: `registry` (string), the
+registry's name, in §5.5's producer-key form `^[a-z0-9][a-z0-9._-]*$`, and `identifier`
+(string, 1–255), what the registry calls the place. Like every object this specification
+defines, it MAY carry `extensions`. This version names two registries, and the schema holds
+the identifier of each to its form:
+
+| `registry` | `identifier` |
+| --- | --- |
+| `wikidata` | The Wikidata item: `Q` and its number, with no leading zero — `"Q1234567"`. |
+| `openstreetmap` | The OpenStreetMap element: its type — `node`, `way` or `relation` — a slash, and its number, with no leading zero — `"node/313862678"`. |
+
+Any other registry is carried as written, named as a producer key is: a reverse-DNS name for
+a domain the registry controls, or its established name. Its `identifier` is held to its
+length and nothing else, and a minor version that names a further registry says what its
+identifiers look like as guidance, never as a schema constraint: §7 forbids a minor version
+to tighten a constraint, and a document that carried the registry before it was named stays
+conforming.
+
+**Two entries are equal when their `registry` and their `identifier` are, compared
+exactly** — no trimming and no case-folding, the forms above being exact. An equal pair
+names the same registry entry, which is evidence that two sites are one place and not proof
+of it (§5.3): a site may carry several entries of one registry, and two sites may carry one
+entry.
+
+**OpenStreetMap does not promise that an element's number is permanent**: an element can be
+deleted and its place mapped again under another number. An `openstreetmap` entry names the
+element as it was when the writer recorded it, and a reader that finds nothing under it
+treats that as no match, not as a defect in the document.
+
+**A site's tags and a dive's are one vocabulary**, the same diver's labels: `wreck` on a
+site and `wreck` on a dive are one tag, compared as §3 compares two tags on one dive.
+
+**Well-known site tags (informative).** These are the tags a reader looking for a kind of
+site will meet most often, and the spellings worth matching on: `wreck`, `cave`, `wall`,
+`reef`, `drift`, `lake`, `channel`, `quarry`, `river`. The list binds no writer — a diver's
+tags are theirs to spell — and a reader matching a tag against it compares the two trimmed
+and case-folded, as §3 compares two tags on one site.
 
 ### 6.11 Species
 
@@ -1138,8 +1211,9 @@ or a dive site is.
 | `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
-**It carries no identity for the person either, and that is deliberate.** An identity would
-have to name the same person in every logbook, and nothing a writer holds does. A diver's
+**It carries no identity for the person, and that is deliberate.** An identity would have
+to name the same person in every logbook, and nothing a writer holds does, where a place has
+registries that do (§6.10). A diver's
 `uuid` (§6.1) is one application's identifier, which a reader importing a logbook never
 applies to its own account, so one person holds unrelated diver uuids in two applications'
 files; and a converter reading a format whose owner carries no identifier of its own
@@ -1217,8 +1291,8 @@ A document declares the specification version it conforms to in its `version` me
   to invent wording (§5.4).
 - **An OPTIONAL array of closed values grows the same way**: a minor version may add values
   to the vocabulary its items come from, and a reader that does not know one drops that item
-  and keeps the rest (§5.6) rather than losing the member. `roles` on a contact (§6.18) is
-  such a member.
+  and keeps the rest (§5.6) rather than losing the member. `roles` on a contact (§6.18) and
+  `entry_types` on a dive site (§6.10) are such members.
 - **A reader accepts any document whose major version it implements**, whatever the
   minor. A reader MUST reject, or clearly flag as unsupported, a document whose major
   version it does not implement.
@@ -1256,7 +1330,9 @@ one. Beyond generic JSON concerns:
 - **A DiveJSON document is a personal dossier.** By design it is a *complete* logbook:
   precise timestamped positions (dive-site coordinates, per-dive entry/exit satellite
   fixes, and the locality centres and bounding boxes a trip part and a dive site each
-  carry) that together form a movement history; the diver's name, handle, email address,
+  carry) that together form a movement history, and the registry entries a dive site
+  carries (§6.10), which name a place the diver has been as exactly as its pin does and
+  which anyone can look up; the diver's name, handle, email address,
   phone number and date of birth, and their dive insurance; an emergency contact's name
   and phone number, and the people the diver was with — their names, emails, phones and the
   diver's notes about them (§6.20) — which are **other persons'** data, carried without
@@ -1267,8 +1343,9 @@ one. Beyond generic JSON concerns:
   link two documents to one diver even when every other member differs — and the kit list
   carries them for gear that never recorded a dive, so a document with no `recordings` at all
   can still hold one; and free text: notes, of any length, on dives and their sightings,
-  trips, courses, sites, gear, service records, certifications, contacts and people, a
-  dive's tags, and the name of the boat it was made from.
+  trips, courses, sites, gear, service records, certifications, contacts and people, the
+  tags on a dive and on a site, a site's other names, and the name of the boat a dive was
+  made from.
   Software handling documents SHOULD treat them with the care of a personal data export:
   serve them only to their owner, over authenticated channels, without shared caching.
 - **Archives raise the stakes** (Appendix A): they add the referenced binaries, which can

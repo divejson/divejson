@@ -7,6 +7,38 @@ repositories.
 
 ## Unreleased
 
+- **A dive site carries its other names, external ids, depth range, water type, altitude,
+  entry types and tags (§3, §5.3, §5.6, §6.2, §6.4b, §6.10, §6.20, §7, §9).** A site was a name, a
+  locality, a pin and notes, so a second name, the water, the entry and the depths went into
+  `notes`, and nothing named the place outside the logbook. §6.10 gains eight OPTIONAL
+  members: `other_names`, in the diver's own order; `external_ids`, a list of **External
+  Ids** — a `registry` in §5.5's producer-key form and an `identifier` — where `wikidata`
+  holds an item's `Q` number and `openstreetmap` an element's type and number, and any other
+  registry is carried as written; `depth_from` and `depth_to`, the depths the site is dived
+  at; and `water_type`, `altitude`, `entry_types` and `tags`, on the dive's vocabularies,
+  range and rules. A site's water type, altitude and entry types are the place's and a
+  dive's the day's, and neither is derived from the other. §5.3 names an external id as the
+  key that crosses logbooks for a site, as an AphiaID is for a species, and says an equal
+  pair is evidence and not proof: a reader takes two sites for one only where the entry sits
+  on exactly one site on each side. §3's rule 2 gains `depth_from ≤ depth_to`, rule 7 no
+  registry entry twice on one site, and rule 8 a site's tags and its other names, compared
+  with each other and with its name. §6.10 lists nine well-known site tags, and §6.2's
+  `altitude` becomes the water the dive was made in rather than the site's, as do the FIT and
+  Suunto JSON documents' sentences that leaned on it. The schema shares the dive's water
+  type, entry type and tags definitions with the site rather than copying them. The members
+  are additive, so they land inside 1.0 with `$id`, `title` and `version` untouched.
+  `technical-dive`'s Harrys Wall carries every one, on both sides of its UDDF write pair, and
+  `fixtures/invalid/` gains a file for each bound, pattern, vocabulary and repeat, and for
+  each §3 rule changed.
+
+  **UDDF holds three of them.** `docs/uddf-mapping.md` reads `<aliasname>` as
+  `other_names`, `<geography><altitude>` as `altitude` and `<sitedata>`'s `<minimumdepth>`
+  and `<maximumdepth>` as the depth range, and reports by name every other child of a
+  `<site>`, its `<geography>` and its `<sitedata>`, each with its reason under *Deliberately
+  not mapped*; `fixtures/uddf/sites.uddf` pins the reads and the drops.
+  `docs/uddf-writing.md` writes the same three back and reports the site's external ids,
+  water type, entry types and tags, which UDDF has no slot for.
+
 - **A location has one name, and `full_name` is removed (§6.9).** A location carried two
   text members that nothing bound to each other: `name`, the place as a person writes it, and
   `full_name`, the fullest written form the source held for it. A name that runs out through
