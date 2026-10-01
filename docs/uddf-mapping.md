@@ -181,7 +181,7 @@ one rather than a short one.
 | `aliasname` | `sites[].other_names`, in file order — see below |
 | `geography/location` | `sites[].location.name` — the only slot UDDF has for a locality, so nothing else of the place is filled in |
 | `geography/latitude` + `longitude` | `sites[].position` |
-| `geography/altitude` | `sites[].altitude`, rounded to the whole metre, half up, as a dive's `<altitude>` is |
+| `geography/altitude` | `sites[].altitude`, rounded to the whole metre with halves away from zero, as a dive's `<altitude>` is |
 | `sitedata/minimumdepth` | `sites[].depth_from` |
 | `sitedata/maximumdepth` | `sites[].depth_to` |
 | `notes/para` | `sites[].notes`, paragraphs joined with blank lines |
