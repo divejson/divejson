@@ -7,6 +7,20 @@ repositories.
 
 ## Unreleased
 
+- **A Subsurface site's coordinates, notes, description and locality are read.**
+  `docs/ssrf-mapping.md` read a `<site>`'s uuid and name and listed its `@gps` and `<geo>`
+  as unmapped for want of a file carrying them. A save made with Subsurface 6.0.5738 carries
+  both, and the document now reads `@gps` as two decimals, latitude first, into `position`;
+  the one-line `@description` and the `<notes>` child into `notes`, the description first and
+  a blank line between them; and the `<geo>` taxonomy into `location.name`, the town, its
+  region and its country joined once each — "Dahab, South Sinai, Egypt" — with the ocean
+  left out. It says what each `<geo>` category and origin code is, which no file here had
+  documented, and lists the ocean, a site's 2015 `notes` attribute and save format 2's
+  `<dive><location gps>` as unmapped. `fixtures/ssrf/sites` is the new pair, reduced from
+  that save with two sites added by hand, and `fixtures/ssrf/refusals` gains a site whose
+  latitude is past 90° and one whose halves a comma separates, both carried without a
+  position.
+
 - **A dive site carries its other names, external ids, depth range, water type, altitude,
   entry types and tags (§3, §5.3, §5.6, §6.2, §6.4b, §6.10, §6.20, §7, §9).** A site was a name, a
   locality, a pin and notes, so a second name, the water, the entry and the depths went into
