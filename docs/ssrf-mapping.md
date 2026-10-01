@@ -160,7 +160,7 @@ save, the only file in hand that carries one.
 half from an integer count of micro-degrees — whole degrees, a point and exactly six digits,
 a leading `-` for south and for west — so no locale reaches it and a comma decimal cannot
 occur; it leaves the attribute out when both halves are zero. The order and the sign hold in
-the second save, whose sites lie west of Greenwich, and in a file Subsurface's own test suite
+the second save, which has sites on both sides of Greenwich, and in a file Subsurface's own test suite
 regenerates and compares line by line, which this repository does not carry: Lake
 Coleridge, `-43.342295 171.545936`, 43° south and 171° east. The reader splits the attribute
 on whitespace and reads each half as a decimal, at however many places it has, and the pair
