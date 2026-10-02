@@ -7,6 +7,23 @@ repositories.
 
 ## Unreleased
 
+- **A dive's entry and exit are the fixes nearest the descent and the surfacing that the
+  receiver vouched for.** `docs/converting.md` took the last fix before the deepest sample
+  and the first after it, and a receiver just out of the water has not settled: on one
+  diver's Suunto Ocean exports the first fix after surfacing sits more than 10 m from where
+  the receiver settles on a third of the dives, and 92 m on the worst. Where a format states
+  a fix's horizontal error, a converter now takes, on each side of the split, the fix nearest
+  it whose error is at most 10 m among the fixes within 40 s of the nearest one; where none
+  is, or the format states no error, the nearest fix stands. A fix taken that is not the
+  nearest is a `resolved` finding. `docs/suunto-json-mapping.md` reads `EHPE`, the error the
+  app's export writes beside every fix, and carries the measurement the bound and the window
+  rest on; `docs/fit-mapping.md` reads `record.gps_accuracy`, **untested**, no FIT file in
+  hand writing it. The error is read and never written, and the schema does not change.
+  `fixtures/suunto_json/suunto-ocean-2026` keeps the fixes its export logs in the six
+  seconds after surfacing, and its exit moves 8.5 m to the 10 m one; `ocean-poor-first-fix`
+  is a new pair in `fixtures/suunto_json/` and `fixtures/fit/`, one dive's two exports, whose
+  exits differ by 79 m because only the JSON states the 47 m error of its first fix.
+
 - **A Subsurface site's coordinates, notes, description and locality are read.**
   `docs/ssrf-mapping.md` read a `<site>`'s uuid and name and listed its `@gps` and `<geo>`
   as unmapped for want of a file carrying them. A save made with Subsurface 6.0.5738 carries
