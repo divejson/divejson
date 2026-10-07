@@ -444,9 +444,10 @@ true}}`. Readers importing a logbook into an existing account MUST NOT let any d
 member overwrite the destination account's own identity or settings — its name, handle,
 sign-in address and preferences — and SHOULD NOT apply `email`, `phone`, `born_on`,
 `emergency_contacts`, `insurances` or `portrait_file` to it without the importing diver
-confirming them. Nothing in a document tells a restore of the diver's own logbook from somebody else's: an emergency
-contact taken unseen from another person's would be the wrong person to call, and a portrait
-would put another person's face beside the diver's name.
+confirming them. Nothing in a document tells a restore of the diver's own logbook from
+somebody else's: an emergency contact taken unseen from another person's would be the
+wrong person to call, and a portrait would put another person's face beside the diver's
+name.
 
 ### 6.2 Dive
 
