@@ -7,6 +7,19 @@ repositories.
 
 ## Unreleased
 
+- **A dive's `duration` is its time in the water, and a reader with no stated figure derives
+  it below 1.2 m.** §6.2 said only "the dive's own duration as logged", and the FIT mapping
+  read the session's elapsed time, which on a Suunto watch runs through the end-of-dive delay
+  it waits at the surface — five minutes over the watch's own dive time on every Ocean
+  export in hand. §6.2 now defines `duration` as the time in the water as the computer
+  counts it, surface time before, between and after excluded, and `avg_depth` as the
+  time-weighted mean over that time; a profile still keeps every sample. `docs/converting.md`
+  gains *A dive's time in the water*: a reader takes the figure its source states for the
+  dive, and where it states none derives one from the intervals after each sample deeper
+  than 1.2 m, listed as `inferred`. `docs/fit-mapping.md` reads `dive_summary.bottom_time`
+  and `avg_depth` first, **untested**, then the derivation, then the session's figures. No
+  schema change. The four `fixtures/fit/` expected documents move to the derived figures,
+  within 12 s and 3 cm of the same dives' stated ones.
 - **The diver's `email` is the address they give out, and a reader confirms it on import
   like the phone.** §6.1 said only "the diver's email address", and its import rule put
   `email` beside the name and handle as something a reader must never let overwrite the

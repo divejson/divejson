@@ -456,13 +456,13 @@ name.
 | `uuid` | uuid | R | |
 | `number` | integer | O | The diver's own numbering. Unbounded; duplicates are legal (renumbering histories are messy and this format records, not adjudicates). |
 | `started_at` | date-time or date | R | Local wall clock, with its UTC offset when the source recorded one (§5.2) — or the date alone, where the source recorded the day and not the time of day (§5.2). |
-| `duration` | integer | O | Seconds; > 0. The dive's own duration as logged, which MAY differ from any recording's profile span. |
+| `duration` | integer | O | Seconds; > 0. The time the diver spent in the water, as the dive computer counts it: from the moment the dive started to the moment it ended, with surface time excluded — before the descent, between a surfacing and a descent within the same dive, and after the final surfacing, including the delay a computer waits before closing a dive. It MAY differ from any recording's profile span, which keeps every sample the device recorded (§6.4). |
 | `notes` | string | O | |
 | `type` | string | O | One of `"open_circuit"`, `"closed_circuit"`, `"semi_closed"`, `"freedive"`, `"snorkel"`, `"surface_supplied"` — the diver's own statement of what kind of dive it was. `snorkel` is the outing, not the tube §6.12 names by the same word. No "other": an unlistable kind of dive is simply not recorded. An OPTIONAL member, so this vocabulary grows in minor versions (§7). It is not a recording's `mode`, and neither is derived from the other (§6.4a). |
 | `rating` | integer | O | 1–5, the diver's own, 1 the lowest and 5 the highest. An unrated dive has no `rating` (§5.4): a source that stores unrated as `0` has recorded none. |
 | `tags` | array of string | O | The diver's own labels for the dive, each 1–64 code points, in the diver's own order (§5.3), and no tag twice once trimmed and case-folded (§3). Free text on purpose: every logbook's list of dive types is one its diver extends, which a closed vocabulary cannot be. A writer trims each tag and leaves the whitespace inside it alone. |
 | `max_depth` | number | O | Meters; > 0. |
-| `avg_depth` | number | O | Meters; > 0, and MUST be ≤ `max_depth` when both are present. |
+| `avg_depth` | number | O | Meters; > 0, and MUST be ≤ `max_depth` when both are present. The time-weighted mean depth over the time `duration` counts. |
 | `bottom_temperature` | number | O | °C; unbounded (ice divers and volcanic vents exist). |
 | `visibility` | number | O | Meters; ≥ 0. A number, not an integer — half-meter visibility is a real low-vis fact. |
 | `weight` | number | O | Kilograms of ballast; ≥ 0. `0` is a recorded "no lead", distinct from absent. |
