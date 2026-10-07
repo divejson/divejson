@@ -415,7 +415,7 @@ importers.
 | `uuid` | uuid | O | The diver's identity within this document (§5.3) — stable across the same source's exports. |
 | `name` | string | O | ≤ 255. Display name. |
 | `username` | string | O | ≤ 64. The diver's handle in the source application. |
-| `email` | string | O | ≤ 255. The diver's email address. |
+| `email` | string | O | ≤ 255. The address the diver gives out to be reached at. The address an application signs its user in with is that application's own and not a logbook member. |
 | `phone` | string | O | ≤ 32. The diver's phone number, as written — free text, not E.164, since a number a person writes down carries spaces, a trunk prefix or an extension that a normalized form would lose. One number, the way `email` is one address. |
 | `born_on` | date | O | The diver's date of birth. |
 | `emergency_contacts` | array of Emergency Contact | O | The people to call if something happens to the diver, **in the order they are to be called**: the first is called first. Writers MUST preserve that order and readers MUST NOT re-sort it. |
@@ -442,9 +442,9 @@ have no core members; the reference implementation carries its own under its pro
 key, e.g. `"extensions": {"opendiving": {"units": "metric", "gear_service_emails":
 true}}`. Readers importing a logbook into an existing account MUST NOT let any diver
 member overwrite the destination account's own identity or settings — its name, handle,
-email and preferences — and SHOULD NOT apply `phone`, `born_on`, `emergency_contacts`,
-`insurances` or `portrait_file` to it without the importing diver confirming them. Nothing in
-a document tells a restore of the diver's own logbook from somebody else's: an emergency
+sign-in address and preferences — and SHOULD NOT apply `email`, `phone`, `born_on`,
+`emergency_contacts`, `insurances` or `portrait_file` to it without the importing diver
+confirming them. Nothing in a document tells a restore of the diver's own logbook from somebody else's: an emergency
 contact taken unseen from another person's would be the wrong person to call, and a portrait
 would put another person's face beside the diver's name.
 

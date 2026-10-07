@@ -7,6 +7,15 @@ repositories.
 
 ## Unreleased
 
+- **The diver's `email` is the address they give out, and a reader confirms it on import
+  like the phone.** §6.1 said only "the diver's email address", and its import rule put
+  `email` beside the name and handle as something a reader must never let overwrite the
+  account. An address the diver hands out to be reached at is a contact detail, not account
+  identity: the address an application signs its user in with is that application's own and
+  not a logbook member. The rule now protects the sign-in address, and lists `email` with
+  `phone`, `born_on`, `emergency_contacts`, `insurances` and `portrait_file` as members a
+  reader applies only once the importing diver confirms them. No schema change.
+  `docs/uddf-writing.md` loses its note that the reference writer omits the diver's email.
 - **A dive's entry and exit are the fixes nearest the descent and the surfacing that the
   receiver vouched for.** `docs/converting.md` took the last fix before the deepest sample
   and the first after it, and a receiver just out of the water has not settled: on one
