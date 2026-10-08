@@ -7,6 +7,22 @@ repositories.
 
 ## Unreleased
 
+- **A diver carries no handle, and `username` is removed (§6.1).** §6.1 carried the
+  diver's handle in the source application. A handle is the application's own: nobody is
+  reached at one, it means nothing at any other host, and the document cannot say which
+  host it belongs to, the generator naming software and not an instance. No reader may
+  apply it — §6.1 forbids a diver member overwriting the destination account's identity —
+  so all it did was add a lookup key to §9's dossier, which loses it. An application that
+  wants its handle in its own export has its producer key (§5.5).
+
+  **This is a breaking change and it lands inside 1.0**, on the ground the `full_name`
+  removal below stood on: nothing is tagged, and `$id`, `title` and `version` are untouched
+  at `1.0`. The `diver` definition keeps `additionalProperties: false`, so a document still
+  carrying `username` is refused, and `fixtures/invalid/` trades `diver-username-too-long`
+  for `diver-username.divejson`, a well-formed handle that fails as the retired member.
+  `valid/demo-logbook.divejson` loses the member, and `docs/uddf-writing.md` its row among
+  the members never written.
+
 - **A dive's `duration` is its time in the water, and a reader with no stated figure derives
   it below 1.2 m.** §6.2 said only "the dive's own duration as logged", and the FIT mapping
   read the session's elapsed time, which on a Suunto watch runs through the end-of-dive delay
