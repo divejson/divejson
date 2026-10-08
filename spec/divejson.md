@@ -414,7 +414,6 @@ importers.
 | --- | --- | --- | --- |
 | `uuid` | uuid | O | The diver's identity within this document (§5.3) — stable across the same source's exports. |
 | `name` | string | O | ≤ 255. Display name. |
-| `username` | string | O | ≤ 64. The diver's handle in the source application. |
 | `email` | string | O | ≤ 255. The address the diver gives out to be reached at. The address an application signs its user in with is that application's own and not a logbook member. |
 | `phone` | string | O | ≤ 32. The diver's phone number, as written — free text, not E.164, since a number a person writes down carries spaces, a trunk prefix or an extension that a normalized form would lose. One number, the way `email` is one address. |
 | `born_on` | date | O | The diver's date of birth. |
@@ -1333,9 +1332,9 @@ one. Beyond generic JSON concerns:
   fixes, and the locality centres and bounding boxes a trip part and a dive site each
   carry) that together form a movement history, and the registry entries a dive site
   carries (§6.10), which name a place the diver has been as exactly as its pin does and
-  which anyone can look up; the diver's name, handle, email address,
-  phone number and date of birth, and their dive insurance; an emergency contact's name
-  and phone number, and the people the diver was with — their names, emails, phones and the
+  which anyone can look up; the diver's name, email address, phone number and date of
+  birth, and their dive insurance; an emergency contact's name and phone number, and the
+  people the diver was with — their names, emails, phones and the
   diver's notes about them (§6.20) — which are **other persons'** data, carried without
   those persons having exported anything; certification and instructor numbers, which
   function as identity documents; the contacts the diver trained, dived, shopped and slept
