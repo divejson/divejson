@@ -170,7 +170,7 @@ suffixes. A writer whose internal storage is imperial MUST convert; how an appli
 | weight | kilograms | number |
 | volume (cylinder water capacity) | liters | number |
 | gas fractions (`oxygen`, `helium`) | percent of the mix | number |
-| a dive's `duration` | seconds | integer |
+| a dive's `submerged_time` | seconds | integer |
 | elapsed time on a profile axis — a Series' `times`, a profile's `duration`, an event's `time` | milliseconds | integer |
 | CNS | percent | number |
 | OTU | OTU (dimensionless) | number |
@@ -456,13 +456,13 @@ name.
 | `uuid` | uuid | R | |
 | `number` | integer | O | The diver's own numbering. Unbounded; duplicates are legal (renumbering histories are messy and this format records, not adjudicates). |
 | `started_at` | date-time or date | R | Local wall clock, with its UTC offset when the source recorded one (§5.2) — or the date alone, where the source recorded the day and not the time of day (§5.2). |
-| `duration` | integer | O | Seconds; > 0. The time the diver spent in the water, as the dive computer counts it: from the moment the dive started to the moment it ended, with surface time excluded — before the descent, between a surfacing and a descent within the same dive, and after the final surfacing, including the delay a computer waits before closing a dive. It MAY differ from any recording's profile span, which keeps every sample the device recorded (§6.4). |
+| `submerged_time` | integer | O | Seconds; > 0. The time the diver spent in the water, as the dive computer counts it: from the moment the dive started to the moment it ended, with surface time excluded — before the descent, between a surfacing and a descent within the same dive, and after the final surfacing, including the delay a computer waits before closing a dive. It MAY differ from any recording's profile span, which keeps every sample the device recorded (§6.4). |
 | `notes` | string | O | |
 | `type` | string | O | One of `"open_circuit"`, `"closed_circuit"`, `"semi_closed"`, `"freedive"`, `"snorkel"`, `"surface_supplied"` — the diver's own statement of what kind of dive it was. `snorkel` is the outing, not the tube §6.12 names by the same word. No "other": an unlistable kind of dive is simply not recorded. An OPTIONAL member, so this vocabulary grows in minor versions (§7). It is not a recording's `mode`, and neither is derived from the other (§6.4a). |
 | `rating` | integer | O | 1–5, the diver's own, 1 the lowest and 5 the highest. An unrated dive has no `rating` (§5.4): a source that stores unrated as `0` has recorded none. |
 | `tags` | array of string | O | The diver's own labels for the dive, each 1–64 code points, in the diver's own order (§5.3), and no tag twice once trimmed and case-folded (§3). Free text on purpose: every logbook's list of dive types is one its diver extends, which a closed vocabulary cannot be. A writer trims each tag and leaves the whitespace inside it alone. |
 | `max_depth` | number | O | Meters; > 0. |
-| `avg_depth` | number | O | Meters; > 0, and MUST be ≤ `max_depth` when both are present. The time-weighted mean depth over the time `duration` counts. |
+| `avg_depth` | number | O | Meters; > 0, and MUST be ≤ `max_depth` when both are present. The time-weighted mean depth over the time `submerged_time` counts. |
 | `bottom_temperature` | number | O | °C; unbounded (ice divers and volcanic vents exist). |
 | `visibility` | number | O | Meters; ≥ 0. A number, not an integer — half-meter visibility is a real low-vis fact. |
 | `weight` | number | O | Kilograms of ballast; ≥ 0. `0` is a recorded "no lead", distinct from absent. |
@@ -487,7 +487,7 @@ name.
 | `recordings` | array of Recording | O | §6.4a — one entry per device that recorded this dive, the first primary. |
 | `created_at` | date-time | O | §5.7. |
 
-What stays on the dive is the **diver's logbook entry**: `duration`, `max_depth`,
+What stays on the dive is the **diver's logbook entry**: `submerged_time`, `max_depth`,
 `avg_depth`, `bottom_temperature`, the positions and `cylinders` are the dive as its owner
 logs it, and a hand-entered dive carries them with no recording at all. A writer that seeds
 them from a device's record is not emitting a derived member (§5.7): the dive's figure is
@@ -695,7 +695,7 @@ The sampled record of one recording of a dive (§6.4a), embedded in that recordi
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `duration` | integer | R | Milliseconds spanned by the profile's **samples**; ≥ 0, and MUST be ≥ the largest `times` entry in any channel. An event `time` MAY fall outside it — see below. MAY differ from the dive's logged `duration`, and from another recording's span — a gap after the last sample is real: a computer that stops *sampling* at the surface can keep *timing* the dive. |
+| `duration` | integer | R | Milliseconds spanned by the profile's **samples**; ≥ 0, and MUST be ≥ the largest `times` entry in any channel. An event `time` MAY fall outside it — see below. MAY differ from the dive's logged `submerged_time`, and from another recording's span — a gap after the last sample is real: a computer that stops *sampling* at the surface can keep *timing* the dive. |
 | `depth` | Series | O | Samples in **centimeters** (§5.1). |
 | `ceiling` | Series | O | Decompression ceiling, in **centimeters**. Present only while a ceiling existed: a gap in `times` means "no deco obligation", not a sensor dropout — and readers MUST NOT interpolate across a ceiling gap, which would fabricate an obligation that was not there. |
 | `temperature` | Series | O | Samples in **hundredths of a degree Celsius**. |
@@ -1413,7 +1413,7 @@ diver and signed the card:
       "uuid": "019fec36-b9ec-71c6-a03e-64f59b8b92b1",
       "number": 42,
       "started_at": "2026-04-17T11:49:23+02:00",
-      "duration": 2460,
+      "submerged_time": 2460,
       "max_depth": 18.4,
       "water_type": "salt",
       "trip_uuid": "019fec36-b882-7e23-97fa-9e297e8c9701",
