@@ -178,9 +178,10 @@ suffixes. A writer whose internal storage is imperial MUST convert; how an appli
 | coordinates | decimal degrees, WGS 84 | number |
 
 **Profile channels are integer-scaled** (§6.5): depth and ceiling samples are
-**centimeters**, temperature samples are **tenths of a degree Celsius**, and pressure
-samples are **tenths of a bar**. The decompression readouts a computer shows the diver
-(§6.4) carry their own scales: `ndl` and `tts` samples are **seconds**, the grain a device
+**centimeters**, temperature samples are **hundredths of a degree Celsius**, because a
+computer's own export states a temperature to 0.01 K, which tenths would round away, and
+pressure samples are **tenths of a bar**. The decompression readouts a computer shows the
+diver (§6.4) carry their own scales: `ndl` and `tts` samples are **seconds**, the grain a device
 counts them down in — a reading, where the axis they are sampled on is milliseconds; `ppo2`
 samples are **hundredths of a bar**, because tenths cannot tell 1.30 from 1.32 and real
 exports state a ppO₂ to two decimals; `cns` samples are **tenths of a
@@ -697,7 +698,7 @@ The sampled record of one recording of a dive (§6.4a), embedded in that recordi
 | `duration` | integer | R | Milliseconds spanned by the profile's **samples**; ≥ 0, and MUST be ≥ the largest `times` entry in any channel. An event `time` MAY fall outside it — see below. MAY differ from the dive's logged `duration`, and from another recording's span — a gap after the last sample is real: a computer that stops *sampling* at the surface can keep *timing* the dive. |
 | `depth` | Series | O | Samples in **centimeters** (§5.1). |
 | `ceiling` | Series | O | Decompression ceiling, in **centimeters**. Present only while a ceiling existed: a gap in `times` means "no deco obligation", not a sensor dropout — and readers MUST NOT interpolate across a ceiling gap, which would fabricate an obligation that was not there. |
-| `temperature` | Series | O | Samples in **tenths of a degree Celsius**. |
+| `temperature` | Series | O | Samples in **hundredths of a degree Celsius**. |
 | `pressures` | array of Pressure Series | O | One entry per cylinder **this recording's device** monitored; samples in **tenths of a bar**. Two recordings of one dive each carry their own entries, and both join to the dive's `cylinders` by `gas_number` (§6.3, §6.4a). |
 | `ndl` | Series | O | Remaining no-decompression time, in **seconds**; ≥ 0. |
 | `tts` | Series | O | Time to surface, in **seconds**; ≥ 0. The device's own figure for how long an ascent from here would take, stops included. |
@@ -1429,7 +1430,7 @@ diver and signed the card:
           "profile": {
             "duration": 2460000,
             "depth": { "times": [0, 60000, 120000, 2400000], "values": [0, 950, 1840, 310] },
-            "temperature": { "times": [0, 1200000], "values": [261, 224] },
+            "temperature": { "times": [0, 1200000], "values": [2614, 2237] },
             "events": [{ "time": 2100000, "type": "safety_stop" }]
           }
         }
