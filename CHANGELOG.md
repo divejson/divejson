@@ -7,6 +7,30 @@ repositories.
 
 ## Unreleased
 
+- **Profile temperature samples are hundredths of a degree Celsius (§5.1, §6.4).** The
+  channel held tenths, and a Suunto Ocean's app export states every reading to 0.01 K: one
+  diver's dive spanning under half a degree carried five levels where its file states 43,
+  and §5.1 chooses the scales to exceed the precision of real dive computers. A reader
+  scales a source's temperature once, on the decimal it wrote, and rounds once; a coarser
+  source fills the grain with zeros, a D5's 23.6 °C being `2360`.
+  Each mapping document states its factor, `docs/suunto-json-mapping.md` says which of its
+  computers fill the grain, and `docs/uddf-writing.md` writes Kelvin from hundredths, so
+  every expected UDDF file is unchanged. Dive-level `bottom_temperature` and
+  `air_temperature` were never scaled and stay plain degrees.
+
+  **This is a breaking change and it lands inside 1.0**, on the ground the axis change below
+  stood on: nothing is tagged, and `$id`, `title` and `version` are untouched at `1.0`. It
+  breaks documents **silently**. The member keeps its name and the schema is unchanged, an
+  integer before and after, so a document written in tenths — any export or conversion made
+  before this change — validates and reads ten times too cold. A reader that knows which
+  writer produced a document may read that writer's earlier output by that knowledge, which
+  is the reader's business rather than §5.6's. Every fixture carrying the channel moved with
+  the unit: the five Suunto Ocean pairs under `suunto_json/` gain the digits their files
+  state, every other pair and every hand-built document is multiplied by ten, and
+  `valid/demo-logbook.divejson` gains, beside its `profile_axis` marker, the
+  `profile_temperature_scale` marker its writer emits with hundredths. No fixture is added or
+  retired.
+
 - **A diver carries no handle, and `username` is removed (§6.1).** §6.1 carried the
   diver's handle in the source application. A handle is the application's own: nobody is
   reached at one, it means nothing at any other host, and the document cannot say which
