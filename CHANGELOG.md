@@ -7,6 +7,26 @@ repositories.
 
 ## Unreleased
 
+- **A dive's time in the water is `submerged_time`, and `duration` is the profile's alone
+  (§5.1, §6.2, §6.4).** The format named two quantities by one word in two units: a dive's
+  `duration`, seconds in the water as the computer counts it, and a profile's, milliseconds
+  its samples span. Beside `started_at` the dive's reads as ended minus started, which it is
+  not — on every Suunto Ocean recording in hand it is about five minutes short of the
+  recording — and the one sentence telling the two apart lived in the profile's row. The
+  dive's member is now `submerged_time`, a name that carries the definition's exclusion of
+  surface time; its definition, type and constraint are unchanged, and so is the profile's
+  `duration`.
+
+  **This is a breaking change and it lands inside 1.0**, on the ground the `username`
+  removal below stood on: nothing is tagged, and `$id`, `title` and `version` are untouched
+  at `1.0`. The `dive` definition keeps `additionalProperties: false`, so a dive still
+  carrying `duration` is refused, and no reader reads the old name as the new one.
+  `fixtures/invalid/` gains `dive-duration.divejson` for the retired member; every other
+  fixture document carrying it moves to the new name, and the `fit/` expected documents mark
+  their derived figure `dives/0/submerged_time`. The mapping documents map each source's own
+  member — `@duration`, `<diveduration>`, `Duration`, `DiveTime` — to the new name, which
+  stays theirs on the source side.
+
 - **Profile temperature samples are hundredths of a degree Celsius (§5.1, §6.4).** The
   channel held tenths, and a Suunto Ocean's app export states every reading to 0.01 K: one
   diver's dive spanning under half a degree carried five levels where its file states 43,
