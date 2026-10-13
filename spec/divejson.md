@@ -73,7 +73,8 @@ but live outside the schema; the reference validator (`divejson validate`) check
 the schema and this list:
 
 1. Identifier uniqueness and referential closure (§5.3), a Person Reference's
-   `person_uuid` (§6.20) and a Sighting's `species_uuid` (§6.3a) included.
+   `person_uuid` (§6.20), a Sighting's `species_uuid` (§6.3a) and a Cylinder's `gear_uuid`
+   (§6.3) included.
 2. Cross-member arithmetic: `oxygen + helium ≤ 100` and `end_pressure ≤ start_pressure`
    on a cylinder (§6.3); `avg_depth ≤ max_depth` on a dive (§6.2); `depth_from ≤
    depth_to` on a dive site (§6.10); `ends_on ≥ starts_on` on a trip part (§6.9a) and on a
@@ -91,12 +92,13 @@ the schema and this list:
    bounds each; which of them is the larger is arithmetic between members, like rule 2's.
 7. No record twice in one list of embedded references, and no registry entry twice in one
    list of External Ids: no person twice in one `people` list (§6.20), no species twice in
-   one dive's `sightings` (§6.3a), and no two entries of a dive site's `external_ids`
-   (§6.10) with the same `registry` and the same `identifier`, compared exactly. The schema
-   holds a list of bare uuids to the same rule with `uniqueItems`, and cannot hold these:
-   it compares whole items, and two references to one thing are two different objects to it
-   whenever anything beside what they name differs — one person under two roles, one
-   species with two counts, one registry entry with `extensions` on one side only.
+   one dive's `sightings` (§6.3a), no gear item twice in one dive's `cylinders` (§6.3), and
+   no two entries of a dive site's `external_ids` (§6.10) with the same `registry` and the
+   same `identifier`, compared exactly. The schema holds a list of bare uuids to the same
+   rule with `uniqueItems`, and cannot hold these: it compares whole items, and two
+   references to one thing are two different objects to it whenever anything beside what
+   they name differs — one person under two roles, one species with two counts, one vessel
+   at two pressures, one registry entry with `extensions` on one side only.
 8. No tag twice on one dive or one dive site, and no name twice on one dive site (§6.2,
    §6.10): two members of a dive's or a site's `tags` that are equal once each is
    **trimmed** — its leading and trailing White_Space code points removed, the Unicode
@@ -171,6 +173,7 @@ suffixes. A writer whose internal storage is imperial MUST convert; how an appli
 | volume (cylinder water capacity) | liters | number |
 | gas fractions (`oxygen`, `helium`) | percent of the mix | number |
 | a dive's `submerged_time` | seconds | integer |
+| a gear item's `dive_time`, and a service schedule's and a service record's figures of it | seconds | integer |
 | elapsed time on a profile axis — a Series' `times`, a profile's `duration`, an event's `time` | milliseconds | integer |
 | CNS | percent | number |
 | OTU | OTU (dimensionless) | number |
@@ -263,8 +266,9 @@ Stored-file records (§6.7) and the diver (§6.1) carry uuids too.
   `contacts` (§6.9a), and a certification's `instructor_uuid` in `people` (§6.16).
 - A reference-list member (`site_uuids` and `gear_uuids` on a dive, `gear_uuids` on a
   gear set) MUST NOT contain the same uuid twice, and a list of embedded references MUST
-  NOT reference the same record twice: a `people` list (§6.20) names a person once, and a
-  dive's `sightings` (§6.3a) a species once.
+  NOT reference the same record twice: a `people` list (§6.20) names a person once, a
+  dive's `sightings` (§6.3a) a species once, and a dive's `cylinders` (§6.3) a gear item
+  once.
 - Reference-list order is meaningful, and so is the order of the `tags` on a dive and on a
   dive site and of a site's `other_names`: writers MUST preserve the source order. A dive's
   `site_uuids` leads with the primary site, and the rest of that list — like `gear_uuids` on
@@ -288,9 +292,10 @@ Embedded objects (sightings, cylinders, recordings, profile, trip parts, locatio
 addresses, positions, person references, a site's External Ids, a diver's emergency contacts
 and insurances) have no independent identity; stored-file records (§6.7) do carry a `uuid`
 because files are addressable objects in the source logbook. An embedded object may still **reference** a
-record: a sighting names the species seen (§6.3a), a trip part the contact the diver stayed
-at (§6.9a) and a person reference a person (§6.20), under the same resolution rule as a
-record's own references, and each stays a value with no identity of its own.
+record: a sighting names the species seen (§6.3a), a cylinder the gear item it is (§6.3), a
+trip part the contact the diver stayed at (§6.9a) and a person reference a person (§6.20),
+under the same resolution rule as a record's own references, and each stays a value with no
+identity of its own.
 
 ### 5.4 Absent members, null, and "nothing invented"
 
@@ -376,15 +381,16 @@ the version the document declares.
 
 A few members are **derived**: the source application computed them from other records
 rather than recording them as facts (they are marked "derived" where they are defined —
-`dive_count` on a gear item; `last_service_on`, `next_due_on`, and
-`next_due_at_dive_count` on a service schedule). Writers MUST emit values that are true
-in the source logbook at export time. A reader importing into its own store SHOULD
-recompute derived members from what it imported rather than trust them, since its own
-view of the underlying records may differ.
+`dive_count` and `dive_time` on a gear item; `last_service_on`, `next_due_on`,
+`next_due_at_dive_count` and `next_due_at_dive_time` on a service schedule). Writers MUST
+emit values that are true in the source logbook at export time. A reader importing into its
+own store SHOULD recompute derived members from what it imported rather than trust them,
+since its own view of the underlying records may differ.
 
-Point-in-time *snapshots* (`dive_count_at_start` on a schedule, `dive_count_at_service`
-on a service record) are not derived: they are historical facts with no recomputation
-procedure, and readers restoring a logbook import them as recorded.
+Point-in-time *snapshots* (`dive_count_at_start` and `dive_time_at_start` on a schedule,
+`dive_count_at_service` and `dive_time_at_service` on a service record) are not derived:
+they are historical facts with no recomputation procedure, and readers restoring a logbook
+import them as recorded.
 
 `created_at` members record when each record entered the source logbook. They are logbook
 history: a reader restoring or migrating a logbook SHOULD preserve them.
@@ -543,11 +549,20 @@ per §5.4 — nothing invented, nothing required.
 | `gas_number` | integer | O | ≥ 0. The dive computer's own label for this gas, scoped to this dive — **a label, not an array index**; some devices number from 0, some from 1. It is the join key from every recording's `profile.pressures[].gas_number` and `gas_switch` events (§6.4a). |
 | `role` | string | O | One of `"bottom"`, `"deco"`, `"diluent"`, `"oxygen"`. |
 | `usage` | string | O | One of `"parallel"` (breathed alongside others, e.g. sidemount pairs), `"staged"` (carried for a later phase). |
+| `gear_uuid` | uuid | O | → `gear` (§6.12). The vessel this gas supply is: the diver's own cylinder, whose facts — water capacity, working pressure, material — are recorded once, on the gear item. It SHOULD name a `"cylinder"`; the format cannot require it, since a gear item's `type` is OPTIONAL. Absent for a rental or a vessel the diver never recorded. No gear item twice in one dive's `cylinders` (§3). |
 
 When both pressures are present, `end_pressure` MUST be ≤ `start_pressure`. When both
 fractions are present, `oxygen + helium` MUST be ≤ 100 — the remainder is treated as
 nitrogen; the ~1 % of argon and trace gases in air is not modeled, matching
 dive-planning convention.
+
+**A dive's cylinders name a vessel at most once.** An entry is one gas supply, so one
+vessel is one entry: a manifolded twinset is one gear item linked from one cylinder, and two
+sidemount bottles are two gear items linked from two. A cylinder that links a vessel keeps
+its own `volume` as this dive's record — the two may differ, and an absent one is not
+recorded (§5.4) whatever the vessel's says. The vessel's working pressure and material live
+on the gear item alone: what a cylinder is rated to is a fact of the vessel, while what was
+in it is this dive's `start_pressure`.
 
 ### 6.4a Recording
 
@@ -624,7 +639,9 @@ What recorded a dive: the hardware, not a piece of kit the diver keeps. A device
 on a recording and never a gear item (§6.12) — a logbook that minted a `computer` gear
 item per dive from a model string would fill its kit list with duplicates of one computer,
 while a logbook holding two records of one dive needs to tell the two devices apart. The
-two can describe the same physical object without being the same record.
+two can describe the same physical object without being the same record. A `"transmitter"`
+gear item is the same two-sidedness: the pod is a gear item in the diver's kit list, and what
+it sent is a pressure series on the computer's recording (§6.5), never a device of its own.
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
@@ -1015,13 +1032,21 @@ create catalog entries from the snapshot.
 | `name` | string | R | 1–255. |
 | `brand` | string | O | ≤ 255. |
 | `serial` | string | O | 1–64 and non-empty; a writer trims it before writing, on §6.4b's terms. The maker's serial for this piece, opaque — never parsed for meaning. **Shorter than every other string in this section on purpose**: §6.4b bounds a device's `serial` at 1–64, and a gear serial that could not fit there could never equal one. Allowed on any gear type, though a `"computer"` is where it does its work — it is what identifies the piece of kit as the hardware a recording's device (§6.4b) describes, rather than leaving a writer to guess from a name and a maker. It is a stable hardware identifier and therefore personal data; §9 says so. |
-| `type` | string | O | One of `"mask"`, `"snorkel"`, `"fins"`, `"wetsuit"`, `"drysuit"`, `"vest"`, `"hood"`, `"gloves"`, `"boots"`, `"bcd"`, `"regulator"`, `"computer"`, `"cylinder"`, `"light"`, `"smb"`, `"mirror"`, `"whistle"`, `"reel"`, `"knife"`, `"line_cutter"`, `"shears"`, `"compass"`, `"camera"`, `"other"`. An OPTIONAL member, so this vocabulary can grow in minor versions (§7) — an air horn rides `"other"` until it earns a value. |
+| `type` | string | O | One of `"mask"`, `"snorkel"`, `"fins"`, `"wetsuit"`, `"drysuit"`, `"vest"`, `"hood"`, `"gloves"`, `"boots"`, `"bcd"`, `"regulator"`, `"rebreather"`, `"computer"`, `"transmitter"`, `"cylinder"`, `"light"`, `"scooter"`, `"smb"`, `"mirror"`, `"whistle"`, `"reel"`, `"knife"`, `"line_cutter"`, `"shears"`, `"compass"`, `"camera"`, `"other"`. A `"transmitter"` is a tank-pressure pod and a `"scooter"` a diver propulsion vehicle. An OPTIONAL member, so this vocabulary can grow in minor versions (§7) — an air horn rides `"other"` until it earns a value. |
+| `volume` | number | O | Liters of water capacity; > 0 — a manifolded twinset's combined, as §6.3 counts it. |
+| `working_pressure` | number | O | Bar; > 0 and ≤ 350. What the vessel is rated to, never what was in it: no relation to any dive's `start_pressure` is implied, and a 232 bar cylinder filled to 240 is a recorded fact. |
+| `material` | string | O | One of `"steel"`, `"aluminium"`, `"carbon"`. An OPTIONAL member, so this vocabulary grows in minor versions (§7). |
 | `notes` | string | O | |
 | `rented` | boolean | O | |
 | `archived` | boolean | O | Retired from active use. |
 | `archived_at` | date-time | O | |
-| `dive_count` | integer | O | ≥ 0. **Derived** (§5.7): the item's use count in the source logbook. |
+| `dive_count` | integer | O | ≥ 0. **Derived** (§5.7): how many dives in the source logbook used the item. A dive uses an item when the item is in its `gear_uuids` or is one of its cylinders' `gear_uuid` (§6.3), and counts once however many ways it names the item. |
+| `dive_time` | integer | O | Seconds; ≥ 0. **Derived** (§5.7): the summed `submerged_time` (§6.2) of the dives `dive_count` counts, a dive without one contributing nothing — the figure a schedule's `interval_hours` runs on (§6.14). |
 | `created_at` | date-time | O | §5.7. |
+
+`volume`, `working_pressure` and `material` are the **vessel's facts**: allowed on any gear
+type, though a `"cylinder"` is where they do their work — recorded once on the vessel rather
+than on every dive's cylinder that links it (§6.3).
 
 ### 6.13 Gear Set
 
@@ -1047,13 +1072,20 @@ A recurring maintenance rule for a gear item.
 | `label` | string | O | ≤ 120. Distinguishes multiple rules of one type. |
 | `starts_on` | date | R | When the rule's clock starts. |
 | `interval_months` | integer | O | > 0. |
-| `interval_dives` | integer | O | > 0. At least one of the two intervals MUST be present. |
+| `interval_dives` | integer | O | > 0. |
+| `interval_hours` | integer | O | > 0. Hours of diving between services, counted on the item's `dive_time` (§6.12). At least one of the three intervals MUST be present. |
 | `dive_count_at_start` | integer | O | ≥ 0. **Snapshot** (§5.7): the item's lifetime use count when the rule started — the baseline `interval_dives` counts from. |
+| `dive_time_at_start` | integer | O | Seconds; ≥ 0. **Snapshot** (§5.7): the item's `dive_time` when the rule started — the baseline `interval_hours` counts from. |
 | `active` | boolean | O | |
 | `last_service_on` | date | O | **Derived** (§5.7). |
 | `next_due_on` | date | O | **Derived** (§5.7). |
 | `next_due_at_dive_count` | integer | O | **Derived** (§5.7): the lifetime count at which service falls due — a threshold, not a remaining count. |
+| `next_due_at_dive_time` | integer | O | Seconds; ≥ 0. **Derived** (§5.7): the `dive_time` at which service falls due — a threshold, not a remaining time. |
 | `created_at` | date-time | O | §5.7. |
+
+The intervals name the clock each one runs on — the calendar's months, the dives logged and
+the hours of diving — which is why they carry a unit where §5.1's measurements do not: they
+are three clocks on one rule, told apart by what they count.
 
 ### 6.15 Service Record
 
@@ -1067,6 +1099,7 @@ One performed maintenance event.
 | `type` | string | R | Same vocabulary as §6.14; copied at write time so it survives the schedule's deletion. |
 | `serviced_on` | date | R | |
 | `dive_count_at_service` | integer | O | ≥ 0. **Snapshot** (§5.7). |
+| `dive_time_at_service` | integer | O | Seconds; ≥ 0. **Snapshot** (§5.7): the item's `dive_time` when the service was performed. |
 | `label` | string | O | ≤ 120. |
 | `performed_by` | string | O | ≤ 255. Who did the work, as free text — a technician's name, or *self* where the diver did it. The place it was done at is `contact_uuid`. |
 | `contact_uuid` | uuid | O | → `contacts` (§6.18). The shop or dive center the work was done at. |
