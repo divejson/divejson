@@ -7,6 +7,32 @@ repositories.
 
 ## Unreleased
 
+- **A dive's cylinder links its gear item, a gear item carries its vessel's facts, and a
+  service rule can run on hours of diving (§3, §5.1, §5.3, §5.7, §6.3, §6.4b, §6.12, §6.14,
+  §6.15).** A cylinder on a dive and the cylinder the diver owns were two records that could
+  not name each other, so a hydrostatic-test schedule could not count the vessel's dives.
+  §6.3's cylinder gains `gear_uuid`, and a dive's cylinders name a gear item at most once,
+  a rule-7 case of §3 the validator checks; §6.12's gear item gains `volume`,
+  `working_pressure` and `material`, allowed on any type and meaningful on a cylinder, and
+  the derived `dive_time`, the summed `submerged_time` of the dives `dive_count` counts —
+  which now says what a use is: in the dive's `gear_uuids` or a cylinder's `gear_uuid`, once
+  per dive. §6.14 gains `interval_hours` as a third arm of its at-least-one rule, with the
+  `dive_time_at_start` snapshot and the `next_due_at_dive_time` threshold, and §6.15 the
+  `dive_time_at_service` snapshot, all in seconds. The gear vocabulary gains `rebreather`,
+  `transmitter` and `scooter`. Every member is additive, so it lands inside 1.0 with `$id`,
+  `title` and `version` untouched. `technical-dive` links its sidemount pair to two steels
+  of their own and gives its twinset its facts and an hours arm, and `fixtures/invalid/`
+  gains eight files, the dangling and the repeated vessel among them.
+
+  **UDDF has the split already**, `<tank>` the equipment and `<tankdata>` the dive's fill:
+  `docs/uddf-mapping.md` reads a `<tank>`'s `<tankmaterial>` and `<tankvolume>` into the gear
+  item, a `<tankdata>`'s every `<link>`, its vessel's among them, and a linked tank's volume
+  where the `<tankdata>` states none, and reads `<rebreather>` and `<scooter>` as
+  themselves; `docs/uddf-writing.md` writes the two children, the second link, and the
+  cylinder's own volume beside its vessel's, since the readers the export serves take the
+  size from `<tankdata>` alone. A working pressure, a gear item's `dive_time` and gear
+  service have no UDDF slot.
+
 - **A dive's time in the water is `submerged_time`, and `duration` is the profile's alone
   (§5.1, §6.2, §6.4).** The format named two quantities by one word in two units: a dive's
   `duration`, seconds in the water as the computer counts it, and a profile's, milliseconds
