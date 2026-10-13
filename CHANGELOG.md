@@ -31,7 +31,9 @@ repositories.
   themselves; `docs/uddf-writing.md` writes the two children, the second link, and the
   cylinder's own volume beside its vessel's, since the readers the export serves take the
   size from `<tankdata>` alone. A working pressure, a gear item's `dive_time` and gear
-  service have no UDDF slot.
+  service have no UDDF slot. `fixtures/uddf/gear.uddf` is a new hand-built reader pair that
+  walks the link rules one `<tankdata>` at a time, and `write/uddf/technical-dive.uddf` now
+  carries the three vessels and the sidemount pair's links.
 
 - **A dive's time in the water is `submerged_time`, and `duration` is the profile's alone
   (§5.1, §6.2, §6.4).** The format named two quantities by one word in two units: a dive's
