@@ -32,7 +32,7 @@ jobs:
       # that covers it. What is left is a corpus, and a corpus does not vary by
       # interpreter.
       - name: Install the pinned implementation
-        run: pip install "divejson==$DIVEJSON_VERSION"
+        run: pip install "git+https://github.com/divejson/divejson-py@86ada6de4d6c871e5e3780f687a082d92a4d3525"
 
       # `jsonschema` arrives as a dependency of the implementation. This is the one
       # check that is about the schema as a document rather than about what it
