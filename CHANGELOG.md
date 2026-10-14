@@ -7,6 +7,23 @@ repositories.
 
 ## Unreleased
 
+- **Backplate and wing join the gear vocabulary (§6.12).** A backplate-and-wing rig is
+  sold and swapped as its parts — one plate under a singles wing and a doubles wing — and
+  the vocabulary had one word for all of it, so a plate and its two wings were typed alike
+  and only their names told them apart. The gear vocabulary gains `backplate` and `wing`,
+  placed after `bcd`. A `bcd` keeps its meaning: it is a buoyancy compensator, and what one
+  recorded whole is typed, while a writer that records a rig's parts apart types the
+  bladder `wing` and the plate with its harness `backplate`. A harness has no value of its
+  own. Both values are additive, so they land inside 1.0 with `$id`, `title` and `version`
+  untouched. `technical-dive` gains a steel backplate and a doubles wing in its gear set,
+  and `fixtures/invalid/` gains a gear item typed `"harness"`.
+
+  **UDDF has an element for the one and not the other.** `docs/uddf-writing.md` writes a
+  `wing` as `<buoyancycontroldevice>`, the element for the broader kind it belongs to, which
+  a reader brings back as `bcd`, and a `backplate` as `<variouspieces>`, which comes back as
+  `other`; both are reported, since neither type survives. The reader does not change, and
+  `write/uddf/technical-dive.uddf` now carries the wing and the plate.
+
 - **A species' registry entries are its `external_ids`, and `worms` is a named registry
   (§3, §5.3, §6.10, §6.11, §6.20).** A species carried its WoRMS AphiaID and its Wikidata
   item as two members of its own, `aphia_id` and `wikidata_qid`, while a dive site carried
