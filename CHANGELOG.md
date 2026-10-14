@@ -7,6 +7,37 @@ repositories.
 
 ## Unreleased
 
+- **A species' registry entries are its `external_ids`, and `worms` is a named registry
+  (§3, §5.3, §6.10, §6.11, §6.20).** A species carried its WoRMS AphiaID and its Wikidata
+  item as two members of its own, `aphia_id` and `wikidata_qid`, while a dive site carried
+  the same kind of fact as a list of External Ids, so one document spelled the Wikidata
+  registry two ways. §6.11's species now carries `external_ids`, the list a site carries,
+  and neither old member. §6.10 names a third registry, `worms`, whose identifier is the
+  AphiaID's digits with no leading zero, and its External Id is now a record's rather than
+  a site's. A species conforms with a name or with one entry in `external_ids`, under any
+  registry. A reader matches species on the `worms` entry where it matched on `aphia_id`,
+  and an equal `worms` pair names one taxon, where an equal pair on two sites is evidence
+  and not proof; so a species carries at most one `worms` entry, which the schema holds
+  with `maxContains`. No entry twice on a species is a rule-7 case of §3 the validator
+  checks, as it is on a site. The opening of §6.11 drops "marine": a species keyed on a
+  register that covers fresh water is a species record like any other.
+
+  **This is a breaking change and it lands inside 1.0**, on the ground the `submerged_time`
+  rename below stood on: nothing is tagged, and `$id`, `title` and `version` are untouched
+  at `1.0`. The `species` definition keeps `additionalProperties: false`, so a species
+  still carrying `aphia_id` or `wikidata_qid` no longer conforms, and no reader reads the
+  old members as the new list. A `worms` entry on any record, a site's included, is now
+  held to the digits where "carried as written" accepted any identifier before; §6.10's
+  rule that a minor version names a further registry's form only as guidance is untouched,
+  `worms` being named inside the untagged 1.0. Every fixture document carrying `aphia_id`
+  carries a `worms` entry with its digits instead. `technical-dive` gives its black coral
+  a `wikidata` entry beside its `worms` one and gains a species with no name and two
+  entries under one registry the format does not name, sighted on its second dive, and
+  `fixtures/invalid/` gains six files: the two retired members, a species with an empty
+  `external_ids` and no name, a `worms` entry carrying the LSID, two `worms` entries on one
+  species, and one `wikidata` entry twice on a species. Species are not written to UDDF,
+  so no expected `.uddf` changes.
+
 - **A dive's cylinder links its gear item, a gear item carries its vessel's facts, and a
   service rule can run on hours of diving (§3, §5.1, §5.3, §5.7, §6.3, §6.4b, §6.12, §6.14,
   §6.15).** A cylinder on a dive and the cylinder the diver owns were two records that could
