@@ -93,12 +93,13 @@ the schema and this list:
 7. No record twice in one list of embedded references, and no registry entry twice in one
    list of External Ids: no person twice in one `people` list (§6.20), no species twice in
    one dive's `sightings` (§6.3a), no gear item twice in one dive's `cylinders` (§6.3), and
-   no two entries of a dive site's `external_ids` (§6.10) with the same `registry` and the
-   same `identifier`, compared exactly. The schema holds a list of bare uuids to the same
-   rule with `uniqueItems`, and cannot hold these: it compares whole items, and two
-   references to one thing are two different objects to it whenever anything beside what
-   they name differs — one person under two roles, one species with two counts, one vessel
-   at two pressures, one registry entry with `extensions` on one side only.
+   no two entries of a dive site's or a species' `external_ids` (§6.10, §6.11) with the same
+   `registry` and the same `identifier`, compared exactly. The schema holds a list of bare
+   uuids to the same rule with `uniqueItems`, and cannot hold these: it compares whole
+   items, and two references to one thing are two different objects to it whenever
+   anything beside what they name differs — one person under two roles, one species with
+   two counts, one vessel at two pressures, one registry entry with `extensions` on one
+   side only.
 8. No tag twice on one dive or one dive site, and no name twice on one dive site (§6.2,
    §6.10): two members of a dive's or a site's `tags` that are equal once each is
    **trimmed** — its leading and trailing White_Space code points removed, the Unicode
@@ -278,9 +279,9 @@ Stored-file records (§6.7) and the diver (§6.1) carry uuids too.
 uuids identify records *within* a logbook and, for the same diver's data, across
 exports. They are not portable identities for shared realities: the same physical dive
 site or animal species in two different logbooks will carry two unrelated uuids. What
-names a shared reality is an identity from outside the logbook. A species' WoRMS AphiaID
-(§6.11) names the same taxon everywhere, and that identity, not the uuid, is the
-interchange key. A dive site's `external_ids` (§6.10) name the place's entries in
+names a shared reality is an identity from outside the logbook. The `worms` entry among a
+species' `external_ids` (§6.11) names the same taxon everywhere, and that identity, not the
+uuid, is the interchange key. A dive site's `external_ids` (§6.10) name the place's entries in
 registries outside the logbook, and two entries with the same `registry` and `identifier`
 name the same registry entry — which is evidence that two sites are one place, and not
 proof. A site may carry several entries, and two sites of one logbook may share one,
@@ -289,8 +290,8 @@ matching the sites of two logbooks MUST NOT take two sites for one on the streng
 entry unless that entry sits on exactly one site on each side.
 
 Embedded objects (sightings, cylinders, recordings, profile, trip parts, locations,
-addresses, positions, person references, a site's External Ids, a diver's emergency contacts
-and insurances) have no independent identity; stored-file records (§6.7) do carry a `uuid`
+addresses, positions, person references, a site's or a species' External Ids, a diver's
+emergency contacts and insurances) have no independent identity; stored-file records (§6.7) do carry a `uuid`
 because files are addressable objects in the source logbook. An embedded object may still **reference** a
 record: a sighting names the species seen (§6.3a), a cylinder the gear item it is (§6.3), a
 trip part the contact the diver stayed at (§6.9a) and a person reference a person (§6.20),
@@ -958,17 +959,19 @@ behaving as an application, and what the diver then saves is the dive's own. So 
 depth range the place's: `depth_from` and `depth_to` are where the site is dived, which no
 walk of one diver's dives derives.
 
-An **External Id** is an embedded object, with no uuid, naming the site's entry in one
-registry outside the logbook. Its two members are REQUIRED: `registry` (string), the
-registry's name, in §5.5's producer-key form `^[a-z0-9][a-z0-9._-]*$`, and `identifier`
-(string, 1–255), what the registry calls the place. Like every object this specification
-defines, it MAY carry `extensions`. This version names two registries, and the schema holds
-the identifier of each to its form:
+An **External Id** is an embedded object, with no uuid, naming a record's entry in one
+registry outside the logbook — a dive site's here, a species' in §6.11. Its two members are
+REQUIRED: `registry` (string), the registry's name, in §5.5's producer-key form
+`^[a-z0-9][a-z0-9._-]*$`, and `identifier` (string, 1–255), what the registry calls the
+place or the taxon. Like every object this specification defines, it MAY carry
+`extensions`. This version names three registries, and the schema holds the identifier of
+each to its form:
 
 | `registry` | `identifier` |
 | --- | --- |
 | `wikidata` | The Wikidata item: `Q` and its number, with no leading zero — `"Q1234567"`. |
 | `openstreetmap` | The OpenStreetMap element: its type — `node`, `way` or `relation` — a slash, and its number, with no leading zero — `"node/313862678"`. |
+| `worms` | The World Register of Marine Species record: its AphiaID, digits with no leading zero — `"127160"`. |
 
 Any other registry is carried as written, named as a producer key is: a reverse-DNS name for
 a domain the registry controls, or its established name. Its `identifier` is held to its
@@ -979,9 +982,9 @@ conforming.
 
 **Two entries are equal when their `registry` and their `identifier` are, compared
 exactly** — no trimming and no case-folding, the forms above being exact. An equal pair
-names the same registry entry, which is evidence that two sites are one place and not proof
-of it (§5.3): a site may carry several entries of one registry, and two sites may carry one
-entry.
+names the same registry entry. On two sites that is evidence that they are one place and
+not proof of it (§5.3): a site may carry several entries of one registry, and two sites may
+carry one entry. On two species an equal `worms` pair names one taxon (§6.11).
 
 **OpenStreetMap does not promise that an element's number is permanent**: an element can be
 deleted and its place mapped again under another number. An `openstreetmap` entry names the
@@ -999,30 +1002,39 @@ and case-folded, as §3 compares two tags on one site.
 
 ### 6.11 Species
 
-A marine species the diver has sighted. Species records are a projection of the source
+A species the diver has sighted. Species records are a projection of the source
 application's catalog, limited to what the document's sightings reference (§6.3a).
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | The document-internal identity a sighting references. |
-| `aphia_id` | integer | O | > 0. The WoRMS AphiaID — **the interchange identity**. A uuid means nothing outside its logbook; an AphiaID names the same taxon everywhere. |
+| `external_ids` | array of External Id | O | The taxon's entries in registries outside the logbook (§6.10). No entry twice (§3), at most one under `worms`, in no meaningful order. |
 | `scientific_name` | string | O | 1–255. |
 | `common_name` | string | O | 1–255. |
 | `rank` | string | O | ≤ 64. WoRMS's open vocabulary (`"Species"`, `"Genus"`, `"Family"`, …) — not an enum. |
-| `wikidata_qid` | string | O | ≤ 32, e.g. `"Q1126155"`. The Wikidata item for the taxon — a secondary interchange identity linking onward to Commons imagery and cross-references; AphiaID remains the matching key. |
 | `created_at` | date-time | O | §5.7. |
 
-A species record MUST carry at least one of `aphia_id`, `scientific_name`,
-`common_name`, or `wikidata_qid` — an identity-less sighting is uninterpretable, but a
-sighting logged by common name alone is real logbook data a converter must be able to
-carry, and each identity member that can satisfy this rule requires at least one
-character, so an empty string can never stand in for an identity.
+A species record MUST carry at least one of `scientific_name`, `common_name`, or one entry
+in `external_ids` — an identity-less sighting is uninterpretable, but a sighting logged by
+common name alone is real logbook data a converter must be able to carry. An entry under
+any registry satisfies the rule, named in §6.10 or not, since a reader that knows the
+registry can interpret it. Each name requires at least one character and so does an
+entry's `identifier`, so an empty string can never stand in for an identity, and nor can an
+empty `external_ids`.
 
-A reader with its own species catalog matches on `aphia_id`, not on names and never on
-`uuid`; a record without one simply doesn't match. The embedded record exists so the
-document is readable without a WoRMS connection; it is a snapshot, not an authority — a
-reader maintaining a catalog SHOULD resolve unknown AphiaIDs against WoRMS rather than
-create catalog entries from the snapshot.
+A reader with its own species catalog matches on the `worms` entry, not on names and never
+on `uuid`; a record without one simply doesn't match. An equal `worms` pair names the same
+taxon, where an equal pair on two sites is only evidence (§5.3): a WoRMS record is exactly
+as fine as a species record, so two species records of one document carrying one `worms`
+entry are one taxon to such a reader. A species carries at most one `worms` entry, where a
+site may carry several entries of one registry, because two would name two WoRMS records —
+a synonym beside the record it points at, say — and leave a reader no one entry to match
+on. A `wikidata` entry names the taxon's Wikidata item, `"Q1126155"` for *Amphiprion
+ocellaris*, which links onward to Commons imagery and cross-references; the `worms` entry
+remains the matching key. The embedded record exists so the document is readable without a
+WoRMS connection; it is a snapshot, not an authority — a reader maintaining a catalog
+SHOULD resolve an unknown AphiaID against WoRMS rather than create catalog entries from the
+snapshot.
 
 ### 6.12 Gear Item
 
@@ -1246,8 +1258,8 @@ or a dive site is.
 | `created_at` | date-time | O | §5.7. |
 
 **It carries no identity for the person, and that is deliberate.** An identity would have
-to name the same person in every logbook, and nothing a writer holds does, where a place has
-registries that do (§6.10). A diver's
+to name the same person in every logbook, and nothing a writer holds does, where a place and
+a taxon have registries that do (§6.10, §6.11). A diver's
 `uuid` (§6.1) is one application's identifier, which a reader importing a logbook never
 applies to its own account, so one person holds unrelated diver uuids in two applications'
 files; and a converter reading a format whose owner carries no identifier of its own
