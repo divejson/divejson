@@ -506,8 +506,10 @@ are a device's own arithmetic, and each recording carries its device's (§6.4a).
 
 **Well-known tags (informative).** These are the tags a reader looking for a kind of dive
 will meet most often, and the spellings worth matching on: `night`, `wreck`, `cave`,
-`drift`, `deep`, `ice`, `training`, `photo`, `spearfishing`, `sidemount`, `solo`. The list
-binds no writer — a diver's tags are theirs to spell — and a reader matching a tag against
+`drift`, `deep`, `ice`, `training`, `photo`, `spearfishing`, `sidemount`, `solo`, and
+`survey` — a dive whose sightings list every species the diver could positively identify, as
+a survey protocol asks, so a reader filtering on it should also ask that sightings exist. The
+list binds no writer — a diver's tags are theirs to spell — and a reader matching a tag against
 it compares the two trimmed and case-folded, as §3 compares two tags on one dive.
 
 ### 6.3a Sighting
@@ -518,12 +520,19 @@ One species seen on one dive. Embedded in the dive; no uuid.
 | --- | --- | --- | --- |
 | `species_uuid` | uuid | R | → `species` (§6.11). What the diver saw. |
 | `count` | integer | O | > 0. How many the diver counted. An estimate is still this number: a shoal the diver put at about forty is `40`. |
+| `abundance` | string | O | One of `"few"` (2–10), `"many"` (11–100), `"abundant"` (101 and more) — the diver's order-of-magnitude reading of how many there were, where there is no number. No "other": an unlistable band is simply not recorded. An OPTIONAL member, so this vocabulary grows in minor versions (§7). |
 | `notes` | string | O | What the diver wrote about this sighting. |
 
-**An absent `count` means seen and not counted**, and absence is the only spelling of it: a
-writer MUST NOT emit `1` for a sighting nobody counted (§5.4), since one animal is a
-recorded fact and an uncounted sighting is not. Nor is there a `0`: an animal looked for and
-not found is a survey's record, not a sighting.
+**A sighting carries at most one of `count` and `abundance`.** A counted sighting has its
+number, a sighting read in a band has its band, and one animal is `count: 1` — no band
+starts below 2, so one animal has one spelling. A reader that bins sightings derives a
+count's band from the ranges above, where a count of 1 falls in none, and takes a band as
+written; a band never becomes a count.
+
+**A sighting carrying neither means seen and not counted**, and absence is the only spelling
+of it: a writer MUST NOT emit `1` for a sighting nobody counted (§5.4), since one animal is
+a recorded fact and an uncounted sighting is not. Nor is there a `0`: an animal looked for
+and not found is a survey's record, not a sighting.
 
 **One sighting per species per dive.** A dive's `sightings` names a species at most once
 (§3), so three lionfish are one sighting with a `count` of `3`, never several sightings

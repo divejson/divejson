@@ -7,6 +7,26 @@ repositories.
 
 ## Unreleased
 
+- **A sighting carries an abundance band beside its count, and `survey` is a well-known tag
+  (§6.2, §6.3a).** A sighting said how many the diver saw as a number or not at all, so a
+  diver who read a school as "many", the order-of-magnitude reading every fish survey uses,
+  had to invent a number or record nothing. §6.3a's Sighting gains an OPTIONAL `abundance`,
+  one of `few` (2–10), `many` (11–100) and `abundant` (101 and more), a closed vocabulary
+  that grows in minor versions. A sighting carries at most one of `count` and `abundance`,
+  which the schema holds with a `not` over both members, the idiom `agency_other` already
+  uses: a count is the finer fact and a reader derives its band, while a band never becomes
+  a count. One animal is `count: 1`, so no band starts below 2, and a sighting carrying
+  neither is still seen and not counted. §6.2's well-known tags gain `survey`, a dive whose
+  sightings list every species the diver could positively identify. Both are additive, so
+  they land inside 1.0 with `$id`, `title` and `version` untouched. `technical-dive` gives
+  the carpet shark's sighting a band, so its three sightings carry a count, a band and
+  neither, and `fixtures/invalid/` gains a sighting carrying both members.
+
+  **UDDF's `<abundance>` is the integer count.** `docs/uddf-writing.md` says that the band
+  is neither that element's integer nor a value of its `occurence` attribute, which records
+  how the animals occurred. Sightings are not written to UDDF, so no expected `.uddf`
+  changes.
+
 - **Backplate and wing join the gear vocabulary (§6.12).** A backplate-and-wing rig is
   sold and swapped as its parts — one plate under a singles wing and a doubles wing — and
   the vocabulary had one word for all of it, so a plate and its two wings were typed alike
