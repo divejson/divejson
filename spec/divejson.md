@@ -1200,6 +1200,7 @@ unrelated uuids (§5.3).
 | `email` | string | O | ≤ 255. |
 | `website` | string | O | ≤ 512. An absolute URL, scheme included. |
 | `address` | Address (§6.19) | O | Where the contact is. |
+| `position` | Position | O | §6's Position object — where the contact is on a map: its door, its pier, its mooring. Placed by the diver, typed, or taken from a directory the diver picked the contact from. Writers MUST NOT fill it from `address`, and readers MUST NOT derive either from the other (§5.4); an application that offers the diver a point for an address, and stores what the diver then saves, is behaving as an application, on §6.10's terms. |
 | `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
@@ -1221,9 +1222,9 @@ what one reference used it for** — a dive's `contact_uuid` names the contact t
 dive whatever roles that contact carries. An empty `roles` records nothing an absent one does
 not.
 
-**Deferred**, and named so a reader knows they were considered: a contact's position on a
-map, its alias names, a fax number or a language, a rating, a dive base's prices and guides,
-a hotel's category, and everything about a vessel. Nothing this version was written against
+**Deferred**, and named so a reader knows they were considered: a contact's alias names, a
+fax number or a language, a rating, a dive base's prices and guides, a hotel's category, and
+everything about a vessel. Nothing this version was written against
 stores any of them (§1); each arrives in a minor version when something does (§7), and
 §5.5's extensions carry it until then.
 
@@ -1393,7 +1394,7 @@ one. Beyond generic JSON concerns:
   diver's notes about them (§6.20) — which are **other persons'** data, carried without
   those persons having exported anything; certification and instructor numbers, which
   function as identity documents; the contacts the diver trained, dived, shopped and slept
-  at, with their addresses (§6.18); the serial numbers of the dive computers on their wrist
+  at, with their addresses and positions (§6.18); the serial numbers of the dive computers on their wrist
   (§6.4b) **and of the kit they own** (§6.12), which are stable hardware identifiers that
   link two documents to one diver even when every other member differs — and the kit list
   carries them for gear that never recorded a dive, so a document with no `recordings` at all

@@ -7,6 +7,22 @@ repositories.
 
 ## Unreleased
 
+- **A contact carries its position (§6.18).** A contact said where it was only as a postal
+  address, so a dive center picked from a map, or a mooring with no street, had nowhere to put
+  its point. §6.18's Contact gains an OPTIONAL `position`, §6's Position object, after
+  `address`, and its *Deferred* paragraph no longer names it. The two are different facts:
+  writers MUST NOT fill the position from the address and readers MUST NOT derive either from
+  the other, on §6.10's terms, and §9 names the position beside the address. The member
+  is additive, so it lands inside 1.0 with `$id`, `title` and `version` untouched.
+  `technical-dive`, `demo-logbook` and the UDDF writer's `contacts` pair each give the contact
+  that carries every member a position, and `fixtures/invalid/` gains a contact whose
+  position lacks `longitude`.
+
+  **UDDF has no slot for it in either direction.** `divebaseType`, `shopType` and the trip
+  part's accommodation and operator carry no `<geography>`, and `addressType` holds no
+  coordinates, so `docs/uddf-writing.md` reports the member dropped and
+  `docs/uddf-mapping.md` says a reader never fills it. No expected `.uddf` changes.
+
 - **A sighting carries an abundance band beside its count, and `survey` is a well-known tag
   (§6.2, §6.3a).** A sighting said how many the diver saw as a number or not at all, so a
   diver who read a school as "many", the order-of-magnitude reading every fish survey uses,
