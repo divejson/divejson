@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.15"
 
       # No matrix. What ran on two interpreters here was the implementation's own
       # test suite, which has moved to divejson/divejson-py along with the matrix
