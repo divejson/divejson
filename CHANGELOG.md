@@ -5,7 +5,7 @@ version (`major.minor`, declared in every document) is what readers and writers 
 on; the implementations that read and write it are released separately, from their own
 repositories.
 
-## Unreleased
+## 1.0
 
 - **A contact carries its position (§6.18).** A contact said where it was only as a postal
   address, so a dive center picked from a map, or a mooring with no street, had nowhere to put
@@ -826,8 +826,8 @@ repositories.
   UTC it claims — a `resolved` finding, which widens that kind from a value whose scale was
   ambiguous to one whose meaning was.
 - Initial draft of the DiveJSON 1.0 specification, its JSON Schema (2020-12), the
-  conformance fixtures, and the `divejson validate` CLI. The draft freezes as v1.0 when
-  its maintainers tag it.
+  conformance fixtures, and the `divejson validate` CLI. This release is that draft
+  frozen: 1.0 is the text its maintainers tag.
 - `divejson convert` reads UDDF. The format has only ever met the implementation that
   wrote it, and reading somebody else's data is the thing it exists for — so the converter
   is as much a test of the specification as a tool: it is what turns "an open interchange
