@@ -140,6 +140,7 @@ A DiveJSON document is a single JSON object:
 | `gear_service_schedules` | array of Service Schedule (§6.14) | OPTIONAL | |
 | `gear_service_records` | array of Service Record (§6.15) | OPTIONAL | |
 | `certifications` | array of Certification (§6.16) | OPTIONAL | |
+| `agencies` | array of Dive Agency (§6.16a) | OPTIONAL | |
 | `contacts` | array of Contact (§6.18) | OPTIONAL | |
 | `people` | array of Person (§6.20) | OPTIONAL | |
 | `extensions` | object (§5.5) | OPTIONAL | |
@@ -1127,11 +1128,26 @@ One performed maintenance event.
 | `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
+### 6.16a Dive Agency
+
+A standalone agency record that certifications can reference with `agency_uuid`.
+The existing `certification.agency` vocabulary remains valid for compatibility; an
+exporter may include both while consumers migrate. An agency record does not assert
+qualification equivalence or training standards.
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `uuid` | uuid | R | Unique within `agencies`. |
+| `name` | string | R | 1–255. Name as recorded by the exporter. |
+| `abbreviation` | string | O | 1–64. |
+| `website` | string | O | Absolute URI. |
+
 ### 6.16 Certification
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
 | `uuid` | uuid | R | |
+| `agency_uuid` | uuid | O | → `agencies`. New documents SHOULD use this link when an agency record is present. |
 | `agency` | string | R | One of `"padi"`, `"ssi"`, `"naui"`, `"sdi"`, `"tdi"`, `"cmas"`, `"raid"`, `"bsac"`, `"gue"`, `"iantd"`, `"psai"`, `"dan"`, `"efr"`, `"andi"`, `"snsi"`, `"acuc"`, `"pss"`, `"ida"`, `"ndl"`, `"utd"`, `"saa"`, `"scotsac"`, `"iac"`, `"protec"`, `"pdic"`, `"nase"`, `"sei"`, `"ymca"`, `"erdi"`, `"aida"`, `"molchanovs"`, `"pfi"`, `"apnea_academy"`, `"fii"`, `"nss_cds"`, `"nacd"`, `"idea"`, `"diwa"`, `"other"`. This vocabulary is REQUIRED-member frozen after 1.0 (§7), which is why it was seeded wide and why it takes no further values: after the tag an agency not on it is `"other"`. Each value is an agency that issues or issued cards — `"pdic"` and `"ymca"` issue none now, and a logbook still holds theirs, the way an old NASDS card is `"ssi"`'s. National CMAS federations are `"cmas"`. |
 | `agency_other` | string | O | ≤ 64. REQUIRED when `agency` is `"other"`; MUST be absent otherwise. |
 | `name` | string | R | 1–255. The certification's name, free text on purpose — agency catalogs are unbounded. |
