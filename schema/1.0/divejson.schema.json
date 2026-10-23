@@ -20,6 +20,7 @@
     "gear_service_schedules": { "type": "array", "items": { "$ref": "#/$defs/gear_service_schedule" } },
     "gear_service_records": { "type": "array", "items": { "$ref": "#/$defs/gear_service_record" } },
     "certifications": { "type": "array", "items": { "$ref": "#/$defs/certification" } },
+    "agencies": { "type": "array", "items": { "$ref": "#/$defs/agency" } },
     "contacts": { "type": "array", "items": { "$ref": "#/$defs/contact" } },
     "people": { "type": "array", "items": { "$ref": "#/$defs/person" } },
     "extensions": { "$ref": "#/$defs/extensions" }
@@ -646,10 +647,23 @@
       "required": ["uuid", "gear_uuid", "type", "serviced_on"],
       "additionalProperties": false
     },
+    "agency": {
+      "type": "object",
+      "description": "A certification agency record. Certifications may refer to it by agency_uuid.",
+      "required": ["uuid", "name"],
+      "properties": {
+        "uuid": { "$ref": "#/$defs/uuid" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "abbreviation": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "website": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": true
+    },
     "certification": {
       "type": "object",
       "properties": {
         "uuid": { "$ref": "#/$defs/uuid" },
+        "agency_uuid": { "$ref": "#/$defs/uuid" },
         "agency": {
           "enum": [
             "padi", "ssi", "naui", "sdi", "tdi", "cmas", "raid", "bsac",
