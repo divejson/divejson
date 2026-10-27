@@ -7,6 +7,15 @@ repositories.
 
 ## Unreleased
 
+- **Shearwater Cloud's database and XML exports are the sixth and seventh source formats
+  read**, with `fixtures/shearwater_db/`, `fixtures/shearwater_xml/`,
+  `docs/shearwater-db-mapping.md` and `docs/shearwater-xml-mapping.md`. The database pair is a
+  whole-database export reduced around two device logs committed whole, so
+  `fixtures/README.md`'s binary exception now covers a container built around whole logs as
+  well as a `.fit`. Both readers carry the literal brand `Shearwater Research, Inc` and the
+  computer's own counter as the device's `dive_number`, which `docs/converting.md`'s Devices
+  table records.
+
 - **A contact carries its position (§6.18).** A contact said where it was only as a postal
   address, so a dive center picked from a map, or a mooring with no street, had nowhere to put
   its point. §6.18's Contact gains an OPTIONAL `position`, §6's Position object, after
