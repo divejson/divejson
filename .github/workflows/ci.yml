@@ -14,7 +14,7 @@ on:
 # head instead and this stays on the last release; restoring both is the chore that
 # closes CONTRIBUTING.md's first order.
 env:
-  DIVEJSON_VERSION: "0.32.0"
+  DIVEJSON_VERSION: "0.33.0"
 
 jobs:
   # Named `conformance` since the repository's first workflow, and `trigger-site-deploy`
