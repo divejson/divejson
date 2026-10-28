@@ -14,7 +14,7 @@ on:
 # head instead and this stays on the last release; restoring both is the chore that
 # closes CONTRIBUTING.md's first order.
 env:
-  DIVEJSON_VERSION: "0.33.0"
+  DIVEJSON_VERSION: "0.34.0"
 
 jobs:
   # Named `conformance` since the repository's first workflow, and `trigger-site-deploy`
@@ -32,7 +32,7 @@ jobs:
       # that covers it. What is left is a corpus, and a corpus does not vary by
       # interpreter.
       - name: Install the pinned implementation
-        run: pip install "git+https://github.com/divejson/divejson-py@ae6cf0dd1307a2ae0338afbb242b849f350d1a02"
+        run: pip install "divejson==$DIVEJSON_VERSION"
 
       # `jsonschema` arrives as a dependency of the implementation. This is the one
       # check that is about the schema as a document rather than about what it
