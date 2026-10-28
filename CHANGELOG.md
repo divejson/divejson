@@ -7,6 +7,20 @@ repositories.
 
 ## Unreleased
 
+- **Shearwater Cloud's readers settle the ceiling, the no-decompression time and the
+  logbook**, against a decompression dive whose dive-details form was filled before export:
+  `fixtures/shearwater_db/perdix3-deco-dive-11.db` and `fixtures/shearwater_xml/perdix3-deco-dive-11.xml`.
+  A no-decompression time of `0` with no stop is an absence on the log's first sample only and
+  a reading of 0 s after it, and the byte is no no-decompression time while a stop is
+  recorded. A ceiling of `0` stays an absence beside a recorded stop, so the ceiling's
+  **untested** mark goes. `docs/shearwater-db-mapping.md` gains *The logbook*: Site and
+  Location become a site and Buddy one person, each with an identity key under the format's
+  namespace, so the reader writes top-level `sites` and `people`; five notes columns become
+  labelled paragraphs; Visibility, AirTemperature, Weather and Platform map where the file
+  states their meaning and unit; every other filled column is reported, quoted. The typed tank
+  pressures and tank size are reported tied to no cylinder, and the transmitter series keeps
+  its **untested** mark. The export's new `dive_site` table is listed as waiting for a file.
+
 - **Shearwater Cloud's database and XML exports are the sixth and seventh source formats
   read**, with `fixtures/shearwater_db/`, `fixtures/shearwater_xml/`,
   `docs/shearwater-db-mapping.md` and `docs/shearwater-xml-mapping.md`. The database pair is a
