@@ -7,6 +7,28 @@ repositories.
 
 ## Unreleased
 
+- **A profile carries the heart rate the computer measured (§6.4).** A wrist sensor or a
+  strap reports the diver's heart rate through the dive, and the format had nowhere to put
+  it. §6.4 gains an OPTIONAL `heart_rate` channel after `pressures`, in **whole beats per
+  minute** — the grain every source holds, whatever unit it spells it in — with a floor of 1:
+  no diver's heart beats zero times a minute, so a zero is the sensor's absent-marker and is
+  written as a gap, which the schema enforces with a Series definition of its own. It is a
+  measurement rather than the device's arithmetic, §5.1's units table and scales paragraph
+  name it, §9 names it among what a document holds about the diver, and §6.4's *Deferred*
+  paragraph no longer names it. The member is additive, so it lands inside 1.0 with `$id`,
+  `title` and `version` untouched.
+
+  `fixtures/suunto_json/ocean-heart-rate.json` and `fixtures/fit/ocean-heart-rate.fit` are
+  one 48 m dive's two exports, the JSON reduced and the FIT committed whole, and the corpus's
+  first files carrying the channel. `docs/suunto-json-mapping.md` reads `HR` in hertz × 60,
+  and records the export's two stamping artefacts and that firmware 2.51.28 still writes a
+  `gf99` sawtooth, bounded below 100; `docs/fit-mapping.md` reads `record.heart_rate` as
+  written; `docs/uddf-mapping.md` reads `<pulserate>` × 60 and `docs/uddf-writing.md` writes
+  it ÷ 60, while 3.2.3's `<heartrate>` and Subsurface's `@heartbeat` wait for a file.
+  `docs/converting.md` states the floor beside the readouts'. `technical-dive` and its
+  `write/uddf/` copy carry the channel with a dropout, and `fixtures/invalid/` gains a heart
+  rate of `0`.
+
 - **Shearwater Cloud's readers settle the ceiling, the no-decompression time and the
   logbook**, against a decompression dive whose dive-details form was filled before export:
   `fixtures/shearwater_db/perdix3-deco-dive-11.db` and `fixtures/shearwater_xml/perdix3-deco-dive-11.xml`.

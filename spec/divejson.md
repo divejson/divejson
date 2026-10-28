@@ -179,6 +179,7 @@ suffixes. A writer whose internal storage is imperial MUST convert; how an appli
 | CNS | percent | number |
 | OTU | OTU (dimensionless) | number |
 | gradient factor | percent | number |
+| heart rate | beats per minute | number |
 | coordinates | decimal degrees, WGS 84 | number |
 
 **Profile channels are integer-scaled** (§6.5): depth and ceiling samples are
@@ -192,7 +193,9 @@ exports state a ppO₂ to two decimals; `cns` samples are **tenths of a
 percent**, finer than a recording's `cns_start` and `cns_end` need to be because a
 computer's own export can be — one records `0.069` where another rounds the same reading to
 `7`; and `gradient_factor` and `surface_gradient_factor` samples are **whole percent**,
-which is what every device that reports them reports. The scales are part of the format,
+which is what every device that reports them reports. `heart_rate` samples are **whole
+beats per minute**, the grain the sensor counts in: every source that carries a heart rate
+holds a whole number of beats, whatever unit it spells them in. The scales are part of the format,
 chosen so that sampled channels round-trip without floating-point noise while exceeding the
 precision of real dive computers. Values everywhere *outside* profile channels are plain
 numbers in the base units above.
@@ -727,6 +730,7 @@ The sampled record of one recording of a dive (§6.4a), embedded in that recordi
 | `ceiling` | Series | O | Decompression ceiling, in **centimeters**. Present only while a ceiling existed: a gap in `times` means "no deco obligation", not a sensor dropout — and readers MUST NOT interpolate across a ceiling gap, which would fabricate an obligation that was not there. |
 | `temperature` | Series | O | Samples in **hundredths of a degree Celsius**. |
 | `pressures` | array of Pressure Series | O | One entry per cylinder **this recording's device** monitored; samples in **tenths of a bar**. Two recordings of one dive each carry their own entries, and both join to the dive's `cylinders` by `gas_number` (§6.3, §6.4a). |
+| `heart_rate` | Series | O | The diver's heart rate, in **whole beats per minute**; ≥ 1. What the device's sensor — on the wrist or on a strap — reported at that instant. |
 | `ndl` | Series | O | Remaining no-decompression time, in **seconds**; ≥ 0. |
 | `tts` | Series | O | Time to surface, in **seconds**; ≥ 0. The device's own figure for how long an ascent from here would take, stops included. |
 | `ppo2` | Series | O | The partial pressure of oxygen the device computed, in **hundredths of a bar**; ≥ 0. What the device calculated from the gas it believed it was breathing, which is not a cell reading. |
@@ -734,6 +738,14 @@ The sampled record of one recording of a dive (§6.4a), embedded in that recordi
 | `gradient_factor` | Series | O | The gradient factor of the **leading tissue**, in **whole percent**; ≥ 0. How close that compartment is to its M-value: a device's GF99. Unbounded above — a value over 100 is a compartment past its M-value, and real exports carry far larger ones. |
 | `surface_gradient_factor` | Series | O | The gradient factor the leading tissue would have on surfacing directly from here, in **whole percent**; ≥ 0, and unbounded above for the same reason. |
 | `events` | array of Event | O | In time order. |
+
+**`heart_rate` is a measurement, like depth and temperature, and present only where the
+sensor reported one.** A dropout is a gap in `times`, never a zero: no living diver's heart
+beats zero times a minute, so a zero is a device's way of saying it has no figure, which
+§5.4 spells as absence. The channel's floor is 1 for that reason, where the decompression
+channels below floor at 0, their absent-marker being a negative. The format carries what the sensor recorded, however
+accurate a wrist sensor is underwater; judging the readings is the application's business,
+not the reader's.
 
 **The decompression channels are the device's own arithmetic, and nothing else can produce
 them.** They depend on the model the device ran, on its settings and on the diver's
@@ -753,9 +765,8 @@ was shown.
 
 **Deferred**, and named here so a reader knows they were considered rather than missed: the
 depth and time of the **next decompression stop**, a rebreather **setpoint**, the readings
-of individual **O₂ cells**, **heart rate**, **compass bearing**, and **remaining bottom
-time**. Each is a quantity real computers record and no file this version was written
-against carries, and §1's rule is that core is what implementations actually store. They
+of individual **O₂ cells**, **compass bearing**, and **remaining bottom time**. Each is a
+quantity real computers record and no file this version was written against carries, and §1's rule is that core is what implementations actually store. They
 arrive in a minor version when one does (§7), which costs a reader nothing (§5.6).
 
 **An event may fall after the last sample, and readers MUST preserve it where it is.**
@@ -1389,7 +1400,8 @@ one. Beyond generic JSON concerns:
   carry) that together form a movement history, and the registry entries a dive site
   carries (§6.10), which name a place the diver has been as exactly as its pin does and
   which anyone can look up; the diver's name, email address, phone number and date of
-  birth, and their dive insurance; an emergency contact's name and phone number, and the
+  birth, their dive insurance, and their heart rate through every dive whose computer
+  measured one (§6.4), which is data about their health; an emergency contact's name and phone number, and the
   people the diver was with — their names, emails, phones and the
   diver's notes about them (§6.20) — which are **other persons'** data, carried without
   those persons having exported anything; certification and instructor numbers, which
