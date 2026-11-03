@@ -4,6 +4,7 @@
 Requires fitdecode, installed with divejson. Run with an input export and an output path.
 Only allowlisted native fields survive. Timestamps receive one fixed shift; all other
 retained field payloads are copied from the export without numeric re-encoding.
+This reduction handles exports with explicit, uncompressed timestamps.
 """
 from __future__ import annotations
 
@@ -49,15 +50,14 @@ def anonymize(data: bytes) -> bytes:
         allowed = FIELDS.get(frame.name)
         if allowed is None:
             continue
+        if frame.time_offset is not None:
+            raise ValueError("this reduction requires explicit, uncompressed FIT timestamps")
         fields = []
         payload = bytearray()
         offset = 1
         for field in frame.def_mesg.field_defs:
-            # A compressed header omits timestamp bytes; materialise that timestamp below.
-            compressed = frame.time_offset is not None and field.def_num == 253
-            raw = frame.chunk.bytes[offset:offset + field.size] if not compressed else b""
-            if not compressed:
-                offset += field.size
+            raw = frame.chunk.bytes[offset:offset + field.size]
+            offset += field.size
             if field.def_num not in allowed:
                 continue
             if (frame.name, field.def_num) in TIMESTAMPS:
