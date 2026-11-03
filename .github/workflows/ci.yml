@@ -9,13 +9,11 @@ on:
 # suite and carries no implementation of its own: CI installs a released one from
 # PyPI and asks it to run the corpus. Moving to a newer release is a one-line chore
 # here, and it is a deliberate act - an unpinned install would let a release the
-# maintainer has not looked at decide whether the corpus passes. While a change to
-# what validates is in flight the install step below pins an implementation's own
-# head instead and this stays on the last release; restoring both is the chore that
-# closes CONTRIBUTING.md's first order.
+# maintainer has not looked at decide whether the corpus passes. Changes that need
+# unreleased behavior stay failing until a matching release is available and this
+# version is updated.
 env:
   DIVEJSON_VERSION: "0.35.0"
-  DIVEJSON_IMPLEMENTATION_REF: "4922e1eb147e3aa604f9ed40dc8cbf74806fe1f7"
 
 jobs:
   # Named `conformance` since the repository's first workflow, and `trigger-site-deploy`
@@ -33,7 +31,7 @@ jobs:
       # that covers it. What is left is a corpus, and a corpus does not vary by
       # interpreter.
       - name: Install the pinned implementation
-        run: pip install "divejson @ git+https://github.com/michidk-contrib/divejson-py.git@$DIVEJSON_IMPLEMENTATION_REF"
+        run: pip install "divejson==$DIVEJSON_VERSION"
 
       # `jsonschema` arrives as a dependency of the implementation. This is the one
       # check that is about the schema as a document rather than about what it
@@ -66,13 +64,13 @@ jobs:
       # the red is the one CONTRIBUTING.md's first order describes - a change to
       # what validates is not finished here until an implementation has released
       # it and DIVEJSON_VERSION names that release.
-      - name: The pinned implementation carries exactly these schemas
+      - name: The pinned release carries exactly these schemas
         run: |
           python - <<'EOF'
           import os, pathlib
           import divejson
 
-          version = os.environ.get("DIVEJSON_IMPLEMENTATION_REF") or os.environ["DIVEJSON_VERSION"]
+          version = os.environ["DIVEJSON_VERSION"]
           packaged = pathlib.Path(divejson.__file__).resolve().parent / "_schema"
           here = pathlib.Path("schema").resolve()
 
