@@ -15,7 +15,7 @@ on:
 # closes CONTRIBUTING.md's first order.
 env:
   DIVEJSON_VERSION: "0.35.0"
-  DIVEJSON_IMPLEMENTATION_REF: "243dd7d447e1911207817b4ab418ade1d03e9059"
+  DIVEJSON_IMPLEMENTATION_REF: "f0d03a763055f337a160a219ad4aa8b493f88839"
 
 jobs:
   # Named `conformance` since the repository's first workflow, and `trigger-site-deploy`
