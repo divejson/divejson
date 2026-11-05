@@ -14,8 +14,7 @@ on:
 # head instead and this stays on the last release; restoring both is the chore that
 # closes CONTRIBUTING.md's first order.
 env:
-  DIVEJSON_VERSION: "0.35.0"
-  DIVEJSON_IMPLEMENTATION_REF: "f0d03a763055f337a160a219ad4aa8b493f88839"
+  DIVEJSON_VERSION: "0.35.2"
 
 jobs:
   # Named `conformance` since the repository's first workflow, and `trigger-site-deploy`
@@ -33,7 +32,7 @@ jobs:
       # that covers it. What is left is a corpus, and a corpus does not vary by
       # interpreter.
       - name: Install the pinned implementation
-        run: pip install "divejson @ git+https://github.com/michidk-contrib/divejson-py.git@$DIVEJSON_IMPLEMENTATION_REF"
+        run: pip install "divejson==$DIVEJSON_VERSION"
 
       # `jsonschema` arrives as a dependency of the implementation. This is the one
       # check that is about the schema as a document rather than about what it
@@ -66,13 +65,13 @@ jobs:
       # the red is the one CONTRIBUTING.md's first order describes - a change to
       # what validates is not finished here until an implementation has released
       # it and DIVEJSON_VERSION names that release.
-      - name: The pinned implementation carries exactly these schemas
+      - name: The pinned release carries exactly these schemas
         run: |
           python - <<'EOF'
           import os, pathlib
           import divejson
 
-          version = os.environ.get("DIVEJSON_IMPLEMENTATION_REF") or os.environ["DIVEJSON_VERSION"]
+          version = os.environ["DIVEJSON_VERSION"]
           packaged = pathlib.Path(divejson.__file__).resolve().parent / "_schema"
           here = pathlib.Path("schema").resolve()
 
