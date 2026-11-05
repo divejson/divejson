@@ -7,6 +7,25 @@ repositories.
 
 ## Unreleased
 
+- **§6.16's agency vocabulary gains `cdaa`, `isc` and `ise`, and gives up `efr` and `saa`
+  (§6.16, §6.17).** It is a REQUIRED vocabulary and freezes at the tag (§7). It gains the Cave
+  Divers Association of Australia (`cdaa`), International Scuba Certification (`isc`) and
+  InnerSpace Explorers (`ise`), between `diwa` and `other`: each issues cards under its own
+  name, and each would otherwise have been `"other"` for the life of 1.x. It gives up two
+  values that contradict the rule §6.16's row now states, that a value is a diving organisation
+  that issues or issued cards under its own name. `efr` is Emergency First Response, a brand of
+  PADI, so its card is `"padi"`'s, the way an old NASDS card is `"ssi"`'s; `saa` is the Sub-Aqua
+  Association, the UK's CMAS federation, so its card is `"cmas"`'s. A first-aid body that
+  certifies no divers is `"other"`, and `dan` stays, being a diving organisation that issues
+  first-aid and oxygen cards for divers. §6.17's course shares the list.
+
+  **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
+  below. It breaks documents, where the widening below broke only readers: a certification or
+  a course whose `agency` is `efr` or `saa` no longer validates. The three additions break
+  readers as that widening did. `valid/technical-dive` and its `write/uddf/` copy carry an
+  `isc` card and a `cdaa` course, and `fixtures/invalid/` gains a card of `efr` and a course
+  of `saa`.
+
 - **Garmin Connect's summary-first FIT export has a native conformance pair.**
   `fixtures/fit/garmin-connect-summary-first.fit` retains native readings and invalid
   sentinels byte for byte, strips identifying metadata and shifts retained timestamps
@@ -588,15 +607,15 @@ repositories.
   below. It breaks readers rather than documents: a reader that sized its storage at 10 000
   meets a longer note. No fixture is added or retired.
 
-- **§6.16's agency vocabulary is widened, for the last time (§6.16, §6.17).** It is a
+- **§6.16's agency vocabulary is widened (§6.16, §6.17).** It is a
   REQUIRED vocabulary and freezes at the tag (§7), and the seed missed agencies with real
   card holders — a freediving agency among them — each of which would have been `"other"` for
   the life of 1.x. It gains `ndl`, `utd`, `saa`, `scotsac`, `iac`, `protec`, `pdic`, `nase`,
   `sei`, `ymca`, `erdi`, `aida`, `molchanovs`, `pfi`, `apnea_academy`, `fii`, `nss_cds`,
   `nacd`, `idea` and `diwa`, each an agency that issues or issued cards; `pdic` and `ymca`
   issue none now and name cards a logbook still holds. §6.17's course shares the list. The
-  "seeded wide" sentence stays and now says the vocabulary takes no further values: after
-  the tag an agency not on it is `"other"`.
+  "seeded wide" sentence stays and now says the vocabulary takes no further values after
+  the tag, when an agency not on it is `"other"`.
 
   **This is a breaking change and it lands inside 1.0**, on the same ground as the ones
   below. It breaks readers rather than documents: a reader written against an earlier draft
