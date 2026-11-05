@@ -7,6 +7,16 @@ repositories.
 
 ## Unreleased
 
+- **Garmin Connect's summary-first FIT export has a native conformance pair.**
+  `fixtures/fit/garmin-connect-summary-first.fit` retains native readings and invalid
+  sentinels byte for byte, strips identifying metadata and shifts retained timestamps
+  together. `docs/fit-mapping.md` specifies session-before-samples ordering, refusal of
+  ambiguous multi-session summary-first exports, and the native no-decompression time,
+  time-to-surface, ppO₂ and CNS scales. Events keep their timestamps on the recording
+  origin without extending the profile duration; the pair covers gas switches and
+  labelled dive alerts. The protocol-version text includes this protocol 1.0 file, and
+  the units text records why `po2` is read as bar despite the profile's percent label.
+
 - **A profile carries the heart rate the computer measured (§6.4).** A wrist sensor or a
   strap reports the diver's heart rate through the dive, and the format had nowhere to put
   it. §6.4 gains an OPTIONAL `heart_rate` channel after `pressures`, in **whole beats per
