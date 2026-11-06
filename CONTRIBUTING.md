@@ -108,8 +108,9 @@ adopted pair included — starts **here**. Its pull request is red against the p
 and says what is missing. The implementation's pull request then pins this one's head,
 which passes its byte check and fails only its ancestor check; this pull request moves
 `DIVEJSON_VERSION`, or the pin, at the implementation's head and goes green; it merges;
-the implementation re-pins to the merged commit, merges, and is released; a one-line chore
-here moves `DIVEJSON_VERSION` to that release.
+the implementation re-pins to the merged commit, merges, and is released; a chore here
+moves `DIVEJSON_VERSION` to that release and takes the implementation's head back out of
+`ci.yml`, so that CI installs the release again.
 
 **A new reader or writer** starts **there**: self-contained and green in the implementation
 repository, with its pairs and its document, then a release, then a pull request here
