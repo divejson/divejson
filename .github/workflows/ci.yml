@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group:
 
 # The one place the implementation is pinned. This repository is the conformance
 # suite and carries no implementation of its own: CI installs a released one from
