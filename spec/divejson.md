@@ -13,7 +13,7 @@ of record is <https://github.com/divejson/divejson>. This document is licensed
 A dive log is a diver's property, and it outlives any single application. DiveJSON is a
 JSON document format for moving a complete logbook between applications without loss:
 dives with full sampled profiles, gas mixtures, trips, training courses, dive sites,
-marine-life sightings, gear and its service history, certifications, the people the diver
+aquatic-life sightings, gear and its service history, certifications, the people the diver
 dived, travelled and trained with, and the contacts behind them — the dive centers, shops
 and places to stay.
 

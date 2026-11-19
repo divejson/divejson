@@ -3,7 +3,7 @@
 <https://divejson.org> — an open interchange format for scuba dive logs. One JSON
 document carries a complete logbook — dives with a full sampled profile from every
 computer that recorded them, gas mixtures, trips, training courses, dive sites,
-marine-life sightings, gear and its service history, certifications, the people the diver
+aquatic-life sightings, gear and its service history, certifications, the people the diver
 dived, travelled and trained with, and the contacts behind them (dive centers, shops, places
 to stay) — so a diver's data can move between applications without loss.
 
