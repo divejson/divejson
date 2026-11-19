@@ -7,6 +7,22 @@ repositories.
 
 ## Unreleased
 
+- **Undergarment, tech shorts and slate join the gear vocabulary (§6.12).** Each is kit a
+  diver lists and picks per dive, and each had nowhere to go but `other`. The vocabulary
+  gains `undergarment` after `vest`, `tech_shorts` after `boots` and `slate` after
+  `compass`. An `undergarment` is what is worn under a drysuit for warmth, whatever its cut
+  and heated or not, an insulating vest included; `tech_shorts` are pocket shorts worn over a
+  suit; a `slate` is anything a diver writes on underwater, a notebook included. §6.12 also
+  says what a `vest` is: the neoprene vest, hooded or not, worn with a wetsuit. All three
+  values are additive, so they land inside 1.0 with `$id`, `title` and `version` untouched.
+  `technical-dive` and its `write/uddf/` copy gain an item of each in the gear set.
+
+  **UDDF has an element for none of them.** `docs/uddf-writing.md` writes each as
+  `<variouspieces>`, which a reader brings back as `other`, reported. An undergarment and the
+  shorts are not written as a `<suit>`: a reader brings back every suit that is not a dry one
+  as a `wetsuit`, a near type substituted for the true one. The reader does not change, and
+  `write/uddf/technical-dive.uddf` now carries the three pieces.
+
 - **§6.16's agency vocabulary gains `cdaa`, `isc` and `ise`, and gives up `efr` and `saa`
   (§6.16, §6.17).** It is a REQUIRED vocabulary and freezes at the tag (§7). It gains the Cave
   Divers Association of Australia (`cdaa`), International Scuba Certification (`isc`) and
