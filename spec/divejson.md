@@ -1244,7 +1244,7 @@ and a person's (§6.20). Like every object this specification defines, it MAY ca
 
 | member | type | presence | constraints / meaning |
 | --- | --- | --- | --- |
-| `url` | string | R | ≤ 512. An absolute URL, scheme included: a scheme, a colon and no whitespace, which the schema checks. Whitespace here is every character ECMA-262's `\s` or Python's `str.isspace` counts — U+0009 to U+000D, U+001C to U+0020, U+0085, U+00A0, U+1680, U+2000 to U+200A, U+2028, U+2029, U+202F, U+205F, U+3000 and U+FEFF — so that no validator's regular-expression engine decides it. The scheme is not restricted, so a `mailto:` or a `tel:` address is a link like an `https:` one. |
+| `url` | string | R | ≤ 512. An absolute URL, scheme included: a scheme, a colon, at least one character after it and no whitespace, which the schema checks. Whitespace here is every character ECMA-262's `\s` or Python's `str.isspace` counts — U+0009 to U+000D, U+001C to U+0020, U+0085, U+00A0, U+1680, U+2000 to U+200A, U+2028, U+2029, U+202F, U+205F, U+3000 and U+FEFF — so that no validator's regular-expression engine decides it. The scheme is not restricted, so a `mailto:` or a `tel:` address is a link like an `https:` one. |
 | `label` | string | O | ≤ 120. What the diver calls the link — "Bookings", "Course materials". Absent means the diver named it nothing, and a reader MUST NOT fill it from the page behind the address (§5.4). |
 
 A record's `links` are in the diver's own order (§5.3). The list has no bound and no
