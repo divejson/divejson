@@ -545,7 +545,8 @@
           "type": "string",
           "format": "uri",
           "maxLength": 512,
-          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:\\S+(?![\\s\\S])"
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:\\S",
+          "not": { "pattern": "\\s" }
         },
         "label": { "type": "string", "maxLength": 120 },
         "extensions": { "$ref": "#/$defs/extensions" }

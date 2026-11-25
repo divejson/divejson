@@ -162,7 +162,7 @@ validator does not look.
 | `link-url-without-scheme.divejson` | a course's link whose `url` is `www.learn.example/…`, an address with no scheme | §6.17, §6.18 |
 | `link-url-too-long.divejson` | a gear item's link whose `url` is 513 characters | §6.12, §6.18 |
 | `link-label-too-long.divejson` | a trip's link whose `label` is 121 characters | §6.8, §6.18 |
-| `link-url-trailing-newline.divejson` | a contact's link whose `url` ends in a newline — which a pattern ending in `$` lets through in Python's regular expressions and not in ECMA-262's, so the schema's pattern asserts instead that nothing follows | §6.18 |
+| `link-url-trailing-newline.divejson` | a contact's link whose `url` ends in a newline — which a pattern ending in `$` lets through in Python's regular expressions and not in ECMA-262's, so the schema refuses whitespace anywhere in a `url` rather than anchoring its pattern at the end | §6.18 |
 | `person-dangling-reference.divejson` | a dive's person reference whose `person_uuid` resolves to no person — the reference out of an embedded object, as `accommodation-dangling-reference`'s is | §3 rule 1, §5.3, §6.20 |
 | `person-referenced-twice.divejson` | one dive naming a person twice, once as `student` and once as `buddy` — two different objects, which the schema's `uniqueItems` would not catch | §3 rule 7, §6.20 |
 | `sighting-dangling-reference.divejson` | a dive's sighting whose `species_uuid` resolves to no species — the reference out of an embedded object, as `person-dangling-reference`'s is | §3 rule 1, §5.3, §6.3a |

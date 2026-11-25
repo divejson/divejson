@@ -13,7 +13,8 @@ repositories.
   course an e-learning login, a buddy a profile on a network, a regulator a service manual and
   a liveaboard week an itinerary. §6.18 defines a **Link**, an embedded object with no uuid: a
   REQUIRED `url` of at most 512 characters, absolute with its scheme, which the schema now
-  checks with a pattern where `website` carried only a `format` annotation, and an OPTIONAL
+  checks — a scheme, a colon and no whitespace — where `website` carried only a `format`
+  annotation, and an OPTIONAL
   `label` of at most 120. Any scheme conforms. A contact, a person, a course, a gear item and
   a trip each carry `links`, a list of them in the diver's own order, with no bound and no
   uniqueness rule; on a contact the list stands where `website` stood, and on the other four
