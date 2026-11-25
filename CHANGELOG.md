@@ -13,7 +13,8 @@ repositories.
   course an e-learning login, a buddy a profile on a network, a regulator a service manual and
   a liveaboard week an itinerary. §6.18 defines a **Link**, an embedded object with no uuid: a
   REQUIRED `url` of at most 512 characters, absolute with its scheme, which the schema now
-  checks — a scheme, a colon and no whitespace — where `website` carried only a `format`
+  checks — a scheme, a colon and no whitespace, which §6.18 lists so that no validator's
+  regular-expression engine decides it — where `website` carried only a `format`
   annotation, and an OPTIONAL
   `label` of at most 120. Any scheme conforms. A contact, a person, a course, a gear item and
   a trip each carry `links`, a list of them in the diver's own order, with no bound and no
@@ -41,9 +42,10 @@ repositories.
   as the list. Every fixture document carrying `website` carries a single link with its
   address instead. `technical-dive` and its `write/uddf/` copy give their contact a second,
   labelled link with `extensions`, and links to a person, a course, a gear item and the trip;
-  `write/uddf/people.divejson` gives its first person one. `fixtures/invalid/` gains six
+  `write/uddf/people.divejson` gives its first person one. `fixtures/invalid/` gains eight
   files: the retired member, a link with no `url`, a `url` with no scheme, a `url` past 512
-  characters and one ending in a newline, and a `label` past 120, spread over the five
+  characters, three `url`s carrying whitespace — a trailing newline, a byte-order mark and a
+  U+0085, on which regular-expression engines disagree — and a `label` past 120, spread over the five
   records that carry the list.
 
 - **Undergarment, tech shorts and slate join the gear vocabulary (§6.12).** Each is kit a
