@@ -274,10 +274,11 @@ Stored-file records (§6.7) and the diver (§6.1) carry uuids too.
   dive's `sightings` (§6.3a) a species once, and a dive's `cylinders` (§6.3) a gear item
   once.
 - Reference-list order is meaningful, and so is the order of the `tags` on a dive and on a
-  dive site and of a site's `other_names`: writers MUST preserve the source order. A dive's
-  `site_uuids` leads with the primary site, and the rest of that list — like `gear_uuids` on
-  a dive and on a gear set, a dive's `sightings`, every `tags` list, a site's `other_names`
-  and every `people` list — is the diver's own order, whatever it means to them.
+  dive site, of a site's `other_names` and of a record's `links`: writers MUST preserve the
+  source order. A dive's `site_uuids` leads with the primary site, and the rest of that
+  list — like `gear_uuids` on a dive and on a gear set, a dive's `sightings`, every `tags`
+  list, a site's `other_names`, every `links` list and every `people` list — is the diver's
+  own order, whatever it means to them.
 
 uuids identify records *within* a logbook and, for the same diver's data, across
 exports. They are not portable identities for shared realities: the same physical dive
@@ -293,8 +294,8 @@ matching the sites of two logbooks MUST NOT take two sites for one on the streng
 entry unless that entry sits on exactly one site on each side.
 
 Embedded objects (sightings, cylinders, recordings, profile, trip parts, locations,
-addresses, positions, person references, a site's or a species' External Ids, a diver's
-emergency contacts and insurances) have no independent identity; stored-file records (§6.7) do carry a `uuid`
+addresses, positions, person references, a site's or a species' External Ids, a record's
+Links, a diver's emergency contacts and insurances) have no independent identity; stored-file records (§6.7) do carry a `uuid`
 because files are addressable objects in the source logbook. An embedded object may still **reference** a
 record: a sighting names the species seen (§6.3a), a cylinder the gear item it is (§6.3), a
 trip part the contact the diver stayed at (§6.9a) and a person reference a person (§6.20),
@@ -885,6 +886,7 @@ them.
 | `name` | string | R | 1–255. |
 | `parts` | array of Trip Part (§6.9a) | O | In the diver's own order, which is not necessarily date order (§6.9a). Absent or empty is a trip whose stretches were never recorded, and it has no span. |
 | `people` | array of Person Reference | O | §6.20 — who came on the trip, whether or not they dived; the diver's own order, and no person twice. Not the dives' people gathered up: see below. |
+| `links` | array of Link | O | §6.18 — the trip's addresses: a booking, an itinerary, a shared album. In the diver's own order. |
 | `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
@@ -1068,6 +1070,7 @@ snapshot.
 | `volume` | number | O | Liters of water capacity; > 0 — a manifolded twinset's combined, as §6.3 counts it. |
 | `working_pressure` | number | O | Bar; > 0 and ≤ 350. What the vessel is rated to, never what was in it: no relation to any dive's `start_pressure` is implied, and a 232 bar cylinder filled to 240 is a recorded fact. |
 | `material` | string | O | One of `"steel"`, `"aluminium"`, `"carbon"`. An OPTIONAL member, so this vocabulary grows in minor versions (§7). |
+| `links` | array of Link | O | §6.18 — the item's addresses: its manual, the maker's page for it. In the diver's own order. |
 | `notes` | string | O | |
 | `rented` | boolean | O | |
 | `archived` | boolean | O | Retired from active use. |
@@ -1179,6 +1182,7 @@ one course.
 | `instructor_number` | string | O | ≤ 64. The instructor's number, as on §6.16, and carried on both deliberately rather than normalized away: imported history arrives certification-first, with no course to hang it on, so a certification stands alone. The instructor themselves is one person (§6.20), whom the course names among its `people` and the card through `instructor_uuid`. |
 | `contact_uuid` | uuid | O | → `contacts` (§6.18). The contact that ran the course. A course and the cards it issued reference one record rather than carrying two copies of its name. |
 | `people` | array of Person Reference | O | §6.20 — who taught the course and who learned beside the diver: its instructors with the role `instructor`, fellow students with `student`. The diver's own order, and no person twice. |
+| `links` | array of Link | O | §6.18 — the course's addresses: its online materials, its e-learning, a reading list. In the diver's own order. |
 | `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
@@ -1209,7 +1213,7 @@ unrelated uuids (§5.3).
 | `roles` | array of string | O | What the contact is, from the vocabulary below; no value twice, in no meaningful order, and possibly empty. An OPTIONAL member, so this vocabulary grows in minor versions (§7), and a reader drops a value it does not know and keeps the rest (§5.6). |
 | `phone` | string | O | ≤ 32. As written — free text, not E.164, on §6.1's terms. |
 | `email` | string | O | ≤ 255. |
-| `website` | string | O | ≤ 512. An absolute URL, scheme included. |
+| `links` | array of Link | O | The contact's addresses — its site, a booking page, its social accounts — in the diver's own order. A Link is below. |
 | `address` | Address (§6.19) | O | Where the contact is. |
 | `position` | Position | O | §6's Position object — where the contact is on a map: its door, its pier, its mooring. Placed by the diver, typed, or taken from a directory the diver picked the contact from. Writers MUST NOT fill it from `address`, and readers MUST NOT derive either from the other (§5.4); an application that offers the diver a point for an address, and stores what the diver then saves, is behaving as an application, on §6.10's terms. |
 | `notes` | string | O | |
@@ -1232,6 +1236,22 @@ overlapping value would file one party two ways. **A role is what the contact is
 what one reference used it for** — a dive's `contact_uuid` names the contact that ran the
 dive whatever roles that contact carries. An empty `roles` records nothing an absent one does
 not.
+
+A **Link** is an embedded object, with no uuid, naming one address the diver keeps on a
+record — a contact's here, and a trip's (§6.8), a gear item's (§6.12), a course's (§6.17)
+and a person's (§6.20). Like every object this specification defines, it MAY carry
+`extensions`.
+
+| member | type | presence | constraints / meaning |
+| --- | --- | --- | --- |
+| `url` | string | R | ≤ 512. An absolute URL, scheme included: a scheme, a colon and no whitespace, which the schema checks. The scheme is not restricted, so a `mailto:` or a `tel:` address is a link like an `https:` one. |
+| `label` | string | O | ≤ 120. What the diver calls the link — "Bookings", "Course materials". Absent means the diver named it nothing, and a reader MUST NOT fill it from the page behind the address (§5.4). |
+
+A record's `links` are in the diver's own order (§5.3). The list has no bound and no
+uniqueness rule: two entries carrying one address are redundant rather than contradictory,
+and comparing two addresses as strings would miss a trailing slash anyway. **An address is
+for a person to open, and a processor never dereferences it** (§9): a reader carries it as
+written, and software rendering one as a hyperlink decides which schemes it will open.
 
 **Deferred**, and named so a reader knows they were considered: a contact's alias names, a
 fax number or a language, a rating, a dive base's prices and guides, a hotel's category, and
@@ -1275,6 +1295,7 @@ or a dive site is.
 | `name` | string | R | 1–255. As the diver writes it. |
 | `email` | string | O | ≤ 255. An email address, as a contact's is (§6.18). |
 | `phone` | string | O | ≤ 32. As written — free text, not E.164, on §6.1's terms. |
+| `links` | array of Link | O | §6.18 — where the diver finds the person: a profile on a network, a homepage. In the diver's own order, and never an identity: see below. |
 | `notes` | string | O | |
 | `created_at` | date-time | O | §5.7. |
 
@@ -1288,7 +1309,9 @@ derives one from whatever stands in for it, so every UDDF file whose owner id is
 `owner` converts to the same diver uuid, whoever's logbook it is. An application that links a
 person to an account of its own carries that link under its producer key (§5.5), where it
 means what that application says it means. `email` is the portable contact, and a reader MAY
-match on it if it chooses.
+match on it if it chooses. **A link is an address to open, not an identity**, and a reader
+matches nothing on one: a profile on a network names an account there, which the diver
+recorded and the person may since have given up, renamed or handed on.
 
 A **Person Reference** is an embedded object, with no uuid, naming one person on one
 occasion:
@@ -1328,7 +1351,7 @@ number printed on the card stays on the card and the course as `instructor_numbe
 §6.17).
 
 **Deferred**, and named so a reader knows they were considered: a person's photograph,
-website, address and date of birth, and their certification level and agency, which are the
+address and date of birth, and their certification level and agency, which are the
 other person's facts and stale the day they pass a course; and an identity that names the
 same person everywhere, an account at a host or a federated handle, for the reason above.
 Each arrives in a minor version when an implementation stores it (§1, §7), and §5.5's
@@ -1402,11 +1425,12 @@ one. Beyond generic JSON concerns:
   which anyone can look up; the diver's name, email address, phone number and date of
   birth, their dive insurance, and their heart rate through every dive whose computer
   measured one (§6.4), which is data about their health; an emergency contact's name and phone number, and the
-  people the diver was with — their names, emails, phones and the
-  diver's notes about them (§6.20) — which are **other persons'** data, carried without
-  those persons having exported anything; certification and instructor numbers, which
+  people the diver was with — their names, emails, phones, the
+  diver's notes about them and their links (§6.20), which point at their accounts outside
+  the logbook — which are **other persons'** data, carried without those persons having
+  exported anything; certification and instructor numbers, which
   function as identity documents; the contacts the diver trained, dived, shopped and slept
-  at, with their addresses and positions (§6.18); the serial numbers of the dive computers on their wrist
+  at, with their addresses, positions and links (§6.18); the serial numbers of the dive computers on their wrist
   (§6.4b) **and of the kit they own** (§6.12), which are stable hardware identifiers that
   link two documents to one diver even when every other member differs — and the kit list
   carries them for gear that never recorded a dive, so a document with no `recordings` at all
@@ -1430,7 +1454,10 @@ one. Beyond generic JSON concerns:
 - **Re-rendering text.** Free-text members are arbitrary user content. Software
   re-rendering them into HTML must escape them; software exporting them into spreadsheet
   formats should neutralize formula-leading characters (`=`, `+`, `-`, `@`) — a document
-  produced by an attacker and re-exported as CSV is a formula-injection vector.
+  produced by an attacker and re-exported as CSV is a formula-injection vector. A link's
+  `url` (§6.18) is the same content: any scheme conforms, so software rendering one as a
+  hyperlink holds it to the schemes it means to open, a `javascript:` address being as
+  valid in a document as an `https:` one.
 - **Digests correlate.** `sha256` values let anyone holding two documents prove they
   reference identical files. This is the mechanism working as intended (end-to-end
   restore verification) but is worth knowing when publishing documents.
@@ -1557,6 +1584,10 @@ diver and signed the card:
       "name": "Blue Hole Divers",
       "roles": ["dive_center", "school", "accommodation"],
       "phone": "+20 69 555 0199",
+      "links": [
+        { "url": "https://bluehole.example/" },
+        { "url": "https://bluehole.example/book", "label": "Bookings" }
+      ],
       "address": { "city": "Dahab", "country": "Egypt" }
     }
   ],
