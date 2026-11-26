@@ -7,6 +7,47 @@ repositories.
 
 ## Unreleased
 
+- **Contacts, people, courses, gear items and trips carry `links`, and a contact's `website`
+  becomes one (§5.3, §6.8, §6.12, §6.17, §6.18, §6.20, §9).** A contact held one address and
+  the records beside it held none, though a school has a booking page and social accounts, a
+  course an e-learning login, a buddy a profile on a network, a regulator a service manual and
+  a liveaboard week an itinerary. §6.18 defines a **Link**, an embedded object with no uuid: a
+  REQUIRED `url` of at most 512 characters, absolute with its scheme, which the schema now
+  checks — a scheme, a colon, at least one character after it and no whitespace, which
+  §6.18 lists so that no validator's regular-expression engine decides it — where `website` carried only a `format`
+  annotation, and an OPTIONAL
+  `label` of at most 120. Any scheme conforms. A contact, a person, a course, a gear item and
+  a trip each carry `links`, a list of them in the diver's own order, with no bound and no
+  uniqueness rule; on a contact the list stands where `website` stood, and on the other four
+  it sits before `notes`. A link is an address for a person to open: no processor
+  dereferences one, a reader leaves an absent `label` absent, and a person's links are never
+  an identity, so a reader matches nothing on them. §6.20 drops a person's website from what
+  it defers, §5.3 names the list among the ordered ones and Links among the embedded
+  objects, and §9 counts links in the dossier and holds a renderer to the schemes it means
+  to open.
+
+  **UDDF carries a contact's links and a person's, and no labels.** `docs/uddf-mapping.md`
+  reads every `<homepage>` of a contact and of a buddy as a link, in file order, each judged
+  alone, where it read a contact's first and reported a buddy's; a homepage with no scheme
+  or past 512 characters is still dropped and reported. `docs/uddf-writing.md` writes one
+  `<homepage>` per link, in a contact block and in a buddy's, and reports every `label`
+  dropped, along with a gear item's and a trip's links, which have no slot. `uddf/contacts.uddf`
+  gains a second homepage on its dive base and `uddf/people.uddf` a homepage on its first
+  buddy.
+
+  **This is a breaking change and it lands inside 1.0**, on the ground the species'
+  `external_ids` below stood on: nothing is tagged, and `$id`, `title` and `version` are
+  untouched at `1.0`. The `contact` definition keeps `additionalProperties: false`, so a
+  contact still carrying `website` no longer conforms, and no reader reads the old member
+  as the list. Every fixture document carrying `website` carries a single link with its
+  address instead. `technical-dive` and its `write/uddf/` copy give their contact a second,
+  labelled link with `extensions`, and links to a person, a course, a gear item and the trip;
+  `write/uddf/people.divejson` gives its first person one. `fixtures/invalid/` gains eight
+  files: the retired member, a link with no `url`, a `url` with no scheme, a `url` past 512
+  characters, three `url`s carrying whitespace — a trailing newline, a byte-order mark and a
+  U+0085, on which regular-expression engines disagree — and a `label` past 120, spread over the five
+  records that carry the list.
+
 - **Undergarment, tech shorts and slate join the gear vocabulary (§6.12).** Each is kit a
   diver lists and picks per dive, and each had nowhere to go but `other`. The vocabulary
   gains `undergarment` after `vest`, `tech_shorts` after `boots` and `slate` after
